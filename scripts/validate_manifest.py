@@ -96,6 +96,7 @@ def resolve_tag(repo: str, tag: str) -> str:
             check=False,
             capture_output=True,
             text=True,
+            timeout=30,
         )
         if result.returncode != 0:
             raise ValueError(f"failed to resolve {repo}@{tag}: {result.stderr.strip()}")
