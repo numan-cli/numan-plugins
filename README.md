@@ -40,6 +40,7 @@ then pins those URLs and signs the index with the official trust root.
 |------|---------|
 | `manifest.json` | `active[]` = plugins built now; build matrix + target→runner map |
 | `docs/backlog.json` | demand-ranked source-only plugins awaiting promotion |
+| `docs/roadmap.md` | remaining plugin catalog, build pipeline, and registry handoff plan |
 | `.github/workflows/build.yml` | manual matrix build → package → release → emit spec |
 | `.github/workflows/repo-safety.yml` | required manifest, test, archive, spec, and workflow checks |
 | `scripts/package_plugin.py` | normalize a built binary into a `.tar.gz`/`.zip` |
