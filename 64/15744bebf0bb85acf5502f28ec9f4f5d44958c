@@ -1,0 +1,27 @@
+scripts/ensure_release_absent.py
+  s_6c58868655aae2::t_5c66cd5a21cb35 18,36,55
+scripts/release_transaction.py
+  s_6c58868655aae2::t_5c66cd5a21cb35 19,27,42,91,106,132,146
+scripts/validate_manifest.py
+  s_6c58868655aae2::t_5c66cd5a21cb35 30,35,45,64,96,114,126
+scripts/gen_spec.py
+  s_6c58868655aae2::t_5c66cd5a21cb35 40,51,77,91,145
+scripts/test_docstring_coverage.py
+  s_6c58868655aae2::t_5c66cd5a21cb35 1-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "6415744bebf0bb85acf5502f28ec9f4f5d44958c",
+  "prompts": {},
+  "sessions": {
+    "s_6c58868655aae2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fab11-b45b-76c0-9653-39aece85b698",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
