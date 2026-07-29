@@ -6,6 +6,7 @@ import importlib.util
 import subprocess
 import sys
 import unittest
+from unittest import mock
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent / "ensure_release_absent.py"
@@ -49,6 +50,15 @@ class EnsureReleaseAbsentTests(unittest.TestCase):
     def test_fails_closed_on_api_error(self):
         with self.assertRaisesRegex(RuntimeError, "could not prove"):
             self.mod.ensure_absent("o/r", "p-1", lambda *args, **kwargs: self.result(1, stderr="rate limited"))
+
+    def test_timeout_fails_cleanly(self):
+        """Return a normal failure code when GitHub does not respond in time."""
+        with mock.patch.object(
+            self.mod,
+            "ensure_absent",
+            side_effect=subprocess.TimeoutExpired(["gh"], 30),
+        ):
+            self.assertEqual(1, self.mod.main(["--repo", "o/r", "--tag", "p-1"]))
 
 
 if __name__ == "__main__":

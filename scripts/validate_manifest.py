@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+COMMAND_TIMEOUT_SECONDS = 30
 REQUIRED_FIELDS = {
     "repo",
     "name",
@@ -101,7 +102,7 @@ def resolve_tag(repo: str, tag: str) -> str:
             check=False,
             capture_output=True,
             text=True,
-            timeout=30,
+            timeout=COMMAND_TIMEOUT_SECONDS,
         )
         if result.returncode != 0:
             raise ValueError(f"failed to resolve {repo}@{tag}: {result.stderr.strip()}")
@@ -134,7 +135,7 @@ def main(argv: list[str] | None = None) -> int:
         entries = validate_manifest(load_manifest(args.manifest), only)
         if args.verify_upstream:
             verify_upstream(entries)
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError, json.JSONDecodeError, subprocess.TimeoutExpired) as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1
     print(f"OK: validated {len(entries)} active plugin(s)")

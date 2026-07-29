@@ -28,6 +28,24 @@ class WorkflowSafetyTests(unittest.TestCase):
             refs = re.findall(r"^\s*-?\s*uses:\s*[^\s@]+@([^\s#]+)", workflow, re.MULTILINE)
             self.assertTrue(all(PINNED_SHA.fullmatch(ref) for ref in refs), refs)
 
+    def test_publication_shell_never_interpolates_expressions(self):
+        """Keep workflow expressions in env/with fields, never executable shell text."""
+        lines = BUILD.splitlines()
+        shell_lines: list[str] = []
+        for index, line in enumerate(lines):
+            match = re.match(r"^(\s*)run:\s*(.*)$", line)
+            if match is None:
+                continue
+            indent = len(match.group(1))
+            remainder = match.group(2)
+            if remainder not in ("|", ">-", ""):
+                shell_lines.append(remainder)
+            for body_line in lines[index + 1 :]:
+                if body_line.strip() and len(body_line) - len(body_line.lstrip()) <= indent:
+                    break
+                shell_lines.append(body_line)
+        self.assertNotIn("${{", "\n".join(shell_lines))
+
     def test_only_release_job_can_write_contents(self):
         global_permissions, jobs = BUILD.split("jobs:", 1)
         self.assertIn("permissions:\n  contents: read", global_permissions)

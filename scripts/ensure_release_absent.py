@@ -9,6 +9,8 @@ import sys
 from collections.abc import Callable
 from urllib.parse import quote
 
+COMMAND_TIMEOUT_SECONDS = 30
+
 
 def _require_not_found(
     result: subprocess.CompletedProcess[str],
@@ -39,7 +41,7 @@ def ensure_absent(
         check=False,
         capture_output=True,
         text=True,
-        timeout=30,
+        timeout=COMMAND_TIMEOUT_SECONDS,
     )
     _require_not_found(tag_result, subject=f"tag {repo}@{tag}")
 
@@ -48,7 +50,7 @@ def ensure_absent(
         check=False,
         capture_output=True,
         text=True,
-        timeout=30,
+        timeout=COMMAND_TIMEOUT_SECONDS,
     )
     _require_not_found(release_result, subject=f"release {repo}@{tag}")
 
@@ -61,7 +63,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         ensure_absent(args.repo, args.tag)
-    except (RuntimeError, ValueError) as exc:
+    except (RuntimeError, ValueError, subprocess.TimeoutExpired) as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1
     print(f"OK: release {args.repo}@{args.tag} does not exist")

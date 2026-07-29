@@ -13,11 +13,18 @@ from pathlib import Path
 from urllib.parse import quote
 
 Runner = Callable[..., subprocess.CompletedProcess[str]]
+COMMAND_TIMEOUT_SECONDS = 30
 
 
 def run_gh(args: list[str], runner: Runner = subprocess.run) -> dict:
     """Run a GitHub CLI command and decode its optional JSON response."""
-    result = runner(["gh", *args], check=False, capture_output=True, text=True)
+    result = runner(
+        ["gh", *args],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=COMMAND_TIMEOUT_SECONDS,
+    )
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip() or result.stdout.strip() or "gh failed")
     return json.loads(result.stdout) if result.stdout.strip() else {}
@@ -173,7 +180,13 @@ def main(argv: list[str] | None = None) -> int:
             finalize(args.repo, args.release_id, args.tag, args.commit, args.assets_dir)
         else:
             cleanup(args.repo, args.release_id, args.tag, args.commit)
-    except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as exc:
+    except (
+        OSError,
+        RuntimeError,
+        ValueError,
+        json.JSONDecodeError,
+        subprocess.TimeoutExpired,
+    ) as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1
     return 0

@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import subprocess
 import sys
+import tempfile
 import unittest
-from unittest import mock
 from pathlib import Path
+from unittest import mock
 
 SCRIPT = Path(__file__).resolve().parent / "validate_manifest.py"
 
@@ -72,6 +75,21 @@ class ValidateManifestTests(unittest.TestCase):
         with mock.patch.object(self.mod, "resolve_tag", return_value="b" * 40):
             with self.assertRaisesRegex(ValueError, "resolves to"):
                 self.mod.verify_upstream([self.entry()])
+
+    def test_upstream_timeout_fails_cleanly(self):
+        """Return a normal validation failure when an upstream lookup times out."""
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest = Path(tmp) / "manifest.json"
+            manifest.write_text(json.dumps(self.manifest()), encoding="utf-8")
+            with mock.patch.object(
+                self.mod.subprocess,
+                "run",
+                side_effect=subprocess.TimeoutExpired(["git"], 30),
+            ):
+                self.assertEqual(
+                    1,
+                    self.mod.main(["--manifest", str(manifest), "--verify-upstream"]),
+                )
 
 
 if __name__ == "__main__":
