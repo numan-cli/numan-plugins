@@ -15,6 +15,12 @@ SCRIPT = Path(__file__).resolve().parent / "validate_manifest.py"
 
 
 def load_module():
+    """
+    Load and return the manifest validation module from its script path.
+    
+    Returns:
+        module: The dynamically loaded `validate_manifest` module.
+    """
     spec = importlib.util.spec_from_file_location("validate_manifest", SCRIPT)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -29,6 +35,15 @@ class ValidateManifestTests(unittest.TestCase):
         cls.mod = load_module()
 
     def entry(self, **changes):
+        """
+        Create a baseline manifest entry with optional field overrides.
+        
+        Parameters:
+        	**changes (dict): Manifest fields to add or replace in the baseline entry.
+        
+        Returns:
+        	dict: A manifest entry dictionary.
+        """
         result = {
             "repo": "owner/repo",
             "name": "plugin",
@@ -46,6 +61,15 @@ class ValidateManifestTests(unittest.TestCase):
         return result
 
     def manifest(self, entries=None):
+        """
+        Create a manifest with default targets and active entries.
+        
+        Parameters:
+        	entries (list, optional): Manifest entries to include as active entries.
+        
+        Returns:
+        	dict: A manifest containing the default targets and active entries.
+        """
         return {"default_targets": ["linux", "windows"], "active": entries or [self.entry()]}
 
     def test_validates_selected_entry_and_targets(self):

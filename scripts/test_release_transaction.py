@@ -16,6 +16,12 @@ SCRIPT = Path(__file__).resolve().parent / "release_transaction.py"
 
 
 def load_module():
+    """
+    Load and return the release transaction module from the script path.
+    
+    Returns:
+        module: The dynamically loaded release transaction module.
+    """
     spec = importlib.util.spec_from_file_location("release_transaction", SCRIPT)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -26,10 +32,24 @@ def load_module():
 
 class FakeRunner:
     def __init__(self, responses):
+        """Initialize a fake command runner with predefined responses and an empty command history.
+        
+        Parameters:
+            responses: An iterable of response tuples returned for successive commands.
+        """
         self.responses = iter(responses)
         self.commands = []
 
     def __call__(self, command, **kwargs):
+        """
+        Execute a recorded command and return its predefined subprocess result.
+        
+        Parameters:
+            command: The command to record and associate with the result.
+        
+        Returns:
+            subprocess.CompletedProcess: A result containing the next configured exit code and payload.
+        """
         self.commands.append(command)
         code, payload = next(self.responses)
         if isinstance(payload, dict):

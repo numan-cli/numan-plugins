@@ -13,6 +13,12 @@ SCRIPT = Path(__file__).resolve().parent / "ensure_release_absent.py"
 
 
 def load_module():
+    """
+    Load and return the release-checking module from its script path.
+    
+    Returns:
+        module: The dynamically loaded module.
+    """
     spec = importlib.util.spec_from_file_location("ensure_release_absent", SCRIPT)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None

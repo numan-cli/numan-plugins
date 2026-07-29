@@ -17,7 +17,17 @@ def _require_not_found(
     *,
     subject: str,
 ) -> None:
-    """Accept a confirmed GitHub 404 and fail closed for every other result."""
+    """
+    Validate that a command result confirms the specified subject is absent.
+    
+    Parameters:
+        result (subprocess.CompletedProcess[str]): The completed GitHub CLI result to validate.
+        subject (str): Description of the tag or release being checked.
+    
+    Raises:
+        ValueError: If the subject exists.
+        RuntimeError: If the result does not reliably confirm that the subject is absent.
+    """
     if result.returncode == 0:
         raise ValueError(f"{subject} already exists; published assets are immutable")
     combined = f"{result.stdout}\n{result.stderr}".lower()
@@ -56,7 +66,15 @@ def ensure_absent(
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Run the release-absence check from command-line arguments."""
+    """
+    Run the release-absence check using command-line arguments and report its outcome.
+    
+    Parameters:
+        argv (list[str] | None): Arguments to parse, or None to use the process command line.
+    
+    Returns:
+        int: 0 when the release is absent, or 1 when the check fails.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo", required=True)
     parser.add_argument("--tag", required=True)

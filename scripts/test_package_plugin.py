@@ -11,6 +11,12 @@ SCRIPT = Path(__file__).resolve().parent / "package_plugin.py"
 
 
 def load_module():
+    """
+    Load and return the `package_plugin` module from the configured script path.
+    
+    Returns:
+        module: The dynamically loaded `package_plugin` module.
+    """
     spec = importlib.util.spec_from_file_location("package_plugin", SCRIPT)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None

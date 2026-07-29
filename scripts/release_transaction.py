@@ -18,7 +18,18 @@ COMMAND_TIMEOUT_SECONDS = 30
 
 
 def run_gh(args: list[str], runner: Runner = subprocess.run) -> dict:
-    """Run a GitHub CLI command and decode its optional JSON response."""
+    """
+    Run a GitHub CLI command and decode its optional JSON response.
+    
+    Parameters:
+        args (list[str]): Arguments passed to the GitHub CLI.
+    
+    Returns:
+        dict: The decoded JSON response, or an empty dictionary when the command produces no output.
+    
+    Raises:
+        RuntimeError: If the GitHub CLI command fails.
+    """
     result = runner(
         ["gh", *args],
         check=False,
@@ -47,7 +58,22 @@ def claim(
     body: str,
     runner: Runner = subprocess.run,
 ) -> int:
-    """Atomically claim a tag, create its draft release, and return the release ID."""
+    """
+    Claim the specified tag and create a matching draft release.
+    
+    Parameters:
+    	repo (str): GitHub repository in `owner/name` format.
+    	tag (str): Tag to claim and associate with the release.
+    	commit (str): Commit SHA the tag must reference.
+    	name (str): Release name.
+    	body (str): Release description.
+    
+    Returns:
+    	int: ID of the created draft release.
+    
+    Raises:
+    	RuntimeError: If GitHub does not return a matching draft release.
+    """
     run_gh(
         [
             "api",
@@ -118,7 +144,20 @@ def finalize(
     assets_dir: Path,
     runner: Runner = subprocess.run,
 ) -> None:
-    """Verify draft ownership and assets before publishing the release."""
+    """
+    Verify the claimed draft release and its assets before publishing it.
+    
+    Parameters:
+        repo (str): GitHub repository in `owner/name` format.
+        release_id (int): ID of the draft release to verify.
+        tag (str): Expected release tag.
+        commit (str): Expected commit associated with the tag.
+        assets_dir (Path): Directory containing the expected release assets.
+    
+    Raises:
+        ValueError: If release ownership, tag reference, or assets do not match.
+        RuntimeError: If GitHub does not confirm publication.
+    """
     release = run_gh(["api", f"repos/{repo}/releases/{release_id}"], runner)
     if release.get("draft") is not True or release.get("tag_name") != tag:
         raise ValueError("release is not the claimed draft")
@@ -170,7 +209,16 @@ def record_release_id(output: Path, release_id: int) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Execute a claim, finalize, or cleanup release transaction command."""
+    """
+    Execute a claim, finalize, or cleanup release transaction command.
+    
+    Parameters:
+        argv (list[str] | None): Command-line arguments to parse, or None to use
+            the process arguments.
+    
+    Returns:
+        int: 0 on success, or 1 when the transaction fails.
+    """
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="command", required=True)
     claim_parser = sub.add_parser("claim")

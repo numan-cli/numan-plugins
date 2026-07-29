@@ -43,7 +43,14 @@ def selected_names(value: str) -> list[str]:
 
 
 def expected_targets(manifest: dict, entry: dict) -> list[str]:
-    """Validate target declarations and return the targets required for ``entry``."""
+    """Validate target declarations and return the targets required for the entry.
+    
+    Parameters:
+    	manifest (dict): Manifest containing the default target list.
+    	entry (dict): Active entry containing optional excluded targets.
+    
+    Returns:
+    	list[str]: The default targets remaining after exclusions."""
     defaults = manifest.get("default_targets")
     if not isinstance(defaults, list) or not defaults or len(defaults) != len(set(defaults)):
         raise ValueError("default_targets must be a non-empty unique list")
@@ -62,7 +69,22 @@ def expected_targets(manifest: dict, entry: dict) -> list[str]:
 
 
 def validate_manifest(manifest: dict, only: list[str] | None = None) -> list[dict]:
-    """Validate active entries and return all or the explicitly selected entries."""
+    """
+    Validate active manifest entries and optionally select named plugins.
+    
+    Parameters:
+        manifest (dict): Manifest data containing the active plugin entries.
+        only (list[str] | None): Plugin names to include; when omitted, includes all
+            active entries.
+    
+    Returns:
+        list[dict]: Validated active entries, filtered to the requested names when
+            provided.
+    
+    Raises:
+        ValueError: If the active entries or their required fields are invalid, a
+            plugin name is duplicated or unknown, or a source commit is malformed.
+    """
     active = manifest.get("active")
     if not isinstance(active, list) or not active:
         raise ValueError("active must be a non-empty list")
@@ -94,7 +116,19 @@ def validate_manifest(manifest: dict, only: list[str] | None = None) -> list[dic
 
 
 def resolve_tag(repo: str, tag: str) -> str:
-    """Resolve an upstream annotated or lightweight tag to its commit SHA."""
+    """
+    Resolve an upstream tag to its commit SHA.
+    
+    Parameters:
+        repo (str): GitHub repository in `owner/name` format.
+        tag (str): Tag name to resolve.
+    
+    Returns:
+        str: The commit SHA referenced by the tag.
+    
+    Raises:
+        ValueError: If the remote lookup fails or the tag cannot be found.
+    """
     url = f"https://github.com/{repo}.git"
     for ref in (f"refs/tags/{tag}^{{}}", f"refs/tags/{tag}"):
         result = subprocess.run(
@@ -124,7 +158,16 @@ def verify_upstream(entries: list[dict]) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Validate a manifest and optionally verify upstream tag provenance."""
+    """
+    Validate a manifest and optionally verify upstream tag provenance.
+    
+    Parameters:
+        argv (list[str] | None): Command-line arguments to parse, or None to use
+            the process arguments.
+    
+    Returns:
+        int: 0 on success or 1 when validation or upstream verification fails.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, default=Path("manifest.json"))
     parser.add_argument("--only", default=None)

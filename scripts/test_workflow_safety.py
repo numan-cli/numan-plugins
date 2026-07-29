@@ -17,6 +17,9 @@ PINNED_SHA = re.compile(r"^[0-9a-f]{40}$")
 
 class WorkflowSafetyTests(unittest.TestCase):
     def test_publication_is_manual_dispatch_only(self):
+        """
+        Verify that publication is triggered only by a manually dispatched workflow with the required filter configuration.
+        """
         trigger_block = BUILD.split("permissions:", 1)[0]
         self.assertIn("  workflow_dispatch:\n", trigger_block)
         self.assertNotIn("  pull_request:\n", trigger_block)
@@ -24,6 +27,9 @@ class WorkflowSafetyTests(unittest.TestCase):
         self.assertRegex(trigger_block, r"only:\n\s+description:.*\n\s+required: true")
 
     def test_every_action_is_pinned_to_a_commit(self):
+        """
+        Verify that every GitHub Action reference in each workflow is pinned to a 40-character commit SHA.
+        """
         for workflow in WORKFLOWS:
             refs = re.findall(r"^\s*-?\s*uses:\s*[^\s@]+@([^\s#]+)", workflow, re.MULTILINE)
             self.assertTrue(all(PINNED_SHA.fullmatch(ref) for ref in refs), refs)

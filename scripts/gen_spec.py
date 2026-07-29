@@ -39,7 +39,19 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 def load_manifest_entry(name: str, manifest_path: Path | None = None) -> dict:
-    """Return the active manifest entry named ``name`` or exit with an error."""
+    """
+    Find the active manifest entry with the specified name.
+    
+    Parameters:
+        name (str): Manifest entry name to find.
+        manifest_path (Path | None): Path to the manifest file, or the repository manifest when omitted.
+    
+    Returns:
+        dict: The matching active manifest entry.
+    
+    Raises:
+        SystemExit: If no active manifest entry matches the specified name.
+    """
     path = manifest_path or (REPO_ROOT / "manifest.json")
     manifest = json.loads(path.read_text(encoding="utf-8"))
     for entry in manifest.get("active", []):
@@ -50,7 +62,15 @@ def load_manifest_entry(name: str, manifest_path: Path | None = None) -> dict:
 
 
 def parse_packaged(path: Path) -> list[dict]:
-    """Parse and validate unique target records emitted by package_plugin.py."""
+    """
+    Parse and validate packaged artifact records from a TSV file.
+    
+    Returns:
+    	list[dict]: Unique target records containing the target, filename, SHA-256 hash, and executable path.
+    
+    Raises:
+    	SystemExit: If a record is malformed, contains a duplicate target or invalid SHA-256 hash, or no records are found.
+    """
     rows = []
     targets = set()
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -95,7 +115,21 @@ def build_spec(
     release_base: str,
     expected: list[str],
 ) -> dict:
-    """Build a registry spec dict from a manifest entry and PACKAGED rows."""
+    """
+    Build a registry specification from manifest metadata and packaged artifact records.
+    
+    Parameters:
+        entry (dict): Manifest metadata for the plugin.
+        packaged_rows (list[dict]): Validated packaged artifacts keyed by target.
+        release_base (str): Base URL for released artifact files.
+        expected (list[str]): Target names required in the specification.
+    
+    Returns:
+        dict: Registry specification containing plugin metadata and binary artifact targets.
+    
+    Raises:
+        ValueError: If packaged targets are missing or include unexpected targets.
+    """
     actual = {row["target"] for row in packaged_rows}
     missing = sorted(set(expected) - actual)
     extra = sorted(actual - set(expected))
