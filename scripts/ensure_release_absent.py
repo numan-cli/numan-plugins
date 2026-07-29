@@ -39,6 +39,7 @@ def ensure_absent(
         check=False,
         capture_output=True,
         text=True,
+        timeout=30,
     )
     _require_not_found(tag_result, subject=f"tag {repo}@{tag}")
 
@@ -47,6 +48,7 @@ def ensure_absent(
         check=False,
         capture_output=True,
         text=True,
+        timeout=30,
     )
     _require_not_found(release_result, subject=f"release {repo}@{tag}")
 

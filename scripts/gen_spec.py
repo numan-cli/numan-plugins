@@ -32,6 +32,8 @@ import re
 import sys
 from pathlib import Path
 
+from validate_manifest import expected_targets
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
@@ -85,12 +87,6 @@ def verify_packaged_assets(rows: list[dict], assets_dir: Path) -> None:
                 f"packaged asset hash mismatch for {asset.name}: "
                 f"expected {row['sha256']}, got {actual}"
             )
-
-
-def expected_targets(manifest: dict, entry: dict) -> list[str]:
-    """Return the manifest targets expected for a plugin after exclusions."""
-    excluded = set(entry.get("exclude_targets", []))
-    return [target for target in manifest["default_targets"] if target not in excluded]
 
 
 def build_spec(
