@@ -31,7 +31,8 @@ then pins those URLs and signs the index with the official trust root.
   and each release.
 - Release tags and assets are immutable. The publishing workflow refuses an
   existing release; changed bytes require a new package version or explicit
-  build revision.
+  build revision. New releases are assembled and verified as run-owned drafts,
+  then made public only after the complete asset set is confirmed.
 
 ## Layout
 
@@ -43,6 +44,7 @@ then pins those URLs and signs the index with the official trust root.
 | `.github/workflows/repo-safety.yml` | required manifest, test, archive, spec, and workflow checks |
 | `scripts/package_plugin.py` | normalize a built binary into a `.tar.gz`/`.zip` |
 | `scripts/gen_spec.py` | emit a `numan-registry` `kind:binary` spec (no sha256) |
+| `scripts/release_transaction.py` | claim, verify, finalize, or clean up an owned draft release |
 
 ## Build matrix
 

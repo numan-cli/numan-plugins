@@ -24,8 +24,6 @@ jobs:
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    env:
-      CLINE_API_KEY: ${{ secrets.CLINE_API_KEY }}
 
     permissions:
       contents: read
@@ -33,29 +31,42 @@ jobs:
       issues: read
 
     steps:
+      - name: Check reviewer credentials
+        id: cline-key
+        env:
+          CLINE_API_KEY: ${{ secrets.CLINE_API_KEY }}
+        run: |
+          if [ -n "$CLINE_API_KEY" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Report unavailable reviewer credentials
-        if: env.CLINE_API_KEY == ''
+        if: steps.cline-key.outputs.available != 'true'
         run: echo "::notice::Cline review skipped because CLINE_API_KEY is not configured"
 
       - name: Checkout repository
-        if: env.CLINE_API_KEY != ''
+        if: steps.cline-key.outputs.available == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Setup Node.js
-        if: env.CLINE_API_KEY != ''
+        if: steps.cline-key.outputs.available == 'true'
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 22
 
       - name: Install Cline CLI
-        if: env.CLINE_API_KEY != ''
+        if: steps.cline-key.outputs.available == 'true'
         run: npm install -g cline
 
       - name: Configure Cline Authentication
-        if: env.CLINE_API_KEY != ''
+        if: steps.cline-key.outputs.available == 'true'
+        env:
+          CLINE_API_KEY: ${{ secrets.CLINE_API_KEY }}
         # Replace 'anthropic' with your provider of choice (openai, openrouter, etc.)
         # and ensure the corresponding secret is set in your repo settings.
         run: |
@@ -64,7 +75,7 @@ jobs:
             --modelid cline-pass/deepseek-v4-pro
 
       - name: Get PR number
-        if: env.CLINE_API_KEY != ''
+        if: steps.cline-key.outputs.available == 'true'
         id: pr
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
@@ -74,7 +85,7 @@ jobs:
           fi
 
       - name: Review PR with Cline
-        if: env.CLINE_API_KEY != ''
+        if: steps.cline-key.outputs.available == 'true'
         env:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           GITHUB_REPO: ${{ github.repository }}

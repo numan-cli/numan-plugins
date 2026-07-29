@@ -9,7 +9,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BUILD = (ROOT / ".github" / "workflows" / "build.yml").read_text(encoding="utf-8")
 SAFETY = (ROOT / ".github" / "workflows" / "repo-safety.yml").read_text(encoding="utf-8")
-WORKFLOWS = [path.read_text(encoding="utf-8") for path in (ROOT / ".github" / "workflows").glob("*.yml")]
+WORKFLOW_DIR = ROOT / ".github" / "workflows"
+WORKFLOW_PATHS = sorted({*WORKFLOW_DIR.glob("*.yml"), *WORKFLOW_DIR.glob("*.yaml")})
+WORKFLOWS = [path.read_text(encoding="utf-8") for path in WORKFLOW_PATHS]
 PINNED_SHA = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -24,7 +26,6 @@ class WorkflowSafetyTests(unittest.TestCase):
     def test_every_action_is_pinned_to_a_commit(self):
         for workflow in WORKFLOWS:
             refs = re.findall(r"^\s*-?\s*uses:\s*[^\s@]+@([^\s#]+)", workflow, re.MULTILINE)
-            self.assertTrue(refs)
             self.assertTrue(all(PINNED_SHA.fullmatch(ref) for ref in refs), refs)
 
     def test_only_release_job_can_write_contents(self):

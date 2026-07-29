@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import importlib.util
+import json
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+SCRIPT = Path(__file__).resolve().parent / "release_transaction.py"
+
+
+def load_module():
+    spec = importlib.util.spec_from_file_location("release_transaction", SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+class FakeRunner:
+    def __init__(self, responses):
+        self.responses = iter(responses)
+        self.commands = []
+
+    def __call__(self, command, **kwargs):
+        self.commands.append(command)
+        code, payload = next(self.responses)
+        if isinstance(payload, dict):
+            return subprocess.CompletedProcess(command, code, json.dumps(payload), "")
+        return subprocess.CompletedProcess(command, code, "", payload)
+
+
+class ReleaseTransactionTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = load_module()
+
+    def test_claim_creates_tag_then_draft(self):
+        runner = FakeRunner([(0, {}), (0, {"id": 7, "draft": True, "tag_name": "p-1"})])
+        self.assertEqual(self.mod.claim("o/r", "p-1", "a" * 40, "p 1", "body", runner), 7)
+        self.assertIn("git/refs", runner.commands[0][4])
+        self.assertIn("releases", runner.commands[1][4])
+
+    def test_claim_failure_removes_owned_tag(self):
+        runner = FakeRunner([(0, {}), (1, "conflict"), (0, {})])
+        with self.assertRaises(RuntimeError):
+            self.mod.claim("o/r", "p-1", "a" * 40, "p 1", "body", runner)
+        self.assertIn("DELETE", runner.commands[-1])
+
+    def test_finalize_verifies_exact_assets_before_publish(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            asset = Path(tmp) / "p.zip"
+            asset.write_bytes(b"asset")
+            runner = FakeRunner(
+                [
+                    (0, {"id": 7, "draft": True, "tag_name": "p-1", "assets": [{"name": "p.zip", "size": 5}]}),
+                    (0, {"object": {"sha": "a" * 40}}),
+                    (0, {"id": 7, "draft": False}),
+                ]
+            )
+            self.mod.finalize("o/r", 7, "p-1", "a" * 40, Path(tmp), runner)
+            self.assertIn("PATCH", runner.commands[-1])
+
+    def test_cleanup_never_deletes_a_published_release(self):
+        runner = FakeRunner([(0, {"id": 7, "draft": False, "tag_name": "p-1"})])
+        self.mod.cleanup("o/r", 7, "p-1", "a" * 40, runner)
+        self.assertEqual(len(runner.commands), 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
