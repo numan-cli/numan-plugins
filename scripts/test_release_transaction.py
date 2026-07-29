@@ -10,6 +10,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SCRIPT = Path(__file__).resolve().parent / "release_transaction.py"
 
@@ -111,6 +112,50 @@ class ReleaseTransactionTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "asset set mismatch"):
                 self.mod.finalize("o/r", 7, "p-1", "a" * 40, Path(tmp), runner)
             self.assertFalse(any("PATCH" in command for command in runner.commands))
+
+    def test_finalize_refuses_when_tag_moved(self):
+        """Never publish a draft whose tag no longer points at the workflow commit."""
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "p.zip").write_bytes(b"asset")
+            runner = FakeRunner(
+                [
+                    (0, {"id": 7, "draft": True, "tag_name": "p-1", "assets": []}),
+                    (0, {"object": {"sha": "b" * 40}}),
+                ]
+            )
+            with self.assertRaisesRegex(ValueError, "no longer points"):
+                self.mod.finalize("o/r", 7, "p-1", "a" * 40, Path(tmp), runner)
+            self.assertFalse(any("PATCH" in command for command in runner.commands))
+
+    def test_claim_output_failure_rolls_back(self):
+        """Roll back a claim if its ownership output cannot be recorded."""
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "github-output"
+            with (
+                mock.patch.dict(self.mod.os.environ, {"GITHUB_OUTPUT": str(output)}),
+                mock.patch.object(self.mod, "claim", return_value=7),
+                mock.patch.object(self.mod, "record_release_id", side_effect=OSError("disk full")),
+                mock.patch.object(self.mod, "cleanup") as cleanup,
+            ):
+                self.assertEqual(
+                    1,
+                    self.mod.main(
+                        [
+                            "claim",
+                            "--repo",
+                            "o/r",
+                            "--tag",
+                            "p-1",
+                            "--commit",
+                            "a" * 40,
+                            "--name",
+                            "p 1",
+                            "--body",
+                            "body",
+                        ]
+                    ),
+                )
+            cleanup.assert_called_once_with("o/r", 7, "p-1", "a" * 40)
 
     def test_cleanup_never_deletes_a_published_release(self):
         runner = FakeRunner([(0, {"id": 7, "draft": False, "tag_name": "p-1"})])

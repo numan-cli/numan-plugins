@@ -61,7 +61,22 @@ jobs:
 
       - name: Install Cline CLI
         if: steps.cline-key.outputs.available == 'true'
-        run: npm install -g cline
+        env:
+          CLINE_INTEGRITY: sha512-3+RfBKRFk1s89FxYZJpM9t1dGLrpz/9WlP/zO9QP2U36C2A5ZvW7wbNKe8eFgYn52ihvKnT7wIel8KQz2vSf8Q==
+          CLINE_VERSION: 3.0.47
+        run: |
+          archive=$(npm pack --silent "cline@$CLINE_VERSION")
+          node - "$archive" "$CLINE_INTEGRITY" <<'NODE'
+          const crypto = require("crypto");
+          const fs = require("fs");
+          const [archive, expected] = process.argv.slice(2);
+          const actual = "sha512-" + crypto.createHash("sha512")
+            .update(fs.readFileSync(archive)).digest("base64");
+          if (actual !== expected) {
+            throw new Error(`Cline archive integrity mismatch: ${actual}`);
+          }
+          NODE
+          npm install -g "./$archive"
 
       - name: Configure Cline Authentication
         if: steps.cline-key.outputs.available == 'true'

@@ -163,6 +163,12 @@ def cleanup(
     delete_tag(repo, tag, runner)
 
 
+def record_release_id(output: Path, release_id: int) -> None:
+    """Append the claimed release ID to the GitHub Actions output file."""
+    with output.open("a", encoding="utf-8") as stream:
+        stream.write(f"release_id={release_id}\n")
+
+
 def main(argv: list[str] | None = None) -> int:
     """Execute a claim, finalize, or cleanup release transaction command."""
     parser = argparse.ArgumentParser()
@@ -184,12 +190,18 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         if args.command == "claim":
-            release_id = claim(args.repo, args.tag, args.commit, args.name, args.body)
             output = os.environ.get("GITHUB_OUTPUT")
             if not output:
                 raise RuntimeError("GITHUB_OUTPUT is not set")
-            with Path(output).open("a", encoding="utf-8") as stream:
-                stream.write(f"release_id={release_id}\n")
+            output_path = Path(output)
+            with output_path.open("a", encoding="utf-8"):
+                pass
+            release_id = claim(args.repo, args.tag, args.commit, args.name, args.body)
+            try:
+                record_release_id(output_path, release_id)
+            except OSError:
+                cleanup(args.repo, release_id, args.tag, args.commit)
+                raise
         elif args.command == "finalize":
             finalize(args.repo, args.release_id, args.tag, args.commit, args.assets_dir)
         else:
