@@ -65,10 +65,10 @@ class WorkflowSafetyTests(unittest.TestCase):
 
     def test_macos_uses_supported_runners(self):
         """Keep the executable matrix and manifest metadata on current macOS runners."""
-        self.assertNotIn('"os": "macos-13"', BUILD)
-        self.assertNotIn('"os": "macos-14"', BUILD)
-        self.assertIn('"os": "macos-15-intel"', BUILD)
-        self.assertIn('"os": "macos-15"', BUILD)
+        self.assertNotRegex(BUILD, r"['\"]os['\"]\s*:\s*['\"]macos-13['\"]")
+        self.assertNotRegex(BUILD, r"['\"]os['\"]\s*:\s*['\"]macos-14['\"]")
+        self.assertRegex(BUILD, r"['\"]os['\"]\s*:\s*['\"]macos-15-intel['\"]")
+        self.assertRegex(BUILD, r"['\"]os['\"]\s*:\s*['\"]macos-15['\"]")
         self.assertEqual(
             MANIFEST["target_runner_map"]["x86_64-apple-darwin"],
             "macos-15-intel",
