@@ -45,8 +45,8 @@ jobs:
           TARGETS = [
               {"triple": "x86_64-unknown-linux-gnu", "os": "ubuntu-latest", "cross": False},
               {"triple": "aarch64-unknown-linux-gnu", "os": "ubuntu-latest", "cross": True},
-              {"triple": "x86_64-apple-darwin", "os": "macos-13", "cross": False},
-              {"triple": "aarch64-apple-darwin", "os": "macos-14", "cross": False},
+              {"triple": "x86_64-apple-darwin", "os": "macos-15-intel", "cross": False},
+              {"triple": "aarch64-apple-darwin", "os": "macos-15", "cross": False},
               {"triple": "x86_64-pc-windows-msvc", "os": "windows-latest", "cross": False},
           ]
           only = [s.strip() for s in (sys.argv[1] or "").split(",") if s.strip()]
