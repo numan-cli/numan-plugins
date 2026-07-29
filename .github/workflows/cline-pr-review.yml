@@ -14,6 +14,9 @@ concurrency:
   group: pr-review-${{ github.event.pull_request.number || inputs.pr_number }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   cline-pr-review:
     if: |
@@ -28,29 +31,66 @@ jobs:
       issues: read
 
     steps:
+      - name: Check reviewer credentials
+        id: cline-key
+        env:
+          CLINE_API_KEY: ${{ secrets.CLINE_API_KEY }}
+        run: |
+          if [ -n "$CLINE_API_KEY" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Report unavailable reviewer credentials
+        if: steps.cline-key.outputs.available != 'true'
+        run: echo "::notice::Cline review skipped because CLINE_API_KEY is not configured"
+
       - name: Checkout repository
-        uses: actions/checkout@v7
+        if: steps.cline-key.outputs.available == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        if: steps.cline-key.outputs.available == 'true'
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 22
-          cache: "npm"
 
       - name: Install Cline CLI
-        run: npm install -g cline
+        if: steps.cline-key.outputs.available == 'true'
+        env:
+          CLINE_INTEGRITY: sha512-3+RfBKRFk1s89FxYZJpM9t1dGLrpz/9WlP/zO9QP2U36C2A5ZvW7wbNKe8eFgYn52ihvKnT7wIel8KQz2vSf8Q==
+          CLINE_VERSION: 3.0.47
+        run: |
+          archive=$(npm pack --silent "cline@$CLINE_VERSION")
+          node - "$archive" "$CLINE_INTEGRITY" <<'NODE'
+          const crypto = require("crypto");
+          const fs = require("fs");
+          const [archive, expected] = process.argv.slice(2);
+          const actual = "sha512-" + crypto.createHash("sha512")
+            .update(fs.readFileSync(archive)).digest("base64");
+          if (actual !== expected) {
+            throw new Error(`Cline archive integrity mismatch: ${actual}`);
+          }
+          NODE
+          npm install -g "./$archive"
 
       - name: Configure Cline Authentication
+        if: steps.cline-key.outputs.available == 'true'
+        env:
+          CLINE_API_KEY: ${{ secrets.CLINE_API_KEY }}
         # Replace 'anthropic' with your provider of choice (openai, openrouter, etc.)
         # and ensure the corresponding secret is set in your repo settings.
         run: |
           cline auth --provider cline-pass \
-            --apikey "${{ secrets.CLINE_API_KEY }}" \
+            --apikey "$CLINE_API_KEY" \
             --modelid cline-pass/deepseek-v4-pro
 
       - name: Get PR number
+        if: steps.cline-key.outputs.available == 'true'
         id: pr
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
@@ -60,6 +100,7 @@ jobs:
           fi
 
       - name: Review PR with Cline
+        if: steps.cline-key.outputs.available == 'true'
         env:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           GITHUB_REPO: ${{ github.repository }}

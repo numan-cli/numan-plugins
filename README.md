@@ -15,9 +15,10 @@ Rust toolchain to install them. A survey of the curated
 ~50 most-wanted plugins (highlight, dns, regex, dbus, plot, compress, units, …)
 are all source-only and cannot be hand-intaken.
 
-This repo closes that gap: it cross-compiles those plugins from their upstream
-tags, packages one archive per target, and publishes them as GitHub release
-assets. [`numan-registry`](https://github.com/tonythethompson/numan-registry)
+This repo closes that gap: it cross-compiles those plugins from immutable
+upstream commits (with tags retained for human-facing provenance), packages one
+archive per target, and publishes them as GitHub release assets.
+[`numan-registry`](https://github.com/tonythethompson/numan-registry)
 then pins those URLs and signs the index with the official trust root.
 
 ## Trust boundary
@@ -26,7 +27,12 @@ then pins those URLs and signs the index with the official trust root.
 - Signing stays in `numan-registry` (`production.yml` + the Ed25519 trust root).
 - Every hash is computed at intake by `numan-registry`'s `add-package.py` from
   the uploaded asset — never hand-typed here.
-- Provenance (upstream repo + tag) is pinned in `manifest.json` and each release.
+- Provenance (upstream repo + full commit + tag) is pinned in `manifest.json`
+  and each release.
+- Release tags and assets are immutable. The publishing workflow refuses an
+  existing release; changed bytes require a new package version or explicit
+  build revision. New releases are assembled and verified as run-owned drafts,
+  then made public only after the complete asset set is confirmed.
 
 ## Layout
 
@@ -34,9 +40,11 @@ then pins those URLs and signs the index with the official trust root.
 |------|---------|
 | `manifest.json` | `active[]` = plugins built now; build matrix + target→runner map |
 | `docs/backlog.json` | demand-ranked source-only plugins awaiting promotion |
-| `.github/workflows/build.yml` | matrix build → package → release → emit spec |
+| `.github/workflows/build.yml` | manual matrix build → package → release → emit spec |
+| `.github/workflows/repo-safety.yml` | required manifest, test, archive, spec, and workflow checks |
 | `scripts/package_plugin.py` | normalize a built binary into a `.tar.gz`/`.zip` |
 | `scripts/gen_spec.py` | emit a `numan-registry` `kind:binary` spec (no sha256) |
+| `scripts/release_transaction.py` | claim, verify, finalize, or clean up an owned draft release |
 
 ## Build matrix
 
@@ -46,11 +54,13 @@ rest build on native runners.
 
 ## Flow (per plugin)
 
-1. Add the plugin to `manifest.json` `active[]` (repo, upstream tag, bin, Nu
-   version compat).
-2. Run the **build-plugins** workflow (`workflow_dispatch`, optional `only=`
-   filter). It builds all targets, publishes a release `<name>-<version>` with
-   the archives, and uploads a `spec-<name>.json` artifact.
+1. Add the plugin to `manifest.json` `active[]` (repo, immutable upstream
+   `source_commit`, human-facing tag, bin, Nu version compat).
+2. Run the **build-plugins** workflow manually with a non-empty `only=` package
+   list. It verifies every tag-to-commit mapping, builds all expected targets,
+   refuses pre-existing releases/assets, publishes `<name>-<version>`, and
+   uploads a `spec-<name>.json` artifact. Pushes and pull requests cannot
+   publish.
 3. Drop `spec-<name>.json` into `numan-registry/specs/`, run
    `python scripts/add-package.py --spec … --write` there (computes every
    sha256, merges + schema-validates the index).
@@ -65,11 +75,11 @@ rest build on native runners.
 - `cptpiepmatz/nu-plugin-highlight` @ `v1.4.15+0.113.1` → `nu_plugin_highlight` 1.4.15
 - `fdncred/nu_plugin_regex` @ `v0.22.0` → `nu_plugin_regex` 0.22.0
 - `dead10ck/nu_plugin_dns` @ `v4.0.10` → `nu_plugin_dns` 4.0.10
+- `idanarye/nu_plugin_skim` @ `v0.29.1` → `nu_plugin_skim` 0.29.1
+- `FMotalleb/nu_plugin_desktop_notifications` @ `v0.114.1` → `nu_plugin_desktop_notifications` 0.114.1
 
 ## Registry-side follow-up
 
-`numan-registry`'s `add-package.py` `build_version_entry()` carries only
-`verified_with` / `activation` / `dependencies` / `artifact`. To land build
-provenance (`git`/`rev`/`cargo_name`) in the **signed** index — the auditability
-payoff for #30 — teach it to pass through the schema's existing `source` block.
-Until then, provenance lives in this repo's `manifest.json` and release tags.
+Generated specs include the schema's `source` block with the immutable upstream
+commit in `source.rev`. Registry intake must preserve that provenance in the
+signed index and independently download and hash every release asset.
