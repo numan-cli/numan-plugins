@@ -16,6 +16,7 @@ Runner = Callable[..., subprocess.CompletedProcess[str]]
 
 
 def run_gh(args: list[str], runner: Runner = subprocess.run) -> dict:
+    """Run a GitHub CLI command and decode its optional JSON response."""
     result = runner(["gh", *args], check=False, capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip() or result.stdout.strip() or "gh failed")
@@ -23,6 +24,7 @@ def run_gh(args: list[str], runner: Runner = subprocess.run) -> dict:
 
 
 def delete_tag(repo: str, tag: str, runner: Runner) -> None:
+    """Delete a repository tag previously claimed by this transaction."""
     run_gh(
         ["api", "--method", "DELETE", f"repos/{repo}/git/refs/tags/{quote(tag, safe='')}"],
         runner,
@@ -37,6 +39,7 @@ def claim(
     body: str,
     runner: Runner = subprocess.run,
 ) -> int:
+    """Atomically claim a tag, create its draft release, and return the release ID."""
     run_gh(
         [
             "api",
@@ -85,6 +88,7 @@ def claim(
 
 
 def expected_assets(assets_dir: Path) -> dict[str, int]:
+    """Return the exact filename-to-size mapping for local release assets."""
     assets = {path.name: path.stat().st_size for path in assets_dir.iterdir() if path.is_file()}
     if not assets:
         raise ValueError(f"no release assets found in {assets_dir}")
@@ -99,6 +103,7 @@ def finalize(
     assets_dir: Path,
     runner: Runner = subprocess.run,
 ) -> None:
+    """Verify draft ownership and assets before publishing the release."""
     release = run_gh(["api", f"repos/{repo}/releases/{release_id}"], runner)
     if release.get("draft") is not True or release.get("tag_name") != tag:
         raise ValueError("release is not the claimed draft")
@@ -124,6 +129,7 @@ def cleanup(
     commit: str,
     runner: Runner = subprocess.run,
 ) -> None:
+    """Delete only the still-draft release and tag owned by this transaction."""
     release = run_gh(["api", f"repos/{repo}/releases/{release_id}"], runner)
     if release.get("draft") is not True or release.get("tag_name") != tag:
         print("release is not the claimed draft; refusing cleanup", file=sys.stderr)
@@ -137,6 +143,7 @@ def cleanup(
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Execute a claim, finalize, or cleanup release transaction command."""
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="command", required=True)
     claim_parser = sub.add_parser("claim")

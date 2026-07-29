@@ -15,6 +15,7 @@ def _require_not_found(
     *,
     subject: str,
 ) -> None:
+    """Accept a confirmed GitHub 404 and fail closed for every other result."""
     if result.returncode == 0:
         raise ValueError(f"{subject} already exists; published assets are immutable")
     combined = f"{result.stdout}\n{result.stderr}".lower()
@@ -32,6 +33,7 @@ def ensure_absent(
     tag: str,
     runner: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
 ) -> None:
+    """Verify that neither a Git tag nor a release exists for ``tag``."""
     tag_result = runner(
         ["gh", "api", f"repos/{repo}/git/ref/tags/{quote(tag, safe='')}"],
         check=False,
@@ -50,6 +52,7 @@ def ensure_absent(
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run the release-absence check from command-line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo", required=True)
     parser.add_argument("--tag", required=True)

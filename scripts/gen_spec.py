@@ -37,6 +37,7 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 def load_manifest_entry(name: str, manifest_path: Path | None = None) -> dict:
+    """Return the active manifest entry named ``name`` or exit with an error."""
     path = manifest_path or (REPO_ROOT / "manifest.json")
     manifest = json.loads(path.read_text(encoding="utf-8"))
     for entry in manifest.get("active", []):
@@ -47,6 +48,7 @@ def load_manifest_entry(name: str, manifest_path: Path | None = None) -> dict:
 
 
 def parse_packaged(path: Path) -> list[dict]:
+    """Parse and validate unique target records emitted by package_plugin.py."""
     rows = []
     targets = set()
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -72,6 +74,7 @@ def parse_packaged(path: Path) -> list[dict]:
 
 
 def verify_packaged_assets(rows: list[dict], assets_dir: Path) -> None:
+    """Verify that every recorded asset exists and matches its recorded SHA-256."""
     for row in rows:
         asset = assets_dir / row["filename"]
         if not asset.is_file():
@@ -85,6 +88,7 @@ def verify_packaged_assets(rows: list[dict], assets_dir: Path) -> None:
 
 
 def expected_targets(manifest: dict, entry: dict) -> list[str]:
+    """Return the manifest targets expected for a plugin after exclusions."""
     excluded = set(entry.get("exclude_targets", []))
     return [target for target in manifest["default_targets"] if target not in excluded]
 
@@ -138,6 +142,7 @@ def build_spec(
 
 
 def main() -> int:
+    """Validate packaged records and write a registry intake specification."""
     ap = argparse.ArgumentParser()
     ap.add_argument("--name", required=True)
     ap.add_argument("--packaged", required=True, type=Path)
