@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -94,9 +95,16 @@ def claim(
     return release["id"]
 
 
-def expected_assets(assets_dir: Path) -> dict[str, int]:
-    """Return the exact filename-to-size mapping for local release assets."""
-    assets = {path.name: path.stat().st_size for path in assets_dir.iterdir() if path.is_file()}
+def expected_assets(assets_dir: Path) -> dict[str, dict[str, int | str]]:
+    """Return each local asset's size and SHA-256 digest keyed by filename."""
+    assets = {
+        path.name: {
+            "size": path.stat().st_size,
+            "digest": f"sha256:{hashlib.sha256(path.read_bytes()).hexdigest()}",
+        }
+        for path in assets_dir.iterdir()
+        if path.is_file()
+    }
     if not assets:
         raise ValueError(f"no release assets found in {assets_dir}")
     return assets
@@ -117,7 +125,13 @@ def finalize(
     ref = run_gh(["api", f"repos/{repo}/git/ref/tags/{quote(tag, safe='')}"], runner)
     if ref.get("object", {}).get("sha") != commit:
         raise ValueError("claimed release tag no longer points to the workflow commit")
-    actual = {asset["name"]: asset["size"] for asset in release.get("assets", [])}
+    actual = {
+        asset["name"]: {
+            "size": asset["size"],
+            "digest": asset.get("digest"),
+        }
+        for asset in release.get("assets", [])
+    }
     expected = expected_assets(assets_dir)
     if actual != expected:
         raise ValueError(f"release asset set mismatch: expected {expected}, got {actual}")

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import json
 import subprocess
 import sys
@@ -58,13 +59,58 @@ class ReleaseTransactionTests(unittest.TestCase):
             asset.write_bytes(b"asset")
             runner = FakeRunner(
                 [
-                    (0, {"id": 7, "draft": True, "tag_name": "p-1", "assets": [{"name": "p.zip", "size": 5}]}),
+                    (
+                        0,
+                        {
+                            "id": 7,
+                            "draft": True,
+                            "tag_name": "p-1",
+                            "assets": [
+                                {
+                                    "name": "p.zip",
+                                    "size": 5,
+                                    "digest": "sha256:"
+                                    + hashlib.sha256(b"asset").hexdigest(),
+                                }
+                            ],
+                        },
+                    ),
                     (0, {"object": {"sha": "a" * 40}}),
                     (0, {"id": 7, "draft": False}),
                 ]
             )
             self.mod.finalize("o/r", 7, "p-1", "a" * 40, Path(tmp), runner)
             self.assertIn("PATCH", runner.commands[-1])
+
+    def test_finalize_rejects_same_size_different_bytes(self):
+        """Never publish a same-size remote payload with a different digest."""
+        with tempfile.TemporaryDirectory() as tmp:
+            asset = Path(tmp) / "p.zip"
+            asset.write_bytes(b"asset")
+            runner = FakeRunner(
+                [
+                    (
+                        0,
+                        {
+                            "id": 7,
+                            "draft": True,
+                            "tag_name": "p-1",
+                            "assets": [
+                                {
+                                    "name": "p.zip",
+                                    "size": 5,
+                                    "digest": "sha256:"
+                                    + hashlib.sha256(b"other").hexdigest(),
+                                }
+                            ],
+                        },
+                    ),
+                    (0, {"object": {"sha": "a" * 40}}),
+                ]
+            )
+            with self.assertRaisesRegex(ValueError, "asset set mismatch"):
+                self.mod.finalize("o/r", 7, "p-1", "a" * 40, Path(tmp), runner)
+            self.assertFalse(any("PATCH" in command for command in runner.commands))
 
     def test_cleanup_never_deletes_a_published_release(self):
         runner = FakeRunner([(0, {"id": 7, "draft": False, "tag_name": "p-1"})])
