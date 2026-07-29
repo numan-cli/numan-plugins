@@ -1,0 +1,48 @@
+scripts/test_workflow_safety.py
+  s_6c58868655aae2::t_4c1cb9a119eaf0 1-40
+scripts/gen_spec.py
+  s_6c58868655aae2::t_2927637dd7d95b 29,31,36,51,55-66,74-97,99-108,130,144,149,152-162
+  s_6c58868655aae2::t_4cac224553215b 21
+scripts/ensure_release_absent.py
+  s_6c58868655aae2::t_03863466f0e05f 2,10,13-29,35-43,49
+  s_6c58868655aae2::t_b213d093694671 1,3-9,11-12,30-34,44-48,50-67
+manifest.json
+  s_6c58868655aae2::t_b213d093694671 18,33,48,63,78
+  s_6c58868655aae2::t_1e8dffd55982f8 3
+scripts/test_gen_spec_source.py
+  s_6c58868655aae2::t_2927637dd7d95b 7,9,36,47,55,61,67-83,95-105
+  s_6c58868655aae2::t_8d0f4141bc7807 84-94
+scripts/test_validate_manifest.py
+  s_6c58868655aae2::t_2927637dd7d95b 1-78
+.github/workflows/repo-safety.yml
+  s_6c58868655aae2::t_47689087b1cd9d 1-34
+scripts/validate_manifest.py
+  s_6c58868655aae2::t_b213d093694671 1-137
+scripts/test_ensure_release_absent.py
+  s_6c58868655aae2::t_2927637dd7d95b 1-32,34-35,42,47-55
+  s_6c58868655aae2::t_03863466f0e05f 33,36-41,43-46
+.github/workflows/build.yml
+  s_6c58868655aae2::t_1e8dffd55982f8 69
+  s_6c58868655aae2::t_03863466f0e05f 4,98-103,188,196
+  s_6c58868655aae2::t_47689087b1cd9d 13-15,18,27-34,38,50,52-53,62,79,82,85,88,91-96,106,112,135,142,151-152,157-159,161,164,167,174,180-186,203-215,217
+README.md
+  s_6c58868655aae2::t_1e8dffd55982f8 18-21,30-34,42-43,55-61,76-77,81-83
+scripts/test_package_plugin.py
+  s_6c58868655aae2::t_2927637dd7d95b 1-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "675cdbdb09744f9123f634fef1d00f526c75345c",
+  "prompts": {},
+  "sessions": {
+    "s_6c58868655aae2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fab11-b45b-76c0-9653-39aece85b698",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
