@@ -116,10 +116,10 @@
       "plugin_bin": "nu_plugin_image",
       "tag": "v0.112.2",
       "has_release": true,
-      "blocker": "SOURCE_ONLY",
+      "blocker": "PROMOTED",
       "nu_plugin": "0.112.2",
       "nu_protocol": "0.112.2",
-      "c1_note": "2026-07-22: nu-plugin/nu-protocol 0.112.2; passes >=0.112. Empty release assets (CI-build).",
+      "c1_note": "2026-07-29: promoted to active[] after a locked Windows build and a command-discovery smoke with Nu 0.112.2 from the immutable v0.112.2 commit; release assets remain pending the manual build workflow.",
       "stars": 22
     },
     {
@@ -155,7 +155,10 @@
       "plugin_bin": "nu_plugin_port_extension",
       "tag": "v0.113.1",
       "has_release": true,
-      "blocker": "SOURCE_ONLY",
+      "blocker": "PROMOTED",
+      "nu_plugin": "0.113.1",
+      "nu_protocol": "0.113.1",
+      "c1_note": "2026-07-29: promoted to active[] after a locked Windows build and a command-discovery smoke with Nu 0.113.1 from the immutable v0.113.1 commit; release assets remain pending the manual build workflow.",
       "stars": 16
     },
     {

@@ -77,6 +77,8 @@ rest build on native runners.
 - `dead10ck/nu_plugin_dns` @ `v4.0.10` → `nu_plugin_dns` 4.0.10
 - `idanarye/nu_plugin_skim` @ `v0.29.1` → `nu_plugin_skim` 0.29.1
 - `FMotalleb/nu_plugin_desktop_notifications` @ `v0.114.1` → `nu_plugin_desktop_notifications` 0.114.1
+- `FMotalleb/nu_plugin_port_extension` @ `v0.113.1` → `nu_plugin_port_extension` 0.113.1
+- `FMotalleb/nu_plugin_image` @ `v0.112.2` → `nu_plugin_image` 0.112.2
 
 ## Registry-side follow-up
 

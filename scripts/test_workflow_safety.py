@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import unittest
 from pathlib import Path
@@ -12,6 +13,7 @@ SAFETY = (ROOT / ".github" / "workflows" / "repo-safety.yml").read_text(encoding
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
 WORKFLOW_PATHS = sorted({*WORKFLOW_DIR.glob("*.yml"), *WORKFLOW_DIR.glob("*.yaml")})
 WORKFLOWS = [path.read_text(encoding="utf-8") for path in WORKFLOW_PATHS]
+MANIFEST = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
 PINNED_SHA = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -60,6 +62,21 @@ class WorkflowSafetyTests(unittest.TestCase):
         self.assertIn("    permissions:\n      contents: write", release_job)
         self.assertNotIn("contents: write", SAFETY)
         self.assertNotIn("action-gh-release", SAFETY)
+
+    def test_macos_uses_supported_runners(self):
+        """Keep the executable matrix and manifest metadata on current macOS runners."""
+        self.assertNotIn('"os": "macos-13"', BUILD)
+        self.assertNotIn('"os": "macos-14"', BUILD)
+        self.assertIn('"os": "macos-15-intel"', BUILD)
+        self.assertIn('"os": "macos-15"', BUILD)
+        self.assertEqual(
+            MANIFEST["target_runner_map"]["x86_64-apple-darwin"],
+            "macos-15-intel",
+        )
+        self.assertEqual(
+            MANIFEST["target_runner_map"]["aarch64-apple-darwin"],
+            "macos-15",
+        )
 
 
 if __name__ == "__main__":
