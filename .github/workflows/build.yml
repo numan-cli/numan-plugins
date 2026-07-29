@@ -1,7 +1,7 @@
 name: build-plugins
 
 # Cross-compile the plugins listed in manifest.json `active[]` from their upstream
-# tags, package one archive per target, publish them as GitHub release assets on
+# immutable commits, package one archive per target, publish them as GitHub release assets on
 # THIS repo, and emit a numan-registry spec per plugin. Signing does NOT happen
 # here — numan-registry pins these asset URLs via add-package.py and signs the
 # index with the official trust root.
@@ -10,17 +10,12 @@ on:
   workflow_dispatch:
     inputs:
       only:
-        description: "Comma-separated plugin names to build (blank = all active)"
-        required: false
-        default: ""
-  push:
-    paths:
-      - manifest.json
-      - scripts/**
-      - .github/workflows/build.yml
+        description: "Comma-separated active plugin names to publish"
+        required: true
+        type: string
 
 permissions:
-  contents: write # create releases + upload assets
+  contents: read
 
 jobs:
   setup:
@@ -29,11 +24,18 @@ jobs:
       plugins: ${{ steps.select.outputs.plugins }}
       matrix: ${{ steps.select.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Validate selection and immutable upstream revisions
+        run: >-
+          python3 scripts/validate_manifest.py
+          --only "${{ inputs.only }}"
+          --verify-upstream
       - id: select
         shell: bash
         run: |
-          only="${{ github.event.inputs.only }}"
+          only="${{ inputs.only }}"
           python3 - "$only" <<'PY' >> "$GITHUB_OUTPUT"
           import json, sys
           TARGETS = [
@@ -45,10 +47,10 @@ jobs:
           ]
           only = [s.strip() for s in (sys.argv[1] or "").split(",") if s.strip()]
           active = json.load(open("manifest.json"))["active"]
-          if only:
-              active = [p for p in active if p["name"] in only]
+          active = [p for p in active if p["name"] in only]
           plugins = [{"name": p["name"], "repo": p["repo"], "tag": p["tag"],
-                      "version": p["version"], "bin": p["plugin_bin"]} for p in active]
+                      "source_commit": p["source_commit"], "version": p["version"],
+                      "bin": p["plugin_bin"]} for p in active]
           include = []
           for p in active:
               excluded = set(p.get("exclude_targets", []))
@@ -57,13 +59,14 @@ jobs:
                       continue
                   include.append({
                       "name": p["name"], "repo": p["repo"], "tag": p["tag"],
+                      "source_commit": p["source_commit"],
                       "version": p["version"], "bin": p["plugin_bin"],
                       "triple": t["triple"], "os": t["os"], "cross": t["cross"],
                   })
           print("plugins=" + json.dumps(plugins))
           print("matrix=" + json.dumps({"include": include}))
           PY
-          echo "Selected $(python3 -c 'import json;print(len(json.load(open("manifest.json"))["active"]))') active plugin(s)"
+          echo "Selected $(python3 -c 'import json,sys; only={s.strip() for s in sys.argv[1].split(",")}; print(sum(p["name"] in only for p in json.load(open("manifest.json"))["active"]))' "$only") plugin(s)"
 
   build:
     needs: setup
@@ -73,26 +76,40 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout numan-plugins (build scripts)
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           path: numan-plugins
+          persist-credentials: false
 
       - name: Checkout plugin source
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: ${{ matrix.repo }}
-          ref: ${{ matrix.tag }}
+          ref: ${{ matrix.source_commit }}
           path: src
           submodules: recursive
+          persist-credentials: false
+
+      - name: Verify immutable checkout
+        working-directory: src
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ matrix.source_commit }}"
+
+      - name: Recheck upstream tag provenance
+        run: >-
+          python3 numan-plugins/scripts/validate_manifest.py
+          --manifest numan-plugins/manifest.json
+          --only "${{ matrix.name }}"
+          --verify-upstream
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
         with:
           targets: ${{ matrix.triple }}
 
       - name: Set up cross linker (Linux aarch64)
         if: ${{ matrix.cross }}
-        uses: taiki-e/setup-cross-toolchain-action@v1
+        uses: taiki-e/setup-cross-toolchain-action@12b7ad4acfa95a1476779d6c06699b96ec1691f8 # v1
         with:
           target: ${{ matrix.triple }}
 
@@ -115,14 +132,14 @@ jobs:
             --outdir dist | tee "package-${{ matrix.name }}-${{ matrix.triple }}.txt"
 
       - name: Upload archive
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: asset-${{ matrix.name }}-${{ matrix.triple }}
           path: dist/*
           if-no-files-found: error
 
       - name: Upload package record
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: record-${{ matrix.name }}-${{ matrix.triple }}
           path: package-${{ matrix.name }}-${{ matrix.triple }}.txt
@@ -131,41 +148,44 @@ jobs:
   release:
     needs: [setup, build]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
         plugin: ${{ fromJSON(needs.setup.outputs.plugins) }}
+    concurrency:
+      group: publish-${{ matrix.plugin.name }}-${{ matrix.plugin.version }}
+      cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           path: numan-plugins
+          persist-credentials: false
 
       - name: Collect this plugin's assets
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           pattern: asset-${{ matrix.plugin.name }}-*
           path: dl
           merge-multiple: true
 
       - name: Collect this plugin's package records
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           pattern: record-${{ matrix.plugin.name }}-*
           path: records
           merge-multiple: true
 
-      - name: Publish release assets
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ matrix.plugin.name }}-${{ matrix.plugin.version }}
-          name: ${{ matrix.plugin.name }} ${{ matrix.plugin.version }}
-          body: |
-            CI-built Nushell plugin binaries for `${{ matrix.plugin.name }}`,
-            cross-compiled from `${{ matrix.plugin.repo }}@${{ matrix.plugin.tag }}`.
-            Pinned + hash-verified + signed downstream in numan-registry.
-          files: dl/*
+      - name: Refuse an existing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python3 numan-plugins/scripts/ensure_release_absent.py
+          --repo "${{ github.repository }}"
+          --tag "${{ matrix.plugin.name }}-${{ matrix.plugin.version }}"
 
-      - name: Generate numan-registry spec
+      - name: Verify records and generate numan-registry spec
         shell: bash
         run: |
           cat records/*.txt > packaged.tsv
@@ -173,13 +193,28 @@ jobs:
           python3 numan-plugins/scripts/gen_spec.py \
             --name "${{ matrix.plugin.name }}" \
             --packaged packaged.tsv \
+            --assets-dir dl \
             --release-base "$base" \
             --out "spec-${{ matrix.plugin.name }}.json"
           echo "----- spec-${{ matrix.plugin.name }}.json -----"
           cat "spec-${{ matrix.plugin.name }}.json"
 
+      - name: Publish release assets
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          tag_name: ${{ matrix.plugin.name }}-${{ matrix.plugin.version }}
+          name: ${{ matrix.plugin.name }} ${{ matrix.plugin.version }}
+          body: |
+            CI-built Nushell plugin binaries for `${{ matrix.plugin.name }}`,
+            cross-compiled from `${{ matrix.plugin.repo }}@${{ matrix.plugin.tag }}`
+            at commit `${{ matrix.plugin.source_commit }}`.
+            Pinned + hash-verified + signed downstream in numan-registry.
+          files: dl/*
+          overwrite_files: false
+          fail_on_unmatched_files: true
+
       - name: Upload spec for numan-registry intake
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: spec-${{ matrix.plugin.name }}
           path: spec-${{ matrix.plugin.name }}.json
