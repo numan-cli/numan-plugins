@@ -1,6 +1,6 @@
 # Numan Plugins Roadmap
 
-**Status date:** 2026-07-29
+**Status date:** 2026-07-30
 
 This repository builds binary plugin artifacts for Numan's official registry.
 It is the controlled escape hatch for useful Nushell plugins whose upstreams
@@ -17,15 +17,18 @@ ship source-only tags or incomplete release assets.
 - Generated registry specs preserve upstream provenance and leave SHA256
   computation to `numan-registry`.
 - `docs/backlog.json` is the demand-ranked source-only candidate list.
-- PR #4 (`feature/catalog-expansion-wave-1`, commit `88151d8`) is open and
-  green. It adds `FMotalleb/nu_plugin_port_extension` and
-  `FMotalleb/nu_plugin_image`, and updates macOS runners to current labels.
+- PR #4 (`feature/catalog-expansion-wave-1`) is **merged**. `master` includes
+  `FMotalleb/nu_plugin_port_extension@0.113.1` and
+  `FMotalleb/nu_plugin_image@0.112.2`, plus macOS-15 runner labels.
+- Wave 1 assets are not published yet. First dispatch failed on Windows
+  because the Recheck step lacked `shell: bash` (fix in PR #8).
 
 ## Immediate Work: Finish Catalog Wave 1
 
 Checklist after PR #4 merges:
 
-- [ ] Pull the merge commit into `master`.
+- [x] Pull the merge commit into `master`.
+- [ ] Merge Windows Recheck `shell: bash` fix (PR #8) if still open.
 - [ ] Dispatch `build-plugins` manually with only:
   `nu_plugin_port_extension,nu_plugin_image`.
 - [ ] Confirm the workflow checks each upstream tag against its recorded
@@ -68,7 +71,7 @@ then hand them to `numan-registry`.
 - [ ] `FMotalleb/nu_plugin_port_extension@0.113.1`
 - [ ] `FMotalleb/nu_plugin_image@0.112.2`
 
-These are already prepared in PR #4. The remaining work is merge, manual build,
+These are already on `master` via PR #4. The remaining work is manual build,
 asset verification, and registry intake.
 
 ### Wave 2 Research
@@ -76,8 +79,8 @@ asset verification, and registry intake.
 Use `docs/backlog.json` as the starting queue. Good next research candidates
 are source-only plugins with tags and enough demand to justify CI-built assets:
 
-- [ ] `devyn/nu_plugin_dbus`
-- [ ] `PhotonBursted/nu_plugin_vec`
+- [x] `devyn/nu_plugin_dbus` — researched 2026-07-30: `PRE_0_112` (nu-plugin 0.101.0; libdbus; not Windows)
+- [x] `PhotonBursted/nu_plugin_vec` — researched 2026-07-30: `PRE_0_112` (nu-plugin 0.105.1; pure Rust; Windows expected)
 - [ ] `drbrain/nu_plugin_prometheus`
 - [ ] `galuszkak/nu_plugin_bigquery`
 - [ ] `jcornaz/nu_plugin_from_beancount`
