@@ -94,6 +94,27 @@ class WorkflowSafetyTests(unittest.TestCase):
         self.assertNotIn("contents: write", SAFETY)
         self.assertNotIn("action-gh-release", SAFETY)
 
+    def test_matrix_env_shell_steps_force_bash(self):
+        """Steps that expand $MATRIX_* must use bash so Windows pwsh does not empty them."""
+        lines = BUILD.splitlines()
+        for index, line in enumerate(lines):
+            if not re.match(r"^\s+- name:\s+", line):
+                continue
+            block: list[str] = [line]
+            base_indent = len(line) - len(line.lstrip())
+            for body_line in lines[index + 1 :]:
+                if body_line.strip() and len(body_line) - len(body_line.lstrip()) <= base_indent:
+                    break
+                block.append(body_line)
+            text = "\n".join(block)
+            if "$MATRIX_" not in text:
+                continue
+            self.assertIn(
+                "shell: bash",
+                text,
+                f"step must force bash when expanding MATRIX env vars:\n{text}",
+            )
+
     def test_macos_uses_supported_runners(self):
         """Keep the executable matrix and manifest metadata on current macOS runners."""
         targets = workflow_targets(BUILD)

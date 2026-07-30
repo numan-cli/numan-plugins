@@ -102,6 +102,8 @@ jobs:
         run: test "$(git rev-parse HEAD)" = "$SOURCE_COMMIT"
 
       - name: Recheck upstream tag provenance
+        # Windows runners default to pwsh, where $MATRIX_NAME is not an env var.
+        shell: bash
         env:
           MATRIX_NAME: ${{ matrix.name }}
         run: >-
