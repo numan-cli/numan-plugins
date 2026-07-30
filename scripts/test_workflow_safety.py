@@ -24,16 +24,20 @@ TARGETS_ASSIGNMENT = re.compile(
 
 def workflow_targets(workflow: str) -> list[dict[str, object]]:
     """
-    Parse the target definitions from a build workflow.
-    
+    Parse the ``TARGETS`` assignment from a build workflow.
+
+    Expects ``TARGETS`` to be a Python list of dicts, each with at least
+    ``triple`` (Rust target triple), ``os`` (GitHub runner label), and
+    ``cross`` (bool, whether the job cross-compiles).
+
     Parameters:
-        workflow (str): Build workflow text containing a ``TARGETS`` assignment.
-    
+        workflow: Build workflow text containing a ``TARGETS`` assignment.
+
     Returns:
-        list[dict[str, object]]: Parsed target definitions.
-    
+        The parsed target definitions in declaration order.
+
     Raises:
-        AssertionError: If the ``TARGETS`` assignment is missing or does not contain a list.
+        AssertionError: If the ``TARGETS`` assignment is missing or is not a list.
     """
     match = TARGETS_ASSIGNMENT.search(workflow)
     if match is None:
