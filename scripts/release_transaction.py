@@ -145,25 +145,31 @@ def upload_assets(
     """
     Upload every file in assets_dir to the claimed draft release by ID.
 
-    Uses the Releases API with the numeric release id so softprops cannot create
-    a second draft when the tag is briefly undiscoverable.
+    Uses the release upload_url via gh release upload to correctly target
+    uploads.github.com. References the release by numeric ID so softprops
+    cannot create a second draft when the tag is briefly undiscoverable.
     """
     assets = sorted(path for path in assets_dir.iterdir() if path.is_file())
     if not assets:
         raise ValueError(f"no release assets found in {assets_dir}")
+
+    # Fetch the release to get its tag name for gh release upload
+    release = run_gh(["api", f"repos/{repo}/releases/{release_id}"], runner)
+    tag = release.get("tag_name")
+    if not tag:
+        raise RuntimeError(f"release {release_id} missing tag_name")
+
     for path in assets:
-        name = quote(path.name, safe="")
         result = runner(
             [
                 "gh",
-                "api",
-                "--method",
-                "POST",
-                f"repos/{repo}/releases/{release_id}/assets?name={name}",
-                "-H",
-                "Content-Type: application/octet-stream",
-                "--input",
+                "release",
+                "upload",
+                tag,
                 str(path),
+                "--repo",
+                repo,
+                "--clobber",
             ],
             check=False,
             capture_output=True,
@@ -175,13 +181,6 @@ def upload_assets(
                 result.stderr.strip()
                 or result.stdout.strip()
                 or f"failed to upload {path.name}"
-            )
-        payload = json.loads(result.stdout) if result.stdout.strip() else {}
-        if payload.get("name") != path.name:
-            raise RuntimeError(f"unexpected upload response for {path.name}: {payload}")
-        if payload.get("state") not in (None, "uploaded", "new"):
-            raise RuntimeError(
-                f"upload of {path.name} ended in state {payload.get('state')!r}"
             )
 
 
