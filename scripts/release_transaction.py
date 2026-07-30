@@ -136,6 +136,55 @@ def expected_assets(assets_dir: Path) -> dict[str, dict[str, int | str]]:
     return assets
 
 
+def upload_assets(
+    repo: str,
+    release_id: int,
+    assets_dir: Path,
+    runner: Runner = subprocess.run,
+) -> None:
+    """
+    Upload every file in assets_dir to the claimed draft release by ID.
+
+    Uses the Releases API with the numeric release id so softprops cannot create
+    a second draft when the tag is briefly undiscoverable.
+    """
+    assets = sorted(path for path in assets_dir.iterdir() if path.is_file())
+    if not assets:
+        raise ValueError(f"no release assets found in {assets_dir}")
+    for path in assets:
+        name = quote(path.name, safe="")
+        result = runner(
+            [
+                "gh",
+                "api",
+                "--method",
+                "POST",
+                f"repos/{repo}/releases/{release_id}/assets?name={name}",
+                "-H",
+                "Content-Type: application/octet-stream",
+                "--input",
+                str(path),
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=max(COMMAND_TIMEOUT_SECONDS, 120),
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                result.stderr.strip()
+                or result.stdout.strip()
+                or f"failed to upload {path.name}"
+            )
+        payload = json.loads(result.stdout) if result.stdout.strip() else {}
+        if payload.get("name") != path.name:
+            raise RuntimeError(f"unexpected upload response for {path.name}: {payload}")
+        if payload.get("state") not in (None, "uploaded", "new"):
+            raise RuntimeError(
+                f"upload of {path.name} ended in state {payload.get('state')!r}"
+            )
+
+
 def finalize(
     repo: str,
     release_id: int,
@@ -227,13 +276,14 @@ def main(argv: list[str] | None = None) -> int:
     claim_parser.add_argument("--commit", required=True)
     claim_parser.add_argument("--name", required=True)
     claim_parser.add_argument("--body", required=True)
-    for command in ("finalize", "cleanup"):
+    for command in ("finalize", "cleanup", "upload"):
         child = sub.add_parser(command)
         child.add_argument("--repo", required=True)
         child.add_argument("--release-id", required=True, type=int)
-        child.add_argument("--tag", required=True)
-        child.add_argument("--commit", required=True)
-        if command == "finalize":
+        if command in ("finalize", "cleanup"):
+            child.add_argument("--tag", required=True)
+            child.add_argument("--commit", required=True)
+        if command in ("finalize", "upload"):
             child.add_argument("--assets-dir", required=True, type=Path)
     args = parser.parse_args(argv)
     try:
@@ -250,6 +300,8 @@ def main(argv: list[str] | None = None) -> int:
             except OSError:
                 cleanup(args.repo, release_id, args.tag, args.commit)
                 raise
+        elif args.command == "upload":
+            upload_assets(args.repo, args.release_id, args.assets_dir)
         elif args.command == "finalize":
             finalize(args.repo, args.release_id, args.tag, args.commit, args.assets_dir)
         else:

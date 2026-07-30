@@ -249,15 +249,14 @@ jobs:
           --body "$RELEASE_BODY"
 
       - name: Upload assets to the owned draft
-        id: upload
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
-        with:
-          tag_name: ${{ matrix.plugin.name }}-${{ matrix.plugin.version }}
-          name: ${{ matrix.plugin.name }} ${{ matrix.plugin.version }}
-          draft: true
-          files: dl/*
-          overwrite_files: false
-          fail_on_unmatched_files: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLAIMED_RELEASE_ID: ${{ steps.claim.outputs.release_id }}
+        run: >-
+          python3 numan-plugins/scripts/release_transaction.py upload
+          --repo "$GITHUB_REPOSITORY"
+          --release-id "$CLAIMED_RELEASE_ID"
+          --assets-dir dl
 
       - name: Verify and publish the complete draft
         env:
@@ -265,15 +264,13 @@ jobs:
           CLAIMED_RELEASE_ID: ${{ steps.claim.outputs.release_id }}
           PLUGIN_NAME: ${{ matrix.plugin.name }}
           PLUGIN_VERSION: ${{ matrix.plugin.version }}
-          UPLOADED_RELEASE_ID: ${{ steps.upload.outputs.id }}
-        run: |
-          test "$UPLOADED_RELEASE_ID" = "$CLAIMED_RELEASE_ID"
-          python3 numan-plugins/scripts/release_transaction.py finalize \
-            --repo "$GITHUB_REPOSITORY" \
-            --release-id "$CLAIMED_RELEASE_ID" \
-            --tag "$PLUGIN_NAME-$PLUGIN_VERSION" \
-            --commit "$GITHUB_SHA" \
-            --assets-dir dl
+        run: >-
+          python3 numan-plugins/scripts/release_transaction.py finalize
+          --repo "$GITHUB_REPOSITORY"
+          --release-id "$CLAIMED_RELEASE_ID"
+          --tag "$PLUGIN_NAME-$PLUGIN_VERSION"
+          --commit "$GITHUB_SHA"
+          --assets-dir dl
 
       - name: Clean up this run's failed draft
         if: (failure() || cancelled()) && steps.claim.outputs.release_id != ''
