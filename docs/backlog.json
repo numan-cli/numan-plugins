@@ -20,10 +20,10 @@
       "plugin_bin": "nu_plugin_skim",
       "tag": "v0.29.1",
       "has_release": true,
-      "blocker": "SOURCE_ONLY",
+      "blocker": "PROMOTED",
       "nu_plugin": "0.114",
       "nu_protocol": "0.114",
-      "c1_note": "2026-07-22: nu-plugin/nu-protocol 0.114 at v0.29.1; release assets empty (CI-build). First Batch 1 promote candidate.",
+      "c1_note": "2026-07-30: promoted and released via numan-plugins as nu_plugin_skim-0.29.1; in official registry. Previously SOURCE_ONLY (empty upstream assets).",
       "stars": 85
     },
     {
@@ -32,8 +32,11 @@
       "plugin_bin": "nu_plugin_highlight",
       "tag": "v1.4.15+0.113.1",
       "has_release": true,
-      "blocker": "SOURCE_ONLY",
-      "stars": 82
+      "blocker": "PROMOTED",
+      "stars": 82,
+      "nu_plugin": "0.113.1",
+      "nu_protocol": "0.113.1",
+      "c1_note": "2026-07-30: promoted and released via numan-plugins as nu_plugin_highlight-1.4.15; in official registry (no intel mac)."
     },
     {
       "repo": "Euphrasiologist/nu_plugin_plot",
@@ -71,8 +74,11 @@
       "plugin_bin": "nu_plugin_dbus",
       "tag": "0.14.0",
       "has_release": true,
-      "blocker": "SOURCE_ONLY",
-      "stars": 34
+      "blocker": "PRE_0_112",
+      "stars": 34,
+      "nu_plugin": "0.101.0",
+      "nu_protocol": "0.101.0",
+      "c1_note": "2026-07-30 Wave 2 research: tag 0.14.0 -> commit ea17d3c5fbb74a06b143ef1b929f15bbf7e505a0; release assets empty; nu-plugin/nu-protocol 0.101.0 (below >=0.112 gate) on tag and main; native dep dbus 0.9.7 (libdbus; UNIX/Linux/FreeBSD, not Windows); commands: dbus call/get/get-all/introspect/list/set; no numan-plugins release tag yet. Defer until upstream bumps Nu minor."
     },
     {
       "repo": "Euphrasiologist/nu_plugin_bio",
@@ -167,8 +173,11 @@
       "plugin_bin": "nu_plugin_vec",
       "tag": "v1.1.6",
       "has_release": true,
-      "blocker": "SOURCE_ONLY",
-      "stars": 13
+      "blocker": "PRE_0_112",
+      "stars": 13,
+      "nu_plugin": "0.105.1",
+      "nu_protocol": "0.105.1",
+      "c1_note": "2026-07-30 Wave 2 research: tag v1.1.6 -> commit 69745d9b17853ff33989b14546fbc51b1ff167d8; release assets empty; nu-plugin/nu-protocol 0.105.1 (below >=0.112 gate) on tag and main; no native system deps (pure Rust + itertools); Windows expected to build; commands: vec add/dot/etc; no numan-plugins release tag yet. Defer until upstream bumps Nu minor."
     },
     {
       "repo": "fdncred/nu_plugin_pnet",
