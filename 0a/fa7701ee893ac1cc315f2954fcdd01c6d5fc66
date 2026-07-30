@@ -1,0 +1,20 @@
+scripts/test_workflow_safety.py
+  s_8db40c050c6ee5::t_30f9c7830142e1 5,19-32
+  s_8db40c050c6ee5::t_123e3730d9020d 83-88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0afa7701ee893ac1cc315f2954fcdd01c6d5fc66",
+  "prompts": {},
+  "sessions": {
+    "s_8db40c050c6ee5": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "c9e95e8d-1110-4ba1-baa2-3ff52d2d2635",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
