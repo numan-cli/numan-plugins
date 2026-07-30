@@ -94,6 +94,15 @@ class WorkflowSafetyTests(unittest.TestCase):
         self.assertNotIn("contents: write", SAFETY)
         self.assertNotIn("action-gh-release", SAFETY)
 
+    def test_release_upload_uses_claimed_release_id(self):
+        """Avoid softprops creating a second draft when the tag is briefly undiscoverable."""
+        self.assertNotIn("softprops/action-gh-release", BUILD)
+        upload_step = BUILD.split(
+            "      - name: Upload assets to the owned draft\n", 1
+        )[1].split("\n      - name:", 1)[0]
+        self.assertIn("release_transaction.py upload", upload_step)
+        self.assertIn("--release-id \"$CLAIMED_RELEASE_ID\"", upload_step)
+
     def test_matrix_env_shell_steps_force_bash(self):
         """Steps that expand $MATRIX_* must use bash so Windows pwsh does not empty them."""
         lines = BUILD.splitlines()

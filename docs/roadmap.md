@@ -20,25 +20,28 @@ ship source-only tags or incomplete release assets.
 - PR #4 (`feature/catalog-expansion-wave-1`) is **merged**. `master` includes
   `FMotalleb/nu_plugin_port_extension@0.113.1` and
   `FMotalleb/nu_plugin_image@0.112.2`, plus macOS-15 runner labels.
-- Wave 1 assets are not published yet. First dispatch failed on Windows
-  because the Recheck step lacked `shell: bash` (fix in PR #8).
+- Wave 1 release assets are published:
+  `nu_plugin_port_extension-0.113.1` and `nu_plugin_image-0.112.2`.
+- Release upload now uses claim-ID upload ([PR #12](https://github.com/tonythethompson/numan-plugins/pull/12))
+  to avoid softprops creating a second draft.
 
 ## Immediate Work: Finish Catalog Wave 1
 
 Checklist after PR #4 merges:
 
 - [x] Pull the merge commit into `master`.
-- [ ] Merge Windows Recheck `shell: bash` fix (PR #8) if still open.
-- [ ] Dispatch `build-plugins` manually with only:
+- [x] Merge Windows Recheck `shell: bash` fix (PR #8).
+- [x] Dispatch `build-plugins` manually with only:
   `nu_plugin_port_extension,nu_plugin_image`.
-- [ ] Confirm the workflow checks each upstream tag against its recorded
+- [x] Confirm the workflow checks each upstream tag against its recorded
   `source_commit`.
-- [ ] Confirm all expected target assets are present and no pre-existing release
+- [x] Confirm all expected target assets are present and no pre-existing release
   or asset was replaced.
-- [ ] Download the generated `spec-*.json` artifacts for registry intake.
-- [ ] Do not rebuild existing releases unless a new package version or explicit
+- [x] Download the generated `spec-*.json` artifacts for registry intake.
+- [x] Do not rebuild existing releases unless a new package version or explicit
   build revision has been chosen.
-- [ ] Do not publish any registry changes from this repo.
+- [x] Do not publish any registry changes from this repo.
+- [ ] Merge release upload-by-id fix (PR #12) for future waves.
 
 ## Candidate Promotion Gates
 
@@ -68,11 +71,10 @@ then hand them to `numan-registry`.
 
 ### Wave 1 Completion
 
-- [ ] `FMotalleb/nu_plugin_port_extension@0.113.1`
-- [ ] `FMotalleb/nu_plugin_image@0.112.2`
+- [x] `FMotalleb/nu_plugin_port_extension@0.113.1`
+- [x] `FMotalleb/nu_plugin_image@0.112.2`
 
-These are already on `master` via PR #4. The remaining work is manual build,
-asset verification, and registry intake.
+Assets published; registry intake is [numan-registry#32](https://github.com/tonythethompson/numan-registry/pull/32).
 
 ### Wave 2 Research
 

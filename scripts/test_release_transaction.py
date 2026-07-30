@@ -103,6 +103,24 @@ class ReleaseTransactionTests(unittest.TestCase):
             self.mod.finalize("o/r", 7, "p-1", "a" * 40, Path(tmp), runner)
             self.assertIn("PATCH", runner.commands[-1])
 
+    def test_upload_assets_posts_to_claimed_release_id(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            asset = Path(tmp) / "p.zip"
+            asset.write_bytes(b"asset")
+            runner = FakeRunner([
+                (0, {"id": 7, "tag_name": "p-1"}),  # Fetch release to get tag
+                (0, ""),  # gh release upload response
+            ])
+            self.mod.upload_assets("o/r", 7, Path(tmp), runner)
+            # First command fetches the release
+            self.assertIn("releases/7", " ".join(runner.commands[0]))
+            # Second command uses gh release upload
+            upload_cmd = runner.commands[1]
+            self.assertIn("release", upload_cmd)
+            self.assertIn("upload", upload_cmd)
+            self.assertIn("p-1", upload_cmd)  # Uses tag name
+            self.assertIn(str(asset), upload_cmd)
+
     def test_finalize_rejects_same_size_different_bytes(self):
         """Never publish a same-size remote payload with a different digest."""
         with tempfile.TemporaryDirectory() as tmp:
