@@ -23,6 +23,18 @@ TARGETS_ASSIGNMENT = re.compile(
 
 
 def workflow_targets(workflow: str) -> list[dict[str, object]]:
+    """
+    Parse the target definitions from a build workflow.
+    
+    Parameters:
+        workflow (str): Build workflow text containing a ``TARGETS`` assignment.
+    
+    Returns:
+        list[dict[str, object]]: Parsed target definitions.
+    
+    Raises:
+        AssertionError: If the ``TARGETS`` assignment is missing or does not contain a list.
+    """
     match = TARGETS_ASSIGNMENT.search(workflow)
     if match is None:
         raise AssertionError("TARGETS assignment not found in build workflow")
