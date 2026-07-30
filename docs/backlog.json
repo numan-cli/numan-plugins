@@ -125,7 +125,7 @@
       "blocker": "PROMOTED",
       "nu_plugin": "0.112.2",
       "nu_protocol": "0.112.2",
-      "c1_note": "2026-07-29: promoted to active[] after a locked Windows build and a command-discovery smoke with Nu 0.112.2 from the immutable v0.112.2 commit; release assets remain pending the manual build workflow.",
+      "c1_note": "2026-07-30: promoted to active[]; Wave 1 release nu_plugin_image-0.112.2 published; registry intake open (numan-registry#32).",
       "stars": 22
     },
     {
@@ -164,7 +164,7 @@
       "blocker": "PROMOTED",
       "nu_plugin": "0.113.1",
       "nu_protocol": "0.113.1",
-      "c1_note": "2026-07-29: promoted to active[] after a locked Windows build and a command-discovery smoke with Nu 0.113.1 from the immutable v0.113.1 commit; release assets remain pending the manual build workflow.",
+      "c1_note": "2026-07-30: promoted to active[]; Wave 1 release nu_plugin_port_extension-0.113.1 published; registry intake open (numan-registry#32).",
       "stars": 16
     },
     {
