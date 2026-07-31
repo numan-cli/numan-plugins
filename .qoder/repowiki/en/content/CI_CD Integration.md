@@ -14,11 +14,11 @@
 
 ## Update Summary
 **Changes Made**
-- Updated build pipeline configuration to reflect cross-compilation fixes for Prometheus plugin
-- Added aarch64 Linux platform exclusion due to OpenSSL limitations
-- Fixed Windows Recheck step bash execution for proper MATRIX_NAME variable handling
-- Enhanced matrix configuration documentation with platform-specific considerations
-- Updated troubleshooting guide with new cross-compilation scenarios
+- Enhanced build workflow with Cargo.lock compatibility fixes for cargo 1.97
+- Improved PR review workflow reliability with better error handling
+- Added fallback mechanisms for plugin builds to handle dependency resolution failures
+- Updated troubleshooting guide with new Cargo-related issues and solutions
+- Enhanced cross-compilation support with improved platform detection
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -36,7 +36,7 @@
 
 This document provides comprehensive guidance for implementing and managing CI/CD pipelines using GitHub Actions for the numan-plugins project. The CI/CD system automates build processes, testing, code review automation, repository safety checks, and deployment workflows. It ensures code quality, security compliance, and efficient release management through automated workflows that trigger on various events such as pushes, pull requests, and scheduled tasks.
 
-The CI/CD pipeline is designed to handle multiple environments (development, staging, production), manage artifacts securely, and maintain repository health through automated maintenance tasks. Recent improvements include enhanced cross-compilation support and platform-specific optimizations.
+The CI/CD pipeline is designed to handle multiple environments (development, staging, production), manage artifacts securely, and maintain repository health through automated maintenance tasks. Recent improvements include enhanced Cargo.lock compatibility for cargo 1.97, improved PR review workflow reliability, and robust fallback mechanisms for plugin builds.
 
 ## Project Structure
 
@@ -57,9 +57,11 @@ end
 subgraph "Configuration"
 Manifest[manifest.json]
 Readme[README.md]
+CargoLock[Cargo.lock]
 end
 Build --> Package
 Build --> Validate
+Build --> CargoLock
 Review --> TestSafety
 Safety --> TestSafety
 Package --> Manifest
@@ -88,7 +90,8 @@ Key features include:
 - Dependency installation and caching
 - Code quality checks
 - Artifact packaging and upload
-- **Updated**: Cross-compilation fixes for Prometheus plugin with aarch64 Linux exclusion
+- **Updated**: Enhanced Cargo.lock compatibility for cargo 1.97 with automatic fallback mechanisms
+- **Updated**: Improved cross-compilation fixes for Prometheus plugin with aarch64 Linux exclusion
 
 ### Automated Testing Triggers
 
@@ -126,6 +129,7 @@ participant Artifacts as "Artifact Storage"
 Dev->>GH : Push/Pull Request
 GH->>Build : Trigger Build
 Build->>Build : Install Dependencies
+Build->>Build : Check Cargo.lock Compatibility
 Build->>Test : Run Tests
 Test-->>Build : Test Results
 Build->>Artifacts : Upload Artifacts
@@ -138,9 +142,9 @@ Deploy-->>Dev : Deployment Status
 ```
 
 **Diagram sources**
-- [build.yml:1-200](file://.github/workflows/build.yml#L1-L200)
-- [cline-pr-review.yml:1-150](file://.github/workflows/cline-pr-review.yml#L1-L150)
-- [repo-safety.yml:1-150](file://.github/workflows/repo-safety.yml#L1-L150)
+- [build.yml:1-200](file://.github/workflows/build.yml#L1-200)
+- [cline-pr-review.yml:1-150](file://.github/workflows/cline-pr-review.yml#L1-150)
+- [repo-safety.yml:1-150](file://.github/workflows/repo-safety.yml#L1-150)
 
 ## Detailed Component Analysis
 
@@ -156,7 +160,12 @@ Start([Workflow Start]) --> Checkout["Checkout Repository"]
 Checkout --> SetupPython["Setup Python Environment"]
 SetupPython --> CacheDeps["Cache Dependencies"]
 CacheDeps --> InstallDeps["Install Dependencies"]
-InstallDeps --> RunTests["Run Test Suite"]
+InstallDeps --> CheckCargo["Check Cargo.lock Compatibility"]
+CheckCargo --> CargoFix{"Cargo.lock Compatible?"}
+CargoFix --> |No| FallbackBuild["Use Fallback Build Mechanism"]
+CargoFix --> |Yes| NormalBuild["Normal Build Process"]
+FallbackBuild --> RunTests["Run Test Suite"]
+NormalBuild --> RunTests
 RunTests --> TestResults{"Tests Pass?"}
 TestResults --> |No| FailBuild["Fail Build"]
 TestResults --> |Yes| PackagePlugin["Package Plugin"]
@@ -168,8 +177,8 @@ Complete --> End
 ```
 
 **Diagram sources**
-- [build.yml:1-200](file://.github/workflows/build.yml#L1-L200)
-- [package_plugin.py:1-150](file://scripts/package_plugin.py#L1-L150)
+- [build.yml:1-200](file://.github/workflows/build.yml#L1-200)
+- [package_plugin.py:1-150](file://scripts/package_plugin.py#L1-150)
 
 #### Matrix Configuration
 
@@ -185,8 +194,8 @@ The build matrix supports multiple Python versions and platforms with platform-s
 **Updated**: aarch64 Linux platform excluded for Prometheus plugin builds due to OpenSSL library limitations. This exclusion prevents build failures while maintaining compatibility with other architectures.
 
 **Section sources**
-- [build.yml:1-250](file://.github/workflows/build.yml#L1-L250)
-- [package_plugin.py:1-200](file://scripts/package_plugin.py#L1-L200)
+- [build.yml:1-250](file://.github/workflows/build.yml#L1-250)
+- [package_plugin.py:1-200](file://scripts/package_plugin.py#L1-200)
 
 ### Code Review Automation
 
@@ -253,10 +262,12 @@ TestSafetyScript[test_workflow_safety.py]
 end
 subgraph "Config"
 Manifest[manifest.json]
+CargoLock[Cargo.lock]
 ConfigFiles[Other Configs]
 end
 BuildWF --> PackageScript
 BuildWF --> ValidateScript
+BuildWF --> CargoLock
 ReviewWF --> TestSafetyScript
 SafetyWF --> TestSafetyScript
 PackageScript --> Manifest
@@ -284,6 +295,7 @@ TestSafetyScript --> ConfigFiles
 4. **Artifact Reuse**: Cache compiled artifacts between jobs
 5. **Resource Optimization**: Choose appropriate runner sizes and types
 6. **Platform-Specific Optimizations**: Exclude incompatible platforms to reduce build time
+7. **Updated**: Cargo.lock compatibility checking to prevent unnecessary rebuilds
 
 ### Caching Implementation
 
@@ -295,6 +307,7 @@ The workflows implement intelligent caching strategies:
 | Node Modules | `node-modules-${{ hashFiles('package-lock.json') }}` | 7 days | Speed up npm installs |
 | Build Artifacts | `build-artifacts-${{ github.sha }}` | 1 day | Reuse compiled outputs |
 | Test Results | `test-results-${{ matrix.os }}` | 1 day | Parallel test execution |
+| Cargo Cache | `cargo-cache-${{ hashFiles('Cargo.lock') }}` | 7 days | Speed up Rust builds |
 
 ### Resource Management
 
@@ -303,6 +316,7 @@ The workflows implement intelligent caching strategies:
 - Implement timeout limits to prevent resource hogging
 - Monitor and optimize memory usage
 - **Updated**: Platform exclusions reduce unnecessary build attempts on incompatible architectures
+- **Updated**: Cargo.lock compatibility checks prevent failed builds from consuming resources
 
 ## Troubleshooting Guide
 
@@ -330,6 +344,12 @@ The workflows implement intelligent caching strategies:
    - Solution: Platform exclusion implemented in matrix configuration
    - Alternative: Use containerized builds with pre-configured OpenSSL libraries
 
+5. **Cargo.lock Compatibility Issues**
+   - **New**: Cargo.lock format incompatibility with cargo 1.97
+   - Symptoms: Build failures during dependency resolution
+   - Solution: Automatic fallback mechanism regenerates compatible Cargo.lock
+   - Prevention: Regular updates to maintain Cargo.lock compatibility
+
 #### Debugging Failed Workflows
 
 ```mermaid
@@ -340,16 +360,19 @@ IdentifyError --> NetworkError{"Network Issue?"}
 IdentifyError --> TimeoutError{"Timeout Issue?"}
 IdentifyError --> PermissionError{"Permission Issue?"}
 IdentifyError --> CrossCompError{"Cross-Compilation Error?"}
+IdentifyError --> CargoError{"Cargo.lock Error?"}
 IdentifyError --> OtherError{"Other Error"}
 NetworkError --> FixNetwork["Fix Network Configuration"]
 TimeoutError --> IncreaseTimeout["Increase Timeouts"]
 PermissionError --> FixPermissions["Fix Permissions"]
 CrossCompError --> CheckPlatform["Check Platform Compatibility"]
+CargoError --> RegenerateLock["Regenerate Cargo.lock"]
 OtherError --> DebugLocally["Debug Locally"]
 FixNetwork --> Retest["Retest Workflow"]
 IncreaseTimeout --> Retest
 FixPermissions --> Retest
 CheckPlatform --> UpdateMatrix["Update Build Matrix"]
+RegenerateLock --> Retest
 DebugLocally --> Retest
 Retest --> Success([Success])
 ```
@@ -435,11 +458,15 @@ Key benefits of the implemented CI/CD system:
 - **Security First**: Integrated security scanning and secret management
 - **Maintainable**: Modular design with clear separation of concerns
 - **Updated**: Enhanced cross-compilation support with platform-specific optimizations
+- **Updated**: Cargo.lock compatibility fixes for cargo 1.97 ensure reliable builds
 
 Recent improvements include:
+- **Cargo.lock Compatibility**: Resolved cargo 1.97 compatibility issues with automatic fallback mechanisms
+- **PR Review Reliability**: Enhanced error handling and retry logic in review workflows
+- **Plugin Build Fallbacks**: Robust fallback mechanisms for handling dependency resolution failures
 - **Cross-Compilation Fixes**: Resolved Prometheus plugin build issues on aarch64 Linux by excluding incompatible platforms
 - **Windows Compatibility**: Fixed MATRIX_NAME variable handling in recheck steps for proper bash execution
-- **Performance Optimization**: Reduced build times through strategic platform exclusions
+- **Performance Optimization**: Reduced build times through strategic platform exclusions and improved caching
 
 Future enhancements could include:
 - Advanced caching strategies for faster builds
@@ -448,5 +475,6 @@ Future enhancements could include:
 - Integration with additional security tools
 - Custom dashboard for pipeline status
 - Support for additional target platforms as OpenSSL compatibility improves
+- Enhanced Cargo.lock validation and automatic regeneration
 
 The CI/CD system serves as a foundation for continuous delivery, enabling rapid and reliable releases while maintaining high standards for code quality and security.

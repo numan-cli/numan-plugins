@@ -1,6 +1,6 @@
 schema_version: 1
 module_path: ""
-title: Numan Plugin Binary Delivery Pipeline
+title: Numan Plugin Build & Release Orchestrator
 scope:
     - README.md
     - .gitignore

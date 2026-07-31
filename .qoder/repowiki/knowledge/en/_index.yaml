@@ -3,11 +3,11 @@ schema_version: 1
 locale: en-US
 branch: master
 nodes_managed: true
-exported_at: "2026-07-31T10:08:26Z"
+exported_at: "2026-07-31T16:10:27Z"
 modules:
     "":
-        dir_name: Numan Plugin Binary Delivery Pipeline
-        title: Numan Plugin Binary Delivery Pipeline
+        dir_name: Numan Plugin Build & Release Orchestrator
+        title: Numan Plugin Build & Release Orchestrator
         scope:
             - README.md
             - .gitignore

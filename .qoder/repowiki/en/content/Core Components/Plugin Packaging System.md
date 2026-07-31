@@ -12,11 +12,11 @@
 
 ## Update Summary
 **Changes Made**
-- Updated Nushell plugin promotion section to reflect three plugins (nu_plugin_emoji, nu_plugin_json_path, nu_plugin_parquet) supporting Nu version 0.114
-- Added manifest.json configuration updates with 45 new lines for plugin metadata and deployment settings
-- Enhanced version compatibility documentation for Nu 0.114 support
-- Updated lifecycle management examples to include Nushell plugin promotions
-- Expanded dependency resolution documentation for Nushell ecosystem integration
+- Updated Nushell plugin promotion section to include nu_plugin_bson v26.1140.0 and nu_plugin_hmac 0.27.0 promoted to stable status
+- Added manifest.json configuration updates for pure Rust plugins with bare binaries only support
+- Enhanced dependency resolution documentation for pure Rust plugin handling
+- Updated lifecycle management examples to include new stable Nushell plugins
+- Expanded package structure generation documentation for bare binary packaging
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -36,7 +36,7 @@ The plugin packaging system is a comprehensive solution designed to create distr
 
 The primary goal of this system is to streamline the plugin development lifecycle by providing automated packaging capabilities that handle dependency resolution, version management, and package validation. It supports various plugin types including data processors, transformers, and custom algorithms while maintaining compatibility with the NumAn platform requirements.
 
-**Updated** The system now supports advanced lifecycle management features including Wave 2 promotions and multi-target deployment matrices, enabling sophisticated plugin distribution strategies across different NumAn versions and target environments. Recent enhancements include support for Nushell plugins (nu_plugin_emoji, nu_plugin_json_path, nu_plugin_parquet) with Nu version 0.114 compatibility.
+**Updated** The system now supports advanced lifecycle management features including Wave 2 promotions and multi-target deployment matrices, enabling sophisticated plugin distribution strategies across different NumAn versions and target environments. Recent enhancements include support for Nushell plugins (nu_plugin_emoji, nu_plugin_json_path, nu_plugin_parquet, nu_plugin_bson, nu_plugin_hmac) with Nu version 0.114 compatibility and pure Rust plugin support.
 
 ## Project Structure
 
@@ -107,7 +107,7 @@ The manifest.json file serves as the central configuration source for plugin pac
 - Custom packaging rules and exclusions
 - **Lifecycle management status** including active[], beta[], and deprecated[] states
 
-**Updated** The manifest configuration has been enhanced with 45 new configuration lines specifically for Nushell plugin metadata and deployment settings, supporting the promotion of nu_plugin_emoji, nu_plugin_json_path, and nu_plugin_parquet to Nu version 0.114.
+**Updated** The manifest configuration has been enhanced with additional configuration lines specifically for pure Rust Nushell plugins (nu_plugin_bson v26.1140.0 and nu_plugin_hmac 0.27.0) with bare binaries only support, expanding the plugin ecosystem integration.
 
 ### Test Framework
 
@@ -190,10 +190,11 @@ The script supports the following command-line parameters:
 | `--lifecycle` | Set lifecycle status (active, beta, deprecated) | From manifest | No |
 | `--target-matrix` | Specify target environment matrix | All supported | No |
 | `--nushell-support` | Enable Nushell plugin compatibility | Auto-detect | No |
+| `--rust-plugins` | Enable pure Rust plugin support | Auto-detect | No |
 
 ### Lifecycle Management System
 
-**Updated** The system now supports advanced lifecycle management for plugins, enabling sophisticated promotion workflows across different NumAn versions and target environments. Recent enhancements include specific support for Nushell plugin promotions.
+**Updated** The system now supports advanced lifecycle management for plugins, enabling sophisticated promotion workflows across different NumAn versions and target environments. Recent enhancements include specific support for Nushell plugin promotions with pure Rust plugin handling.
 
 #### Wave 2 Lifecycle Management
 
@@ -229,7 +230,7 @@ The packaging system now supports comprehensive five-target matrix deployment:
 | Windows x86_64 | 0.114.1+ | 3.8+ | Windows | Supported |
 | Docker Container | 0.114.1+ | 3.8+ | Any | Supported |
 
-**Updated** Nushell plugins (nu_plugin_emoji, nu_plugin_json_path, nu_plugin_parquet) have been successfully promoted to support Nu version 0.114, expanding the target matrix compatibility.
+**Updated** Nushell plugins (nu_plugin_emoji, nu_plugin_json_path, nu_plugin_parquet, nu_plugin_bson v26.1140.0, nu_plugin_hmac 0.27.0) have been successfully promoted to stable status with Nu version 0.114 support, expanding the target matrix compatibility with pure Rust plugin optimization.
 
 **Section sources**
 - [package_plugin.py:200-400](file://scripts/package_plugin.py#L200-L400)
@@ -268,7 +269,7 @@ VersionManager <|-- PackageAnalyzer : extends
 
 **Diagram sources**
 - [package_plugin.py:200-400](file://scripts/package_plugin.py#L200-L400)
-- [gen_spec.py:100-200](file://scripts/gen_spec.py#L100-L200)
+- [gen_spec.py:100-200](file://scripts/gen_spec.py#L100-200)
 
 The dependency resolution process handles:
 - Direct and transitive dependencies
@@ -278,6 +279,7 @@ The dependency resolution process handles:
 - Platform-specific dependency selection
 - **Multi-target compatibility validation**
 - **Nushell ecosystem integration**
+- **Pure Rust plugin binary handling**
 
 ### Package Structure Generation
 
@@ -291,6 +293,7 @@ META[metadata/]
 CODE[code/]
 DEPS[dependencies/]
 CONFIG[config/]
+BINS[bare_binaries/]
 META --> MANIFEST[manifest.json]
 META --> README[README.md]
 META --> LICENSE[LICENSE.txt]
@@ -301,11 +304,13 @@ DEPS --> LIBS[library_packages/]
 DEPS --> VENDORED[vendored_dependencies/]
 CONFIG --> BUILD[build_config.yaml]
 CONFIG --> RULES[packaging_rules.json]
+BINS --> RUST_BINS[rust_bare_binaries/]
 end
 ROOT --> META
 ROOT --> CODE
 ROOT --> DEPS
 ROOT --> CONFIG
+ROOT --> BINS
 ```
 
 **Diagram sources**
@@ -324,8 +329,9 @@ The version management component handles semantic versioning and compatibility c
 | Build Metadata | Build information | 1.0.0+build.123 | Alphanumeric with dots |
 | **Nu Pinning** | **NumAn version compatibility** | **0.114.1** | **Must match target NumAn version** |
 | **Nushell Support** | **Nushell plugin compatibility** | **0.114** | **Must support Nu 0.114+** |
+| **Rust Plugin Version** | **Pure Rust plugin version** | **v26.1140.0** | **Semantic versioning with 'v' prefix** |
 
-**Updated** The version management system now includes specific support for Nushell plugin compatibility with Nu version 0.114, enabling seamless integration of nu_plugin_emoji, nu_plugin_json_path, and nu_plugin_parquet.
+**Updated** The version management system now includes specific support for pure Rust Nushell plugins with semantic versioning conventions (v26.1140.0 for nu_plugin_bson, 0.27.0 for nu_plugin_hmac), enabling seamless integration of bare binary plugins.
 
 **Section sources**
 - [package_plugin.py:400-600](file://scripts/package_plugin.py#L400-L600)
@@ -342,12 +348,14 @@ D1[Required Libraries]
 D2[Optional Features]
 D3[Development Tools]
 D4[Nushell Plugins]
+D5[Rust Plugins]
 end
 subgraph "Transitive Dependencies"
 T1[Library Sub-dependencies]
 T2[Framework Requirements]
 T3[System Libraries]
 T4[Nushell Ecosystem]
+T5[Rust Binary Dependencies]
 end
 subgraph "Resolution Strategy"
 R1[Version Pinning]
@@ -355,21 +363,24 @@ R2[Conflict Resolution]
 R3[Platform Selection]
 R4[Target Matrix Validation]
 R5[Nushell Compatibility]
+R6[Rust Binary Handling]
 end
 D1 --> T1
 D2 --> T2
 D3 --> T3
 D4 --> T4
+D5 --> T5
 T1 --> R1
 T2 --> R2
 T3 --> R3
 T4 --> R4
-T1 --> R5
+T5 --> R5
+T1 --> R6
 ```
 
 **Diagram sources**
 - [package_plugin.py:500-700](file://scripts/package_plugin.py#L500-L700)
-- [gen_spec.py:200-300](file://scripts/gen_spec.py#L200-L300)
+- [gen_spec.py:200-300](file://scripts/gen_spec.py#L200-300)
 
 ### Dependency Resolution Algorithm
 
@@ -382,6 +393,7 @@ The system implements a sophisticated dependency resolution algorithm that handl
 5. **Fallback Mechanisms**: Provides alternative dependency sets when primary choices fail
 6. **Multi-Target Compatibility**: Validates dependencies across all target environments in the matrix
 7. **Nushell Ecosystem Integration**: Manages Nushell plugin dependencies and compatibility
+8. **Pure Rust Binary Processing**: Handles bare binary packaging for Rust-based plugins
 
 ### Package Size Optimization
 
@@ -394,8 +406,9 @@ The packaging system includes several optimization strategies to minimize packag
 - **Platform-Specific Bundling**: Includes only platform-relevant dependencies
 - **Target Matrix Filtering**: Excludes unnecessary platform-specific dependencies
 - **Nushell Plugin Optimization**: Optimizes Nushell plugin bundling for minimal overhead
+- **Rust Binary Stripping**: Strips debug symbols from pure Rust binaries for optimal size
 
-**Updated** The dependency analysis now includes specific handling for Nushell plugins, ensuring optimal packaging of nu_plugin_emoji, nu_plugin_json_path, and nu_plugin_parquet with Nu 0.114 compatibility.
+**Updated** The dependency analysis now includes specific handling for pure Rust plugins (nu_plugin_bson v26.1140.0 and nu_plugin_hmac 0.27.0), ensuring optimal packaging of bare binaries with stripped debug symbols and minimal overhead.
 
 **Section sources**
 - [package_plugin.py:600-800](file://scripts/package_plugin.py#L600-L800)
@@ -413,6 +426,7 @@ The plugin packaging system is designed with performance optimization in mind:
 - **Network Request Cache**: Caches remote dependency downloads to reduce network overhead
 - **Target Matrix Cache**: Caches multi-target validation results
 - **Nushell Plugin Cache**: Caches Nushell plugin compatibility checks
+- **Rust Binary Cache**: Caches processed Rust binary metadata
 
 ### Parallel Processing
 
@@ -422,6 +436,7 @@ The plugin packaging system is designed with performance optimization in mind:
 - **Batch Processing**: Groups similar operations to minimize I/O overhead
 - **Matrix Parallelization**: Processes target environments in parallel
 - **Nushell Plugin Parallelization**: Processes Nushell plugins concurrently
+- **Rust Binary Parallelization**: Processes pure Rust binaries in parallel
 
 ### Memory Management
 
@@ -448,6 +463,7 @@ The plugin packaging system is designed with performance optimization in mind:
 4. Clear dependency cache and retry packaging
 5. **Validate target matrix compatibility**
 6. **Check Nushell plugin compatibility**
+7. **Verify Rust binary compatibility**
 
 #### Package Size Issues
 
@@ -463,6 +479,7 @@ The plugin packaging system is designed with performance optimization in mind:
 4. Enable compression optimizations
 5. **Filter target-specific dependencies**
 6. **Optimize Nushell plugin bundling**
+7. **Strip debug symbols from Rust binaries**
 
 #### Version Management Problems
 
@@ -478,22 +495,26 @@ The plugin packaging system is designed with performance optimization in mind:
 4. Test with multiple Python versions
 5. **Verify Nu version pinning compatibility**
 6. **Ensure Nushell 0.114 compatibility**
+7. **Validate Rust plugin version compatibility**
 
 #### Nushell Plugin Issues
 
-**New** Specific issues related to Nushell plugin packaging and compatibility:
+**Updated** Specific issues related to Nushell plugin packaging and compatibility, including pure Rust plugins:
 
 **Symptoms**:
 - Nushell plugins not loading correctly
 - Nu version compatibility errors
 - Plugin metadata validation failures
+- Rust binary execution issues
 
 **Solutions**:
 1. Verify Nu version 0.114 compatibility in manifest.json
 2. Check Nushell plugin manifest configuration
 3. Ensure proper plugin metadata formatting
 4. Validate plugin entry points and dependencies
-5. **Review 45 new configuration lines for Nushell plugins**
+5. **Review manifest configuration for pure Rust plugins**
+6. **Verify bare binary packaging for Rust plugins**
+7. **Check platform-specific binary compatibility**
 
 ### Error Handling and Logging
 
@@ -529,6 +550,7 @@ Enable detailed debugging information using these techniques:
 4. **Trace Analysis**: Use Python's built-in tracing for complex dependency issues
 5. **Target Matrix Debugging**: Use --target-matrix flag to validate multi-target compatibility
 6. **Nushell Plugin Debugging**: Use --nushell-support flag for Nushell plugin diagnostics
+7. **Rust Binary Debugging**: Use --rust-plugins flag for pure Rust plugin diagnostics
 
 **Section sources**
 - [package_plugin.py:800-1000](file://scripts/package_plugin.py#L800-L1000)
@@ -538,7 +560,7 @@ Enable detailed debugging information using these techniques:
 
 The plugin packaging system provides a robust, scalable solution for creating distributable NumAn plugins. Its modular architecture, comprehensive dependency management, and extensive error handling capabilities make it suitable for both simple and complex plugin development scenarios.
 
-**Updated** The system now includes advanced lifecycle management features with Wave 2 promotions and five-target matrix support, enabling sophisticated plugin distribution strategies across different NumAn versions and target environments. Recent enhancements include comprehensive support for Nushell plugins (nu_plugin_emoji, nu_plugin_json_path, nu_plugin_parquet) with Nu version 0.114 compatibility.
+**Updated** The system now includes advanced lifecycle management features with Wave 2 promotions and five-target matrix support, enabling sophisticated plugin distribution strategies across different NumAn versions and target environments. Recent enhancements include comprehensive support for Nushell plugins (nu_plugin_emoji, nu_plugin_json_path, nu_plugin_parquet, nu_plugin_bson v26.1140.0, nu_plugin_hmac 0.27.0) with Nu version 0.114 compatibility and pure Rust plugin handling with bare binaries only support.
 
 Key strengths of the system include:
 
@@ -550,8 +572,9 @@ Key strengths of the system include:
 - **Extensible Architecture**: Modular design allows easy customization and extension
 - **Multi-Target Support**: Five-target matrix validation and platform-specific optimizations
 - **Nushell Ecosystem Integration**: Dedicated support for Nushell plugins with Nu 0.114 compatibility
+- **Pure Rust Plugin Support**: Specialized handling for bare binary Rust plugins with optimized packaging
 
-The system successfully addresses the core objectives of creating reliable, maintainable, and efficient plugin packaging solutions for the NumAn ecosystem, with enhanced support for modern deployment patterns, lifecycle management, and Nushell plugin integration.
+The system successfully addresses the core objectives of creating reliable, maintainable, and efficient plugin packaging solutions for the NumAn ecosystem, with enhanced support for modern deployment patterns, lifecycle management, Nushell plugin integration, and pure Rust binary handling.
 
 ## Appendices
 
@@ -566,6 +589,7 @@ For users new to the plugin packaging system:
 5. **Distribution**: Share the generated package with your target audience
 6. **Lifecycle Management**: Configure lifecycle status and target matrix for production deployments
 7. **Nushell Integration**: Add Nushell plugin support with Nu 0.114 compatibility
+8. **Rust Plugin Support**: Configure pure Rust plugins with bare binary packaging
 
 ### B. Advanced Configuration Examples
 
@@ -577,8 +601,9 @@ Common manifest.json configurations for different plugin types:
 - **Integration Plugins**: Configure external service connections and authentication
 - **Lifecycle Configured Plugins**: Set active[] status with Wave 2 promotion criteria
 - **Nushell Plugin Plugins**: Configure Nushell plugin metadata with Nu 0.114 support
+- **Pure Rust Plugin Plugins**: Configure bare binary Rust plugins with optimized packaging
 
-**Updated** The manifest configuration now includes 45 new configuration lines specifically for Nushell plugin metadata and deployment settings, supporting the promotion of nu_plugin_emoji, nu_plugin_json_path, and nu_plugin_parquet.
+**Updated** The manifest configuration now includes dedicated sections for pure Rust Nushell plugins (nu_plugin_bson v26.1140.0 and nu_plugin_hmac 0.27.0) with bare binaries only support and optimized packaging settings.
 
 ### C. Best Practices Checklist
 
@@ -596,10 +621,12 @@ When creating plugin packages, follow these best practices:
 - **Validate target matrix compatibility across all platforms**
 - **Pin Nu versions appropriately for compatibility**
 - **Ensure Nushell plugin compatibility with Nu 0.114**
+- **Optimize pure Rust binary packaging for minimal size**
+- **Strip debug symbols from Rust binaries for production**
 
 ### D. Wave 2 Lifecycle Management Guide
 
-**Updated** Comprehensive guide for implementing Wave 2 lifecycle management with Nushell plugin support:
+**Updated** Comprehensive guide for implementing Wave 2 lifecycle management with Nushell plugin support and pure Rust plugin handling:
 
 #### Lifecycle Status Definitions
 
@@ -633,17 +660,19 @@ Configure five-target matrix for comprehensive platform support:
   },
   "nushell_support": {
     "nu_version": "0.114",
-    "plugins": ["nu_plugin_emoji", "nu_plugin_json_path", "nu_plugin_parquet"],
-    "compatibility": "full"
+    "plugins": ["nu_plugin_emoji", "nu_plugin_json_path", "nu_plugin_parquet", "nu_plugin_bson v26.1140.0", "nu_plugin_hmac 0.27.0"],
+    "compatibility": "full",
+    "pure_rust_plugins": true,
+    "bare_binaries_only": true
   }
 }
 ```
 
-**Updated** The target matrix configuration now includes dedicated Nushell support section with Nu version 0.114 compatibility and specific plugin listings.
+**Updated** The target matrix configuration now includes dedicated Nushell support section with Nu version 0.114 compatibility, specific plugin listings including pure Rust plugins (nu_plugin_bson v26.1140.0 and nu_plugin_hmac 0.27.0), and bare binaries only packaging settings.
 
 ### E. Nushell Plugin Integration Guide
 
-**New** Comprehensive guide for integrating Nushell plugins with the packaging system:
+**Updated** Comprehensive guide for integrating Nushell plugins with the packaging system, including pure Rust plugin support:
 
 #### Supported Nushell Plugins
 
@@ -652,6 +681,8 @@ The system now supports the following Nushell plugins with Nu 0.114 compatibilit
 - **nu_plugin_emoji**: Emoji processing and manipulation
 - **nu_plugin_json_path**: JSON path querying and manipulation
 - **nu_plugin_parquet**: Parquet file format support
+- **nu_plugin_bson v26.1140.0**: BSON format support (pure Rust, bare binaries only)
+- **nu_plugin_hmac 0.27.0**: HMAC cryptographic functions (pure Rust, bare binaries only)
 
 #### Nushell Plugin Configuration
 
@@ -665,19 +696,25 @@ Each Nushell plugin requires specific manifest configuration:
     "nu_version": "0.114",
     "entry_point": "path/to/plugin.so",
     "dependencies": ["nushell-core>=0.114"],
-    "features": ["feature1", "feature2"]
+    "features": ["feature1", "feature2"],
+    "plugin_type": "pure_rust",
+    "bare_binaries_only": true
   }
 }
 ```
 
-#### Nushell Plugin Packaging
+#### Pure Rust Plugin Packaging
 
-Nushell plugins are packaged with special considerations:
+Pure Rust plugins are packaged with special considerations:
 
 - Binary compatibility with Nu 0.114 runtime
 - Platform-specific binary bundling
 - Dependency resolution for Nushell ecosystem
 - Version compatibility validation
+- Debug symbol stripping for optimal size
+- Bare binary packaging without additional wrappers
+
+**Updated** The Nushell plugin integration now includes dedicated support for pure Rust plugins with bare binaries only packaging, specifically optimized for nu_plugin_bson v26.1140.0 and nu_plugin_hmac 0.27.0.
 
 **Section sources**
 - [manifest.json:1-100](file://manifest.json#L1-100)
