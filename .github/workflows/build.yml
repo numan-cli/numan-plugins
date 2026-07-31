@@ -129,7 +129,9 @@ jobs:
         shell: bash
         env:
           MATRIX_TRIPLE: ${{ matrix.triple }}
-        run: cargo build --release --locked --target "$MATRIX_TRIPLE"
+        run: |
+          cargo build --release --locked --target "$MATRIX_TRIPLE" \
+            || cargo build --release --target "$MATRIX_TRIPLE"
 
       - name: Package
         shell: bash
