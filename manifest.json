@@ -118,6 +118,8 @@
       "tag": "v0.12.0",
       "source_commit": "3fed1d934ba201ce1d9b78ecb727695588de7ef9",
       "version": "0.12.0",
+      "exclude_targets": ["aarch64-unknown-linux-gnu"],
+      "exclude_reason": "linux aarch64 cross: openssl-sys/native-tls fails to locate target OpenSSL headers/libs under taiki-e cross toolchain (pkg-config resolves host x86_64 paths); Windows and other four targets green on build run 30604641151",
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Query Prometheus from Nushell (instant/range queries, targets, labels, scrape).",
