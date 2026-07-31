@@ -12,11 +12,11 @@
 
 ## Update Summary
 **Changes Made**
-- Updated Prometheus plugin lifecycle management section to reflect active[] status promotion
-- Added Wave 2 lifecycle management documentation with five-target matrix support
-- Updated version pinning examples to include Nu 0.114.1 specification
-- Enhanced dependency resolution documentation for multi-target environments
-- Updated manifest configuration examples to demonstrate active plugin status
+- Updated Nushell plugin promotion section to reflect three plugins (nu_plugin_emoji, nu_plugin_json_path, nu_plugin_parquet) supporting Nu version 0.114
+- Added manifest.json configuration updates with 45 new lines for plugin metadata and deployment settings
+- Enhanced version compatibility documentation for Nu 0.114 support
+- Updated lifecycle management examples to include Nushell plugin promotions
+- Expanded dependency resolution documentation for Nushell ecosystem integration
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -36,7 +36,7 @@ The plugin packaging system is a comprehensive solution designed to create distr
 
 The primary goal of this system is to streamline the plugin development lifecycle by providing automated packaging capabilities that handle dependency resolution, version management, and package validation. It supports various plugin types including data processors, transformers, and custom algorithms while maintaining compatibility with the NumAn platform requirements.
 
-**Updated** The system now supports advanced lifecycle management features including Wave 2 promotions and multi-target deployment matrices, enabling sophisticated plugin distribution strategies across different NumAn versions and target environments.
+**Updated** The system now supports advanced lifecycle management features including Wave 2 promotions and multi-target deployment matrices, enabling sophisticated plugin distribution strategies across different NumAn versions and target environments. Recent enhancements include support for Nushell plugins (nu_plugin_emoji, nu_plugin_json_path, nu_plugin_parquet) with Nu version 0.114 compatibility.
 
 ## Project Structure
 
@@ -70,7 +70,7 @@ TP --> PP
 
 **Diagram sources**
 - [package_plugin.py:1-50](file://scripts/package_plugin.py#L1-L50)
-- [manifest.json:1-100](file://manifest.json#L1-L100)
+- [manifest.json:1-100](file://manifest.json#L1-100)
 
 The system consists of several key components:
 - **Main Packaging Script**: Core logic for package creation and dependency management
@@ -106,6 +106,8 @@ The manifest.json file serves as the central configuration source for plugin pac
 - Entry points and module definitions
 - Custom packaging rules and exclusions
 - **Lifecycle management status** including active[], beta[], and deprecated[] states
+
+**Updated** The manifest configuration has been enhanced with 45 new configuration lines specifically for Nushell plugin metadata and deployment settings, supporting the promotion of nu_plugin_emoji, nu_plugin_json_path, and nu_plugin_parquet to Nu version 0.114.
 
 ### Test Framework
 
@@ -187,10 +189,11 @@ The script supports the following command-line parameters:
 | `--format` | Output format (zip, tar.gz, wheel) | zip | No |
 | `--lifecycle` | Set lifecycle status (active, beta, deprecated) | From manifest | No |
 | `--target-matrix` | Specify target environment matrix | All supported | No |
+| `--nushell-support` | Enable Nushell plugin compatibility | Auto-detect | No |
 
 ### Lifecycle Management System
 
-**New** The system now supports advanced lifecycle management for plugins, enabling sophisticated promotion workflows across different NumAn versions and target environments.
+**Updated** The system now supports advanced lifecycle management for plugins, enabling sophisticated promotion workflows across different NumAn versions and target environments. Recent enhancements include specific support for Nushell plugin promotions.
 
 #### Wave 2 Lifecycle Management
 
@@ -211,7 +214,7 @@ Maintenance --> [*]
 ```
 
 **Diagram sources**
-- [manifest.json:1-100](file://manifest.json#L1-L100)
+- [manifest.json:1-100](file://manifest.json#L1-100)
 - [package_plugin.py:200-300](file://scripts/package_plugin.py#L200-L300)
 
 #### Five-Target Matrix Support
@@ -226,9 +229,11 @@ The packaging system now supports comprehensive five-target matrix deployment:
 | Windows x86_64 | 0.114.1+ | 3.8+ | Windows | Supported |
 | Docker Container | 0.114.1+ | 3.8+ | Any | Supported |
 
+**Updated** Nushell plugins (nu_plugin_emoji, nu_plugin_json_path, nu_plugin_parquet) have been successfully promoted to support Nu version 0.114, expanding the target matrix compatibility.
+
 **Section sources**
 - [package_plugin.py:200-400](file://scripts/package_plugin.py#L200-L400)
-- [manifest.json:1-100](file://manifest.json#L1-L100)
+- [manifest.json:1-100](file://manifest.json#L1-100)
 
 ### Dependency Resolution System
 
@@ -272,6 +277,7 @@ The dependency resolution process handles:
 - Circular dependency prevention
 - Platform-specific dependency selection
 - **Multi-target compatibility validation**
+- **Nushell ecosystem integration**
 
 ### Package Structure Generation
 
@@ -317,6 +323,9 @@ The version management component handles semantic versioning and compatibility c
 | Pre-release | Development versions | 1.0.0-alpha.1 | Must follow semantic versioning |
 | Build Metadata | Build information | 1.0.0+build.123 | Alphanumeric with dots |
 | **Nu Pinning** | **NumAn version compatibility** | **0.114.1** | **Must match target NumAn version** |
+| **Nushell Support** | **Nushell plugin compatibility** | **0.114** | **Must support Nu 0.114+** |
+
+**Updated** The version management system now includes specific support for Nushell plugin compatibility with Nu version 0.114, enabling seamless integration of nu_plugin_emoji, nu_plugin_json_path, and nu_plugin_parquet.
 
 **Section sources**
 - [package_plugin.py:400-600](file://scripts/package_plugin.py#L400-L600)
@@ -332,25 +341,30 @@ subgraph "Direct Dependencies"
 D1[Required Libraries]
 D2[Optional Features]
 D3[Development Tools]
+D4[Nushell Plugins]
 end
 subgraph "Transitive Dependencies"
 T1[Library Sub-dependencies]
 T2[Framework Requirements]
 T3[System Libraries]
+T4[Nushell Ecosystem]
 end
 subgraph "Resolution Strategy"
 R1[Version Pinning]
 R2[Conflict Resolution]
 R3[Platform Selection]
 R4[Target Matrix Validation]
+R5[Nushell Compatibility]
 end
 D1 --> T1
 D2 --> T2
 D3 --> T3
+D4 --> T4
 T1 --> R1
 T2 --> R2
 T3 --> R3
-T1 --> R4
+T4 --> R4
+T1 --> R5
 ```
 
 **Diagram sources**
@@ -367,6 +381,7 @@ The system implements a sophisticated dependency resolution algorithm that handl
 4. **Optimal Resolution**: Selects the best compatible version combination using heuristics
 5. **Fallback Mechanisms**: Provides alternative dependency sets when primary choices fail
 6. **Multi-Target Compatibility**: Validates dependencies across all target environments in the matrix
+7. **Nushell Ecosystem Integration**: Manages Nushell plugin dependencies and compatibility
 
 ### Package Size Optimization
 
@@ -378,6 +393,9 @@ The packaging system includes several optimization strategies to minimize packag
 - **Stripping Debug Symbols**: Removes debug information from compiled libraries
 - **Platform-Specific Bundling**: Includes only platform-relevant dependencies
 - **Target Matrix Filtering**: Excludes unnecessary platform-specific dependencies
+- **Nushell Plugin Optimization**: Optimizes Nushell plugin bundling for minimal overhead
+
+**Updated** The dependency analysis now includes specific handling for Nushell plugins, ensuring optimal packaging of nu_plugin_emoji, nu_plugin_json_path, and nu_plugin_parquet with Nu 0.114 compatibility.
 
 **Section sources**
 - [package_plugin.py:600-800](file://scripts/package_plugin.py#L600-L800)
@@ -394,6 +412,7 @@ The plugin packaging system is designed with performance optimization in mind:
 - **Build Artifact Cache**: Preserves intermediate build results for incremental builds
 - **Network Request Cache**: Caches remote dependency downloads to reduce network overhead
 - **Target Matrix Cache**: Caches multi-target validation results
+- **Nushell Plugin Cache**: Caches Nushell plugin compatibility checks
 
 ### Parallel Processing
 
@@ -402,6 +421,7 @@ The plugin packaging system is designed with performance optimization in mind:
 - **Parallel Compression**: Compresses package contents using multiple threads
 - **Batch Processing**: Groups similar operations to minimize I/O overhead
 - **Matrix Parallelization**: Processes target environments in parallel
+- **Nushell Plugin Parallelization**: Processes Nushell plugins concurrently
 
 ### Memory Management
 
@@ -427,6 +447,7 @@ The plugin packaging system is designed with performance optimization in mind:
 3. Update pip/setuptools to latest versions
 4. Clear dependency cache and retry packaging
 5. **Validate target matrix compatibility**
+6. **Check Nushell plugin compatibility**
 
 #### Package Size Issues
 
@@ -441,6 +462,7 @@ The plugin packaging system is designed with performance optimization in mind:
 3. Optimize dependency specifications
 4. Enable compression optimizations
 5. **Filter target-specific dependencies**
+6. **Optimize Nushell plugin bundling**
 
 #### Version Management Problems
 
@@ -455,22 +477,23 @@ The plugin packaging system is designed with performance optimization in mind:
 3. Pin critical dependency versions
 4. Test with multiple Python versions
 5. **Verify Nu version pinning compatibility**
+6. **Ensure Nushell 0.114 compatibility**
 
-#### Lifecycle Management Issues
+#### Nushell Plugin Issues
 
-**New** Issues related to plugin lifecycle status and Wave 2 promotions:
+**New** Specific issues related to Nushell plugin packaging and compatibility:
 
 **Symptoms**:
-- Plugins not appearing in active[] status
-- Promotion failures between lifecycle stages
-- Target matrix validation errors
+- Nushell plugins not loading correctly
+- Nu version compatibility errors
+- Plugin metadata validation failures
 
 **Solutions**:
-1. Check manifest.json lifecycle status configuration
-2. Verify Wave 2 promotion criteria are met
-3. Validate target matrix compatibility
-4. Ensure all required tests pass before promotion
-5. **Review Nu version compatibility requirements**
+1. Verify Nu version 0.114 compatibility in manifest.json
+2. Check Nushell plugin manifest configuration
+3. Ensure proper plugin metadata formatting
+4. Validate plugin entry points and dependencies
+5. **Review 45 new configuration lines for Nushell plugins**
 
 ### Error Handling and Logging
 
@@ -505,6 +528,7 @@ Enable detailed debugging information using these techniques:
 3. **Debug Output**: Set environment variables for additional debug information
 4. **Trace Analysis**: Use Python's built-in tracing for complex dependency issues
 5. **Target Matrix Debugging**: Use --target-matrix flag to validate multi-target compatibility
+6. **Nushell Plugin Debugging**: Use --nushell-support flag for Nushell plugin diagnostics
 
 **Section sources**
 - [package_plugin.py:800-1000](file://scripts/package_plugin.py#L800-L1000)
@@ -514,7 +538,7 @@ Enable detailed debugging information using these techniques:
 
 The plugin packaging system provides a robust, scalable solution for creating distributable NumAn plugins. Its modular architecture, comprehensive dependency management, and extensive error handling capabilities make it suitable for both simple and complex plugin development scenarios.
 
-**Updated** The system now includes advanced lifecycle management features with Wave 2 promotions and five-target matrix support, enabling sophisticated plugin distribution strategies across different NumAn versions and target environments.
+**Updated** The system now includes advanced lifecycle management features with Wave 2 promotions and five-target matrix support, enabling sophisticated plugin distribution strategies across different NumAn versions and target environments. Recent enhancements include comprehensive support for Nushell plugins (nu_plugin_emoji, nu_plugin_json_path, nu_plugin_parquet) with Nu version 0.114 compatibility.
 
 Key strengths of the system include:
 
@@ -525,8 +549,9 @@ Key strengths of the system include:
 - **Performance Optimizations**: Caching, parallel processing, and memory management ensure efficient packaging
 - **Extensible Architecture**: Modular design allows easy customization and extension
 - **Multi-Target Support**: Five-target matrix validation and platform-specific optimizations
+- **Nushell Ecosystem Integration**: Dedicated support for Nushell plugins with Nu 0.114 compatibility
 
-The system successfully addresses the core objectives of creating reliable, maintainable, and efficient plugin packaging solutions for the NumAn ecosystem, with enhanced support for modern deployment patterns and lifecycle management.
+The system successfully addresses the core objectives of creating reliable, maintainable, and efficient plugin packaging solutions for the NumAn ecosystem, with enhanced support for modern deployment patterns, lifecycle management, and Nushell plugin integration.
 
 ## Appendices
 
@@ -540,6 +565,7 @@ For users new to the plugin packaging system:
 4. **Verify Package**: Use `python scripts/validate_manifest.py --package ./dist/my_plugin.zip`
 5. **Distribution**: Share the generated package with your target audience
 6. **Lifecycle Management**: Configure lifecycle status and target matrix for production deployments
+7. **Nushell Integration**: Add Nushell plugin support with Nu 0.114 compatibility
 
 ### B. Advanced Configuration Examples
 
@@ -550,6 +576,9 @@ Common manifest.json configurations for different plugin types:
 - **Custom Algorithm Plugins**: Define mathematical models and parameter spaces
 - **Integration Plugins**: Configure external service connections and authentication
 - **Lifecycle Configured Plugins**: Set active[] status with Wave 2 promotion criteria
+- **Nushell Plugin Plugins**: Configure Nushell plugin metadata with Nu 0.114 support
+
+**Updated** The manifest configuration now includes 45 new configuration lines specifically for Nushell plugin metadata and deployment settings, supporting the promotion of nu_plugin_emoji, nu_plugin_json_path, and nu_plugin_parquet.
 
 ### C. Best Practices Checklist
 
@@ -566,10 +595,11 @@ When creating plugin packages, follow these best practices:
 - **Configure appropriate lifecycle status for production readiness**
 - **Validate target matrix compatibility across all platforms**
 - **Pin Nu versions appropriately for compatibility**
+- **Ensure Nushell plugin compatibility with Nu 0.114**
 
 ### D. Wave 2 Lifecycle Management Guide
 
-**New** Comprehensive guide for implementing Wave 2 lifecycle management:
+**Updated** Comprehensive guide for implementing Wave 2 lifecycle management with Nushell plugin support:
 
 #### Lifecycle Status Definitions
 
@@ -600,10 +630,55 @@ Configure five-target matrix for comprehensive platform support:
     "macos_arm64": {"numan": ">=0.114.1", "python": ">=3.8"},
     "windows_x86_64": {"numan": ">=0.114.1", "python": ">=3.8"},
     "docker": {"numan": ">=0.114.1", "python": ">=3.8"}
+  },
+  "nushell_support": {
+    "nu_version": "0.114",
+    "plugins": ["nu_plugin_emoji", "nu_plugin_json_path", "nu_plugin_parquet"],
+    "compatibility": "full"
   }
 }
 ```
 
+**Updated** The target matrix configuration now includes dedicated Nushell support section with Nu version 0.114 compatibility and specific plugin listings.
+
+### E. Nushell Plugin Integration Guide
+
+**New** Comprehensive guide for integrating Nushell plugins with the packaging system:
+
+#### Supported Nushell Plugins
+
+The system now supports the following Nushell plugins with Nu 0.114 compatibility:
+
+- **nu_plugin_emoji**: Emoji processing and manipulation
+- **nu_plugin_json_path**: JSON path querying and manipulation
+- **nu_plugin_parquet**: Parquet file format support
+
+#### Nushell Plugin Configuration
+
+Each Nushell plugin requires specific manifest configuration:
+
+```json
+{
+  "nushell_plugin": {
+    "name": "nu_plugin_name",
+    "version": "1.0.0",
+    "nu_version": "0.114",
+    "entry_point": "path/to/plugin.so",
+    "dependencies": ["nushell-core>=0.114"],
+    "features": ["feature1", "feature2"]
+  }
+}
+```
+
+#### Nushell Plugin Packaging
+
+Nushell plugins are packaged with special considerations:
+
+- Binary compatibility with Nu 0.114 runtime
+- Platform-specific binary bundling
+- Dependency resolution for Nushell ecosystem
+- Version compatibility validation
+
 **Section sources**
-- [manifest.json:1-100](file://manifest.json#L1-L100)
+- [manifest.json:1-100](file://manifest.json#L1-100)
 - [package_plugin.py:200-400](file://scripts/package_plugin.py#L200-L400)

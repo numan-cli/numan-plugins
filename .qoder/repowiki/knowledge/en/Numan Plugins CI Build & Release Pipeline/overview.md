@@ -1,1 +1,0 @@
-CI-driven pipeline that cross-compiles source-only Nushell plugins from immutable upstream commits, packages per-target binaries as GitHub release assets, and emits numan-registry-compatible specs for signed index publication.
