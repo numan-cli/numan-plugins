@@ -129,9 +129,20 @@ jobs:
         shell: bash
         env:
           MATRIX_TRIPLE: ${{ matrix.triple }}
-        run: |
-          cargo build --release --locked --target "$MATRIX_TRIPLE" \
-            || cargo build --release --target "$MATRIX_TRIPLE"
+run: |
+  set -euo pipefail
+
+  errfile="$(mktemp)"
+  if ! cargo build --release --locked --target "$MATRIX_TRIPLE" 2>"$errfile"; then
+    if grep -q "needs to be updated but --locked was passed" "$errfile"; then
+      echo "Locked build failed due to lockfile update; retrying without --locked" >&2
+      cat "$errfile" >&2
+      cargo build --release --target "$MATRIX_TRIPLE"
+    else
+      cat "$errfile" >&2
+      exit 1
+    fi
+  fi
 
       - name: Package
         shell: bash
