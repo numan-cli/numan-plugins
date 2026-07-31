@@ -109,6 +109,19 @@
       "verified_with": ["0.112.2"],
       "description": "Render images in the terminal and save ANSI text as images.",
       "tags": ["plugin", "image", "terminal", "ci-built"]
+    },
+    {
+      "repo": "drbrain/nu_plugin_prometheus",
+      "name": "nu_plugin_prometheus",
+      "owner": "drbrain",
+      "plugin_bin": "nu_plugin_prometheus",
+      "tag": "v0.12.0",
+      "source_commit": "3fed1d934ba201ce1d9b78ecb727695588de7ef9",
+      "version": "0.12.0",
+      "nu_version": ">=0.114.0 <0.115.0",
+      "verified_with": ["0.114.1"],
+      "description": "Query Prometheus from Nushell (instant/range queries, targets, labels, scrape).",
+      "tags": ["plugin", "prometheus", "metrics", "ci-built"]
     }
   ],
   "backlog_note": "Remaining demand-ranked source-only plugins live in docs/backlog.json (generated from the awesome-nu triage). Promote entries into `active` in small batches after each passes real-Nu install on all targets.",
