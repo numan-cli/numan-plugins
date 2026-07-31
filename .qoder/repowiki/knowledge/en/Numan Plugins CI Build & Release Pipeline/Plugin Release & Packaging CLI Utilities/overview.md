@@ -1,0 +1,1 @@
+Python CLI tools that package Numan plugin binaries into deterministic archives, generate registry specs from manifest metadata, validate manifests and upstream tags, and orchestrate safe GitHub release transactions.

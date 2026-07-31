@@ -1,0 +1,1 @@
+Pure Python 3 with only stdlib modules (`argparse`, `json`, `hashlib`, `tarfile`, `zipfile`, `gzip`, `subprocess`, `pathlib`). GitHub interaction is exclusively through the `gh` CLI tool invoked via `subprocess.run`. Deterministic archive generation uses fixed mtime (1980-01-01 epoch), fixed Unix mode 0o755, and uid/gid 0 to guarantee reproducible sha256 digests.

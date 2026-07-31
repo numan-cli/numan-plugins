@@ -1,0 +1,8 @@
+schema_version: 1
+module_path: scripts
+title: Plugin Release & Packaging CLI Utilities
+scope:
+    - scripts/
+source_files: []
+depends_on: []
+related_to: []
