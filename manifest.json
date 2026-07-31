@@ -169,6 +169,36 @@
       "verified_with": ["0.114.1"],
       "description": "Read and write Apache Parquet files in Nushell.",
       "tags": ["plugin", "parquet", "data", "ci-built"]
+    },
+    {
+      "repo": "Kissaki/nu_plugin_bson",
+      "name": "nu_plugin_bson",
+      "owner": "Kissaki",
+      "plugin_bin": "nu_plugin_bson",
+      "tag": "v26.1140.0",
+      "source_commit": "252f950d01d0a9310baf9bfb22ee282e2d76161e",
+      "version": "26.1140.0",
+      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_reason": "x86_64 macOS omitted; macos-15-intel runner not yet validated for this plugin",
+      "nu_version": ">=0.114.0 <0.115.0",
+      "verified_with": ["0.114.1"],
+      "description": "Convert between BSON (Binary JSON) and Nushell values.",
+      "tags": ["plugin", "bson", "data", "ci-built"]
+    },
+    {
+      "repo": "fnuttens/nu_plugin_hmac",
+      "name": "nu_plugin_hmac",
+      "owner": "fnuttens",
+      "plugin_bin": "nu_plugin_hmac",
+      "tag": "0.27.0",
+      "source_commit": "634f14145f88cf4a44b4172fe07a45bca5d21422",
+      "version": "0.27.0",
+      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_reason": "x86_64 macOS omitted; macos-15-intel runner not yet validated for this plugin",
+      "nu_version": ">=0.113.0 <0.114.0",
+      "verified_with": ["0.113.1"],
+      "description": "HMAC sealing and verification from Nushell.",
+      "tags": ["plugin", "hmac", "crypto", "ci-built"]
     }
   ],
   "backlog_note": "Remaining demand-ranked source-only plugins live in docs/backlog.json (generated from the awesome-nu triage). Promote entries into `active` in small batches after each passes real-Nu install on all targets.",
