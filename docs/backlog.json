@@ -104,8 +104,11 @@
       "plugin_bin": "nu_plugin_audio_hook",
       "tag": "v0.110.0",
       "has_release": true,
-      "blocker": "SOURCE_ONLY",
-      "stars": 24
+      "blocker": "PRE_0_112",
+      "stars": 24,
+      "nu_plugin": "0.110.0",
+      "nu_protocol": "0.110.0",
+      "c1_note": "2026-07-31 Wave 2 research: tag v0.110.0 pins nu-plugin/nu-protocol 0.110.0 (below >=0.112 gate); rodio audio decoders; SOURCE_ONLY empty assets. Defer until upstream bumps Nu minor."
     },
     {
       "repo": "fdncred/nu_plugin_json_path",
@@ -150,10 +153,14 @@
       "repo": "drbrain/nu_plugin_prometheus",
       "name": "nu_plugin_prometheus",
       "plugin_bin": "nu_plugin_prometheus",
-      "tag": "v0.11.0",
+      "tag": "v0.12.0",
       "has_release": true,
       "blocker": "SOURCE_ONLY",
-      "stars": 16
+      "stars": 16,
+      "nu_plugin": "0.114.1",
+      "nu_protocol": "0.114.1",
+      "source_commit": "3fed1d934ba201ce1d9b78ecb727695588de7ef9",
+      "c1_note": "2026-07-31 Wave 2 research: prefer tag v0.12.0 -> commit 3fed1d934ba201ce1d9b78ecb727695588de7ef9; release assets empty; nu-plugin/nu-protocol 0.114.1 (eligible >=0.112); reqwest+native-tls; edition 2024; Windows expected; no numan-plugins release yet. v0.11.0 was PRE_0_112 (0.110.0). Next: Windows locked build + command-discovery smoke before active[]."
     },
     {
       "repo": "FMotalleb/nu_plugin_port_extension",
@@ -329,8 +336,11 @@
       "plugin_bin": "nu_plugin_nuts",
       "tag": "v0.1.2",
       "has_release": true,
-      "blocker": "SOURCE_ONLY",
-      "stars": 0
+      "blocker": "PRE_0_112",
+      "stars": 0,
+      "nu_plugin": "0.110.0",
+      "nu_protocol": "0.110.0",
+      "c1_note": "2026-07-31 Wave 2 research: tag v0.1.2 pins nu-plugin/nu-protocol 0.110.0 (below >=0.112 gate). Defer."
     },
     {
       "repo": "devyn/nu_plugin_cassandra_query",
@@ -366,7 +376,11 @@
       "tag": "v0.2.0",
       "has_release": true,
       "blocker": "SOURCE_ONLY",
-      "stars": 0
+      "stars": 0,
+      "nu_plugin": "0.112.2",
+      "nu_protocol": "0.112.2",
+      "source_commit": "9c9a14e52017d9f0b2208c0c1fc8b4bd7d52f6a6",
+      "c1_note": "2026-07-31 Wave 2 peek: tag v0.2.0 -> commit 9c9a14e52017d9f0b2208c0c1fc8b4bd7d52f6a6; nu-plugin 0.112.2 (eligible); empty upstream assets; google-cloud-auth + BigQuery credentials needed for meaningful lifecycle proof. Keep SOURCE_ONLY until credentialed lifecycle plan exists."
     },
     {
       "repo": "jcornaz/nu_plugin_from_beancount",
@@ -374,8 +388,11 @@
       "plugin_bin": "nu_plugin_from_beancount",
       "tag": "v2.0.0",
       "has_release": true,
-      "blocker": "SOURCE_ONLY",
-      "stars": 0
+      "blocker": "PRE_0_112",
+      "stars": 0,
+      "nu_plugin": "0.76",
+      "nu_protocol": "0.76",
+      "c1_note": "2026-07-31 Wave 2 research: tag v2.0.0 pins nu-plugin/nu-protocol 0.76 (below >=0.112 gate). Defer."
     },
     {
       "repo": "Kissaki/nu_plugin_bson",

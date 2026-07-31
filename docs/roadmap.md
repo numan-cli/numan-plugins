@@ -1,6 +1,6 @@
 # Numan Plugins Roadmap
 
-**Status date:** 2026-07-30
+**Status date:** 2026-07-31
 
 This repository builds binary plugin artifacts for Numan's official registry.
 It is the controlled escape hatch for useful Nushell plugins whose upstreams
@@ -22,8 +22,11 @@ ship source-only tags or incomplete release assets.
   `FMotalleb/nu_plugin_image@0.112.2`, plus macOS-15 runner labels.
 - Wave 1 release assets are published:
   `nu_plugin_port_extension-0.113.1` and `nu_plugin_image-0.112.2`.
-- Release upload now uses claim-ID upload ([PR #12](https://github.com/tonythethompson/numan-plugins/pull/12))
+- Release upload uses claim-ID upload
+  ([PR #12](https://github.com/tonythethompson/numan-plugins/pull/12))
   to avoid softprops creating a second draft.
+- Registry Wave 1 intake, lifecycle-prove, production, and client smoke are
+  complete ([numan-registry#32](https://github.com/tonythethompson/numan-registry/pull/32)).
 
 ## Immediate Work: Finish Catalog Wave 1
 
@@ -41,7 +44,7 @@ Checklist after PR #4 merges:
 - [x] Do not rebuild existing releases unless a new package version or explicit
   build revision has been chosen.
 - [x] Do not publish any registry changes from this repo.
-- [ ] Merge release upload-by-id fix (PR #12) for future waves.
+- [x] Merge release upload-by-id fix (PR #12) for future waves.
 
 ## Candidate Promotion Gates
 
@@ -74,7 +77,9 @@ then hand them to `numan-registry`.
 - [x] `FMotalleb/nu_plugin_port_extension@0.113.1`
 - [x] `FMotalleb/nu_plugin_image@0.112.2`
 
-Assets published; registry intake is [numan-registry#32](https://github.com/tonythethompson/numan-registry/pull/32).
+Assets published; registry intake merged as
+[numan-registry#32](https://github.com/tonythethompson/numan-registry/pull/32);
+production + client smoke complete 2026-07-31.
 
 ### Wave 2 Research
 
@@ -83,10 +88,11 @@ are source-only plugins with tags and enough demand to justify CI-built assets:
 
 - [x] `devyn/nu_plugin_dbus` — researched 2026-07-30: `PRE_0_112` (nu-plugin 0.101.0; libdbus; not Windows)
 - [x] `PhotonBursted/nu_plugin_vec` — researched 2026-07-30: `PRE_0_112` (nu-plugin 0.105.1; pure Rust; Windows expected)
-- [ ] `drbrain/nu_plugin_prometheus`
-- [ ] `galuszkak/nu_plugin_bigquery`
-- [ ] `jcornaz/nu_plugin_from_beancount`
-- [ ] `dam4rus/nu_plugin_nuts`
+- [x] `drbrain/nu_plugin_prometheus` — researched 2026-07-31: prefer `v0.12.0` (nu-plugin/nu-protocol 0.114.1; commit `3fed1d934ba201ce1d9b78ecb727695588de7ef9`; empty upstream assets; `reqwest`+`native-tls`; edition 2024; Windows expected). `v0.11.0` stays `PRE_0_112` (0.110.0). Next: locked Windows build + command-discovery smoke before `active[]`.
+- [ ] `galuszkak/nu_plugin_bigquery` — peeked 2026-07-31: `v0.2.0` pins nu-plugin 0.112.2 (eligible) but needs Google credentials for meaningful lifecycle proof
+- [x] `jcornaz/nu_plugin_from_beancount` — researched 2026-07-31: `PRE_0_112` (nu-plugin 0.76)
+- [x] `dam4rus/nu_plugin_nuts` — researched 2026-07-31: `PRE_0_112` (nu-plugin 0.110.0)
+- [x] `FMotalleb/nu_plugin_audio_hook` — researched 2026-07-31: `PRE_0_112` (nu-plugin 0.110.0; rodio decoders)
 
 For each, record whether the current tag is compatible with a supported Nu
 minor, whether native system dependencies are required, whether Windows builds,
