@@ -92,3 +92,8 @@ rest build on native runners.
 Generated specs include the schema's `source` block with the immutable upstream
 commit in `source.rev`. Registry intake must preserve that provenance in the
 signed index and independently download and hash every release asset.
+
+## PR review
+
+Reviewers follow [`REVIEW.md`](REVIEW.md) for severity labels, trust-boundary
+invariants, and the review checklist.

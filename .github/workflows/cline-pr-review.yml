@@ -128,6 +128,10 @@ jobs:
 
           PR: #${PR_NUMBER}
 
+          ## Required reading (in the checked-out repo)
+          - REVIEW.md
+          - README.md
+
           ## Gather context
           Use `gh` commands to fetch the PR diff, details, and checks.
 
@@ -144,15 +148,16 @@ jobs:
 
           ## Review systematically
 
-          1. **Architecture fit** — does the change respect dependency direction? No domain → infra leaks.
-          2. **No fake readiness** — provider registered ≠ model downloaded ≠ stage ran ≠ stage succeeded.
-          3. **Pipeline stage rules** — original artifacts preserved on skip/fail. Statuses distinguish success/skipped/failed/disabled.
-          4. **Cross-platform** — no Win32-only assumptions unless Windows-only boundary.
-          5. **License/model gates** — new model references must have manifest entry + known commercial license.
+          Follow REVIEW.md. Flag P0-P3 findings against its architecture invariants:
+          1. Builds only, never signs (trust boundary with numan-registry).
+          2. Immutable upstream pins and release assets; no overwrite of existing tags/assets.
+          3. Manual publish only; PR/push must not release.
+          4. Specs omit sha256; preserve source.rev provenance.
+          5. Cross-platform — no Win32-only assumptions unless Windows-only boundary.
 
           ## Output format
           - Concise Markdown
-          - Severity tags: **blocker** / **major** / **minor** / **nit**
+          - Severity tags: **P0** / **P1** / **P2** / **P3** (per REVIEW.md)
           - File path + specific fix per finding
           - If no issues found, say so in one sentence
           CLINEPROMPT
