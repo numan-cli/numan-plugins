@@ -394,7 +394,7 @@
       "nu_plugin": "0.113.0",
       "nu_protocol": "0.113.0",
       "source_commit": "634f14145f88cf4a44b4172fe07a45bca5d21422",
-      "c1_note": "2026-07-31: promoted to active[] for tag 0.27.0 (commit 634f14145f88cf4a44b4172fe07a45bca5d21422; nu-plugin 0.113.0; pure Rust hex+hmac+sha2+whirlpool; edition 2024). Upstream release is bare Linux binary only (OTHER_ASSET); CI-built archives for all targets.",
+      "c1_note": "2026-07-31: promoted to active[] for tag 0.27.0 (commit 634f14145f88cf4a44b4172fe07a45bca5d21422; nu-plugin 0.113.0; pure Rust hex+hmac+sha2+whirlpool; edition 2024). Upstream release is bare Linux binary only (OTHER_ASSET); CI-built archives for standard targets (x86_64-apple-darwin excluded).",
       "stars": 0
     },
     {
@@ -432,7 +432,7 @@
       "nu_plugin": "0.114.0",
       "nu_protocol": "0.114.0",
       "source_commit": "252f950d01d0a9310baf9bfb22ee282e2d76161e",
-      "c1_note": "2026-07-31: promoted to active[] for tag v26.1140.0 (commit 252f950d01d0a9310baf9bfb22ee282e2d76161e; nu-plugin 0.114.0; pure Rust bson+base64; edition 2024). Upstream release has bare binaries for 3 platforms (OTHER_ASSET); CI-built archives for all targets.",
+      "c1_note": "2026-07-31: promoted to active[] for tag v26.1140.0 (commit 252f950d01d0a9310baf9bfb22ee282e2d76161e; nu-plugin 0.114.0; pure Rust bson+base64; edition 2024). Upstream release has bare binaries for 3 platforms (OTHER_ASSET); CI-built archives for standard targets (x86_64-apple-darwin excluded).",
       "stars": 0
     },
     {
