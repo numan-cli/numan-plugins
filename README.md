@@ -81,6 +81,11 @@ rest build on native runners.
 - `FMotalleb/nu_plugin_port_extension` @ `v0.113.1` → `nu_plugin_port_extension` 0.113.1
 - `FMotalleb/nu_plugin_image` @ `v0.112.2` → `nu_plugin_image` 0.112.2
 - `drbrain/nu_plugin_prometheus` @ `v0.12.0` → `nu_plugin_prometheus` 0.12.0
+- `fdncred/nu_plugin_emoji` @ `v0.23.0` → `nu_plugin_emoji` 0.23.0
+- `fdncred/nu_plugin_json_path` @ `v0.24.0` → `nu_plugin_json_path` 0.24.0
+- `fdncred/nu_plugin_parquet` @ `v0.24.0` → `nu_plugin_parquet` 0.24.0
+- `Kissaki/nu_plugin_bson` @ `v26.1140.0` → `nu_plugin_bson` 26.1140.0
+- `fnuttens/nu_plugin_hmac` @ `0.27.0` → `nu_plugin_hmac` 0.27.0
 
 ## Registry-side follow-up
 

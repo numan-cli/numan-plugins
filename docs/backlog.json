@@ -279,7 +279,10 @@
       "plugin_bin": "nu_plugin_hcl",
       "tag": "0.105.1",
       "has_release": true,
-      "blocker": "SOURCE_ONLY",
+      "blocker": "PRE_0_112",
+      "nu_plugin": "0.105.1",
+      "nu_protocol": "0.105.1",
+      "c1_note": "2026-07-31 Wave 2 research: tag 0.105.1 pins nu-plugin 0.105.1 (below >=0.112 gate). Defer.",
       "stars": 4
     },
     {
@@ -333,7 +336,10 @@
       "plugin_bin": "nu_plugin_from_bencode",
       "tag": "v0.11.0",
       "has_release": true,
-      "blocker": "SOURCE_ONLY",
+      "blocker": "PRE_0_112",
+      "nu_plugin": "0.93",
+      "nu_protocol": "0.93",
+      "c1_note": "2026-07-31 Wave 2 research: tag v0.11.0 pins nu-plugin 0.93 (below >=0.112 gate). Defer.",
       "stars": 0
     },
     {
@@ -363,7 +369,10 @@
       "plugin_bin": "nu_plugin_cassandra_query",
       "tag": "0.3.0",
       "has_release": true,
-      "blocker": "SOURCE_ONLY",
+      "blocker": "PRE_0_112",
+      "nu_plugin": "0.101.0",
+      "nu_protocol": "0.101.0",
+      "c1_note": "2026-07-31 Wave 2 research: tag 0.3.0 pins nu-plugin 0.101.0 (below >=0.112 gate). Defer.",
       "stars": 0
     },
     {
@@ -381,7 +390,11 @@
       "plugin_bin": "nu_plugin_hmac",
       "tag": "0.27.0",
       "has_release": true,
-      "blocker": "OTHER_ASSET",
+      "blocker": "PROMOTED",
+      "nu_plugin": "0.113.0",
+      "nu_protocol": "0.113.0",
+      "source_commit": "634f14145f88cf4a44b4172fe07a45bca5d21422",
+      "c1_note": "2026-07-31: promoted to active[] for tag 0.27.0 (commit 634f14145f88cf4a44b4172fe07a45bca5d21422; nu-plugin 0.113.0; pure Rust hex+hmac+sha2+whirlpool; edition 2024). Upstream release is bare Linux binary only (OTHER_ASSET); CI-built archives for all targets.",
       "stars": 0
     },
     {
@@ -415,7 +428,11 @@
       "plugin_bin": "nu_plugin_bson",
       "tag": "v26.1140.0",
       "has_release": true,
-      "blocker": "OTHER_ASSET",
+      "blocker": "PROMOTED",
+      "nu_plugin": "0.114.0",
+      "nu_protocol": "0.114.0",
+      "source_commit": "252f950d01d0a9310baf9bfb22ee282e2d76161e",
+      "c1_note": "2026-07-31: promoted to active[] for tag v26.1140.0 (commit 252f950d01d0a9310baf9bfb22ee282e2d76161e; nu-plugin 0.114.0; pure Rust bson+base64; edition 2024). Upstream release has bare binaries for 3 platforms (OTHER_ASSET); CI-built archives for all targets.",
       "stars": 0
     },
     {
