@@ -80,6 +80,7 @@ rest build on native runners.
 - `FMotalleb/nu_plugin_desktop_notifications` @ `v0.114.1` → `nu_plugin_desktop_notifications` 0.114.1
 - `FMotalleb/nu_plugin_port_extension` @ `v0.113.1` → `nu_plugin_port_extension` 0.113.1
 - `FMotalleb/nu_plugin_image` @ `v0.112.2` → `nu_plugin_image` 0.112.2
+- `drbrain/nu_plugin_prometheus` @ `v0.12.0` → `nu_plugin_prometheus` 0.12.0
 
 ## Registry-side follow-up
 
