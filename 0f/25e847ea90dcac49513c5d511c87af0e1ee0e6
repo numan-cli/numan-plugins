@@ -1,0 +1,24 @@
+README.md
+  s_1e24b1163201e7::t_ce55fd8fca8c9f 95-99
+.github/workflows/cline-pr-review.yml
+  s_1e24b1163201e7::t_009632780401f3 131-134
+  s_1e24b1163201e7::t_0bcb49fa6a5fda 151-156,160
+REVIEW.md
+  s_1e24b1163201e7::t_0df12dd9a3d475 1-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0f25e847ea90dcac49513c5d511c87af0e1ee0e6",
+  "prompts": {},
+  "sessions": {
+    "s_1e24b1163201e7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "878dfe42-809f-4ec3-9256-59c856cc5948",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
