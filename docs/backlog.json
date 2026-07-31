@@ -160,7 +160,7 @@
       "nu_plugin": "0.114.1",
       "nu_protocol": "0.114.1",
       "source_commit": "3fed1d934ba201ce1d9b78ecb727695588de7ef9",
-      "c1_note": "2026-07-31: promoted to active[] for tag v0.12.0 (commit 3fed1d934ba201ce1d9b78ecb727695588de7ef9; nu-plugin/nu-protocol 0.114.1; full 5-target matrix including Windows; reqwest+native-tls; edition 2024). Upstream release assets empty (CI-built). Release assets pending the manual build-plugins dispatch. v0.11.0 was PRE_0_112 (0.110.0)."
+      "c1_note": "2026-07-31: promoted to active[] for tag v0.12.0 (commit 3fed1d934ba201ce1d9b78ecb727695588de7ef9; nu-plugin/nu-protocol 0.114.1; reqwest+native-tls; edition 2024). Upstream release assets empty (CI-built). First build (run 30604641151): Windows + linux x86_64 + both macOS green; linux aarch64 cross failed openssl-sys — excluded with reason. Re-dispatch pending. v0.11.0 was PRE_0_112 (0.110.0)."
     },
     {
       "repo": "FMotalleb/nu_plugin_port_extension",
