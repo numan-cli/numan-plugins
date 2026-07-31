@@ -88,7 +88,7 @@ are source-only plugins with tags and enough demand to justify CI-built assets:
 
 - [x] `devyn/nu_plugin_dbus` — researched 2026-07-30: `PRE_0_112` (nu-plugin 0.101.0; libdbus; not Windows)
 - [x] `PhotonBursted/nu_plugin_vec` — researched 2026-07-30: `PRE_0_112` (nu-plugin 0.105.1; pure Rust; Windows expected)
-- [x] `drbrain/nu_plugin_prometheus` — researched 2026-07-31: prefer `v0.12.0` (nu-plugin/nu-protocol 0.114.1; commit `3fed1d934ba201ce1d9b78ecb727695588de7ef9`; empty upstream assets; `reqwest`+`native-tls`; edition 2024; Windows expected). `v0.11.0` stays `PRE_0_112` (0.110.0). Next: locked Windows build + command-discovery smoke before `active[]`.
+- [x] `drbrain/nu_plugin_prometheus` — promoted 2026-07-31 to `active[]` as `v0.12.0` (nu-plugin/nu-protocol 0.114.1; commit `3fed1d934ba201ce1d9b78ecb727695588de7ef9`; full 5-target matrix). Awaiting `build-plugins` dispatch for release assets. `v0.11.0` was `PRE_0_112` (0.110.0).
 - [ ] `galuszkak/nu_plugin_bigquery` — peeked 2026-07-31: `v0.2.0` pins nu-plugin 0.112.2 (eligible) but needs Google credentials for meaningful lifecycle proof
 - [x] `jcornaz/nu_plugin_from_beancount` — researched 2026-07-31: `PRE_0_112` (nu-plugin 0.76)
 - [x] `dam4rus/nu_plugin_nuts` — researched 2026-07-31: `PRE_0_112` (nu-plugin 0.110.0)
