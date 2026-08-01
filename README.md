@@ -1,6 +1,6 @@
 # numan-plugins
 
-CI build+sign pipeline feeder for the [Numan](https://github.com/tonythethompson/numan)
+CI build+sign pipeline feeder for the [numan](https://github.com/tonythethompson/numan)
 official registry — implements the binary-delivery half of
 [numan #30](https://github.com/tonythethompson/numan/issues/30).
 
