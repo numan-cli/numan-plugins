@@ -14,11 +14,11 @@
 
 ## Update Summary
 **Changes Made**
-- Enhanced build workflow with Cargo.lock compatibility fixes for cargo 1.97
-- Improved PR review workflow reliability with better error handling
-- Added fallback mechanisms for plugin builds to handle dependency resolution failures
-- Updated troubleshooting guide with new Cargo-related issues and solutions
-- Enhanced cross-compilation support with improved platform detection
+- Enhanced Cargo.lock compatibility fixes for cargo 1.97 with improved error handling
+- Updated grep patterns to handle both old and new Cargo error message formats
+- Improved build workflow reliability across different Cargo versions
+- Added robust fallback mechanisms for dependency resolution failures
+- Enhanced troubleshooting guide with new Cargo-related issues and solutions
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -36,7 +36,7 @@
 
 This document provides comprehensive guidance for implementing and managing CI/CD pipelines using GitHub Actions for the numan-plugins project. The CI/CD system automates build processes, testing, code review automation, repository safety checks, and deployment workflows. It ensures code quality, security compliance, and efficient release management through automated workflows that trigger on various events such as pushes, pull requests, and scheduled tasks.
 
-The CI/CD pipeline is designed to handle multiple environments (development, staging, production), manage artifacts securely, and maintain repository health through automated maintenance tasks. Recent improvements include enhanced Cargo.lock compatibility for cargo 1.97, improved PR review workflow reliability, and robust fallback mechanisms for plugin builds.
+The CI/CD pipeline is designed to handle multiple environments (development, staging, production), manage artifacts securely, and maintain repository health through automated maintenance tasks. Recent improvements include enhanced Cargo.lock compatibility for cargo 1.97 with robust grep pattern handling, improved PR review workflow reliability, and robust fallback mechanisms for plugin builds.
 
 ## Project Structure
 
@@ -90,7 +90,7 @@ Key features include:
 - Dependency installation and caching
 - Code quality checks
 - Artifact packaging and upload
-- **Updated**: Enhanced Cargo.lock compatibility for cargo 1.97 with automatic fallback mechanisms
+- **Updated**: Enhanced Cargo.lock compatibility for cargo 1.97 with robust grep pattern handling for both old and new error message formats
 - **Updated**: Improved cross-compilation fixes for Prometheus plugin with aarch64 Linux exclusion
 
 ### Automated Testing Triggers
@@ -295,7 +295,7 @@ TestSafetyScript --> ConfigFiles
 4. **Artifact Reuse**: Cache compiled artifacts between jobs
 5. **Resource Optimization**: Choose appropriate runner sizes and types
 6. **Platform-Specific Optimizations**: Exclude incompatible platforms to reduce build time
-7. **Updated**: Cargo.lock compatibility checking to prevent unnecessary rebuilds
+7. **Updated**: Enhanced Cargo.lock compatibility checking with robust grep patterns to prevent unnecessary rebuilds
 
 ### Caching Implementation
 
@@ -316,7 +316,7 @@ The workflows implement intelligent caching strategies:
 - Implement timeout limits to prevent resource hogging
 - Monitor and optimize memory usage
 - **Updated**: Platform exclusions reduce unnecessary build attempts on incompatible architectures
-- **Updated**: Cargo.lock compatibility checks prevent failed builds from consuming resources
+- **Updated**: Enhanced Cargo.lock compatibility checks with robust grep patterns prevent failed builds from consuming resources
 
 ## Troubleshooting Guide
 
@@ -345,10 +345,11 @@ The workflows implement intelligent caching strategies:
    - Alternative: Use containerized builds with pre-configured OpenSSL libraries
 
 5. **Cargo.lock Compatibility Issues**
-   - **New**: Cargo.lock format incompatibility with cargo 1.97
-   - Symptoms: Build failures during dependency resolution
-   - Solution: Automatic fallback mechanism regenerates compatible Cargo.lock
-   - Prevention: Regular updates to maintain Cargo.lock compatibility
+   - **New**: Cargo.lock format incompatibility with cargo 1.97 and newer versions
+   - Symptoms: Build failures during dependency resolution with error message parsing issues
+   - **Updated Solution**: Enhanced grep patterns now handle both old and new Cargo error message formats automatically
+   - Prevention: Regular updates to maintain Cargo.lock compatibility with latest Cargo versions
+   - **Debugging**: Check workflow logs for grep pattern matching failures and verify Cargo version compatibility
 
 #### Debugging Failed Workflows
 
@@ -458,10 +459,11 @@ Key benefits of the implemented CI/CD system:
 - **Security First**: Integrated security scanning and secret management
 - **Maintainable**: Modular design with clear separation of concerns
 - **Updated**: Enhanced cross-compilation support with platform-specific optimizations
-- **Updated**: Cargo.lock compatibility fixes for cargo 1.97 ensure reliable builds
+- **Updated**: Robust Cargo.lock compatibility handling for cargo 1.97 and newer versions
 
 Recent improvements include:
-- **Cargo.lock Compatibility**: Resolved cargo 1.97 compatibility issues with automatic fallback mechanisms
+- **Enhanced Cargo.lock Compatibility**: Resolved cargo 1.97 compatibility issues with robust grep pattern handling for both old and new error message formats
+- **Improved Error Handling**: Better detection and handling of Cargo dependency resolution failures across different versions
 - **PR Review Reliability**: Enhanced error handling and retry logic in review workflows
 - **Plugin Build Fallbacks**: Robust fallback mechanisms for handling dependency resolution failures
 - **Cross-Compilation Fixes**: Resolved Prometheus plugin build issues on aarch64 Linux by excluding incompatible platforms
@@ -475,6 +477,6 @@ Future enhancements could include:
 - Integration with additional security tools
 - Custom dashboard for pipeline status
 - Support for additional target platforms as OpenSSL compatibility improves
-- Enhanced Cargo.lock validation and automatic regeneration
+- Enhanced Cargo.lock validation and automatic regeneration with continued Cargo version compatibility
 
 The CI/CD system serves as a foundation for continuous delivery, enabling rapid and reliable releases while maintaining high standards for code quality and security.

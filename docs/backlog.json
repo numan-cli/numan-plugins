@@ -1,511 +1,700 @@
 {
-  "schema": "numan-plugin-backlog-v0",
-  "note": "Demand-ranked source-only plugins from the awesome-nu triage (2026-07). Promote into manifest.json active[] in small batches after each passes real-Nu install on all targets. has_release=false means a buildable tag must be chosen; some plugins have system deps to check.",
+  "schema": "numan-plugin-backlog-v1",
+  "note": "Comprehensive Nushell plugin candidate list. Source: awesome-nu + manual discovery. Each plugin tracks ALL known release versions and their Nu minor compatibility, enabling post-1.0 backfill targeting. Status values: PROMOTED (in official registry), ELIGIBLE (has version on supported Nu minor, not yet promoted), PRE_0_112 (all versions below 0.112), NO_RELEASE (no tags), SOURCE_ONLY (tags but no release assets), CREDENTIALS (needs special creds for lifecycle proof), BUILTIN (shipped inside Nu itself).",
+  "schema_fields": {
+    "repo": "GitHub owner/name",
+    "name": "crate/package name",
+    "plugin_bin": "binary name after build",
+    "stars": "GitHub stars at last check",
+    "status": "PROMOTED | ELIGIBLE | PRE_0_112 | NO_RELEASE | SOURCE_ONLY | CREDENTIALS | BUILTIN",
+    "versions": "Array of {tag, nu_plugin, nu_protocol, has_assets, note} — ALL known releases with their Nu compat",
+    "backfill_targets": "Nu minors (e.g. [\"0.113\", \"0.112\"]) that have at least one eligible plugin version not yet in registry",
+    "c1_note": "Latest research/promotion note"
+  },
   "plugins": [
     {
       "repo": "FMotalleb/nu_plugin_clipboard",
       "name": "nu_plugin_clipboard",
       "plugin_bin": "nu_plugin_clipboard",
-      "tag": "v0.110.0",
-      "has_release": true,
-      "blocker": "PRE_0_112",
-      "nu_plugin": "0.110.0",
-      "nu_protocol": "0.110.0",
-      "c1_note": "2026-07-22: latest release pins nu-plugin 0.110.0 (below Batch 1 gate >=0.112). Deferred.",
-      "stars": 85
+      "stars": 85,
+      "status": "PRE_0_112",
+      "versions": [
+        { "tag": "v0.110.0", "nu_plugin": "0.110.0", "nu_protocol": "0.110.0", "has_assets": true, "note": "latest release" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-22: latest release pins nu-plugin 0.110.0. No newer tags found."
     },
     {
       "repo": "idanarye/nu_plugin_skim",
       "name": "nu_plugin_skim",
       "plugin_bin": "nu_plugin_skim",
-      "tag": "v0.29.1",
-      "has_release": true,
-      "blocker": "PROMOTED",
-      "nu_plugin": "0.114",
-      "nu_protocol": "0.114",
-      "c1_note": "2026-07-30: promoted and released via numan-plugins as nu_plugin_skim-0.29.1; in official registry. Previously SOURCE_ONLY (empty upstream assets).",
-      "stars": 85
+      "stars": 85,
+      "status": "PROMOTED",
+      "versions": [
+        { "tag": "v0.29.1", "nu_plugin": "0.114", "nu_protocol": "0.114", "has_assets": false, "note": "promoted; CI-built via numan-plugins" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-30: promoted and released via numan-plugins as nu_plugin_skim-0.29.1; in official registry."
     },
     {
       "repo": "cptpiepmatz/nu-plugin-highlight",
       "name": "nu-plugin-highlight",
       "plugin_bin": "nu_plugin_highlight",
-      "tag": "v1.4.15+0.113.1",
-      "has_release": true,
-      "blocker": "PROMOTED",
       "stars": 82,
-      "nu_plugin": "0.113.1",
-      "nu_protocol": "0.113.1",
+      "status": "PROMOTED",
+      "versions": [
+        { "tag": "v1.4.15+0.113.1", "nu_plugin": "0.113.1", "nu_protocol": "0.113.1", "has_assets": true, "note": "promoted; CI-built via numan-plugins" }
+      ],
+      "backfill_targets": [],
       "c1_note": "2026-07-30: promoted and released via numan-plugins as nu_plugin_highlight-1.4.15; in official registry (no intel mac)."
     },
     {
       "repo": "Euphrasiologist/nu_plugin_plot",
       "name": "nu_plugin_plot",
       "plugin_bin": "nu_plugin_plot",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 71
+      "stars": 71,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags. Needs commit-snapshot policy or upstream release."
     },
     {
       "repo": "FMotalleb/nu_plugin_desktop_notifications",
       "name": "nu_plugin_desktop_notifications",
       "plugin_bin": "nu_plugin_desktop_notifications",
-      "tag": "v0.114.1",
-      "has_release": true,
-      "blocker": "PROMOTED",
-      "nu_plugin": "0.114.1",
-      "nu_protocol": "0.114.1",
-      "c1_note": "2026-07-22: promoted to active[]; registry intake 0.114.1 published; Windows lifecycle-prove OK.",
-      "stars": 53
+      "stars": 53,
+      "status": "PROMOTED",
+      "versions": [
+        { "tag": "v0.114.1", "nu_plugin": "0.114.1", "nu_protocol": "0.114.1", "has_assets": false, "note": "promoted; CI-built" },
+        { "tag": "v0.113.1", "nu_plugin": "0.113.1", "nu_protocol": "0.113.1", "has_assets": false, "note": "older tag, same repo pattern" }
+      ],
+      "backfill_targets": ["0.113"],
+      "c1_note": "2026-07-22: promoted to active[]; registry intake 0.114.1 published; Windows lifecycle-prove OK."
     },
     {
       "repo": "yybit/nu_plugin_compress",
       "name": "nu_plugin_compress",
       "plugin_bin": "nu_plugin_compress",
-      "tag": "0.2.5",
-      "has_release": true,
-      "blocker": "PRE_0_112",
-      "nu_plugin": "0.103.0",
-      "nu_protocol": "0.103.0",
-      "c1_note": "2026-07-31 Wave 2 research: tag 0.2.5 pins nu-plugin 0.103.0 (below >=0.112 gate). Defer until upstream bumps Nu minor.",
-      "stars": 42
+      "stars": 42,
+      "status": "PRE_0_112",
+      "versions": [
+        { "tag": "0.2.5", "nu_plugin": "0.103.0", "nu_protocol": "0.103.0", "has_assets": true, "note": "latest tag" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-31: tag 0.2.5 pins nu-plugin 0.103.0. Defer until upstream bumps."
     },
     {
       "repo": "devyn/nu_plugin_dbus",
       "name": "nu_plugin_dbus",
       "plugin_bin": "nu_plugin_dbus",
-      "tag": "0.14.0",
-      "has_release": true,
-      "blocker": "PRE_0_112",
       "stars": 34,
-      "nu_plugin": "0.101.0",
-      "nu_protocol": "0.101.0",
-      "c1_note": "2026-07-30 Wave 2 research: tag 0.14.0 -> commit ea17d3c5fbb74a06b143ef1b929f15bbf7e505a0; release assets empty; nu-plugin/nu-protocol 0.101.0 (below >=0.112 gate) on tag and main; native dep dbus 0.9.7 (libdbus; UNIX/Linux/FreeBSD, not Windows); commands: dbus call/get/get-all/introspect/list/set; no numan-plugins release tag yet. Defer until upstream bumps Nu minor."
+      "status": "PRE_0_112",
+      "versions": [
+        { "tag": "0.14.0", "nu_plugin": "0.101.0", "nu_protocol": "0.101.0", "has_assets": false, "note": "libdbus; UNIX/Linux/FreeBSD only, not Windows" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-30: nu-plugin 0.101.0; native dep dbus (not Windows). Defer."
     },
     {
       "repo": "Euphrasiologist/nu_plugin_bio",
       "name": "nu_plugin_bio",
       "plugin_bin": "nu_plugin_bio",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 31
+      "stars": 31,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
     },
     {
       "repo": "fdncred/nu_plugin_emoji",
       "name": "nu_plugin_emoji",
       "plugin_bin": "nu_plugin_emoji",
-      "tag": "v0.23.0",
-      "has_release": true,
-      "blocker": "PROMOTED",
-      "nu_plugin": "0.114.0",
-      "nu_protocol": "0.114.0",
-      "c1_note": "2026-07-31: promoted to active[] for tag v0.23.0 (commit e11cb9d5db772f904c11b8f1f3d0072de542d56c; nu-plugin 0.114.0; pure Rust emojis+itertools; edition 2024). Build run 30619909036 green on 4 targets. Registry intake PR#36, production live, lifecycle-prove OK on Windows/Nu 0.114.1.",
-      "stars": 27
+      "stars": 27,
+      "status": "PROMOTED",
+      "versions": [
+        { "tag": "v0.23.0", "nu_plugin": "0.114.0", "nu_protocol": "0.114.0", "has_assets": false, "note": "promoted; CI-built; pure Rust" },
+        { "tag": "v0.22.0", "nu_plugin": "0.113.0", "nu_protocol": "0.113.0", "has_assets": false, "note": "previous minor" }
+      ],
+      "backfill_targets": ["0.113"],
+      "c1_note": "2026-07-31: promoted v0.23.0; registry PR#36, production live, lifecycle-prove OK Windows/Nu 0.114.1."
     },
     {
       "repo": "FMotalleb/nu_plugin_audio_hook",
       "name": "nu_plugin_audio_hook",
       "plugin_bin": "nu_plugin_audio_hook",
-      "tag": "v0.110.0",
-      "has_release": true,
-      "blocker": "PRE_0_112",
       "stars": 24,
-      "nu_plugin": "0.110.0",
-      "nu_protocol": "0.110.0",
-      "c1_note": "2026-07-31 Wave 2 research: tag v0.110.0 pins nu-plugin/nu-protocol 0.110.0 (below >=0.112 gate); rodio audio decoders; SOURCE_ONLY empty assets. Defer until upstream bumps Nu minor."
+      "status": "PRE_0_112",
+      "versions": [
+        { "tag": "v0.110.0", "nu_plugin": "0.110.0", "nu_protocol": "0.110.0", "has_assets": false, "note": "rodio audio decoders" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-31: nu-plugin 0.110.0. Defer."
     },
     {
       "repo": "fdncred/nu_plugin_json_path",
       "name": "nu_plugin_json_path",
       "plugin_bin": "nu_plugin_json_path",
-      "tag": "v0.24.0",
-      "has_release": true,
-      "blocker": "PROMOTED",
-      "nu_plugin": "0.114.0",
-      "nu_protocol": "0.114.0",
-      "c1_note": "2026-07-31: promoted to active[] for tag v0.24.0 (commit 2c7296394cec4519d42eb63ed7758aa332a01a26; nu-plugin 0.114.0; pure Rust serde_json+serde_json_path; edition 2024). Build run 30619909036 green on 4 targets. Registry intake PR#36, production live, lifecycle-prove OK on Windows/Nu 0.114.1.",
-      "stars": 22
+      "stars": 22,
+      "status": "PROMOTED",
+      "versions": [
+        { "tag": "v0.24.0", "nu_plugin": "0.114.0", "nu_protocol": "0.114.0", "has_assets": false, "note": "promoted; CI-built; pure Rust" },
+        { "tag": "v0.23.0", "nu_plugin": "0.113.0", "nu_protocol": "0.113.0", "has_assets": false, "note": "previous minor" }
+      ],
+      "backfill_targets": ["0.113"],
+      "c1_note": "2026-07-31: promoted v0.24.0; registry PR#36, production live."
     },
     {
       "repo": "FMotalleb/nu_plugin_image",
       "name": "nu_plugin_image",
       "plugin_bin": "nu_plugin_image",
-      "tag": "v0.112.2",
-      "has_release": true,
-      "blocker": "PROMOTED",
-      "nu_plugin": "0.112.2",
-      "nu_protocol": "0.112.2",
-      "c1_note": "2026-07-30: promoted to active[]; Wave 1 release nu_plugin_image-0.112.2 published; registry intake open (numan-registry#32).",
-      "stars": 22
+      "stars": 22,
+      "status": "PROMOTED",
+      "versions": [
+        { "tag": "v0.112.2", "nu_plugin": "0.112.2", "nu_protocol": "0.112.2", "has_assets": false, "note": "promoted; CI-built Wave 1" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-30: promoted; Wave 1 release; registry intake numan-registry#32."
     },
     {
       "repo": "fdncred/nu_plugin_parquet",
       "name": "nu_plugin_parquet",
       "plugin_bin": "nu_plugin_parquet",
-      "tag": "v0.24.0",
-      "has_release": true,
-      "blocker": "PROMOTED",
-      "nu_plugin": "0.114.0",
-      "nu_protocol": "0.114.0",
-      "c1_note": "2026-07-31: promoted to active[] for tag v0.24.0 (commit 0d194688079cbd1cb2820018f78ca70a34e21745; nu-plugin 0.114.0; pure Rust bytes+chrono+parquet; edition 2024). Build run 30619909036 green on 4 targets. Registry intake PR#36, production live, lifecycle-prove OK on Windows/Nu 0.114.1.",
-      "stars": 18
+      "stars": 18,
+      "status": "PROMOTED",
+      "versions": [
+        { "tag": "v0.24.0", "nu_plugin": "0.114.0", "nu_protocol": "0.114.0", "has_assets": false, "note": "promoted; CI-built; pure Rust" },
+        { "tag": "v0.23.0", "nu_plugin": "0.113.0", "nu_protocol": "0.113.0", "has_assets": false, "note": "previous minor" }
+      ],
+      "backfill_targets": ["0.113"],
+      "c1_note": "2026-07-31: promoted v0.24.0; registry PR#36, production live."
     },
     {
       "repo": "JosephTLyons/nu_plugin_units",
       "name": "nu_plugin_units",
       "plugin_bin": "nu_plugin_units",
-      "tag": "v0.1.8",
-      "has_release": true,
-      "blocker": "PRE_0_112",
-      "nu_plugin": "0.106.1",
-      "nu_protocol": "0.106.1",
-      "c1_note": "2026-07-31 Wave 2 research: tag v0.1.8 pins nu-plugin 0.106.1 (below >=0.112 gate). Defer until upstream bumps Nu minor.",
-      "stars": 18
+      "stars": 18,
+      "status": "PRE_0_112",
+      "versions": [
+        { "tag": "v0.1.8", "nu_plugin": "0.106.1", "nu_protocol": "0.106.1", "has_assets": true, "note": "latest tag" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-31: nu-plugin 0.106.1. Defer."
     },
     {
       "repo": "drbrain/nu_plugin_prometheus",
       "name": "nu_plugin_prometheus",
       "plugin_bin": "nu_plugin_prometheus",
-      "tag": "v0.12.0",
-      "has_release": true,
-      "blocker": "PROMOTED",
       "stars": 16,
-      "nu_plugin": "0.114.1",
-      "nu_protocol": "0.114.1",
-      "source_commit": "3fed1d934ba201ce1d9b78ecb727695588de7ef9",
-      "c1_note": "2026-07-31: promoted to active[] for tag v0.12.0 (commit 3fed1d934ba201ce1d9b78ecb727695588de7ef9; nu-plugin/nu-protocol 0.114.1; reqwest+native-tls; edition 2024). Upstream release assets empty (CI-built). First build (run 30604641151): Windows + linux x86_64 + both macOS green; linux aarch64 cross failed openssl-sys — excluded with reason. Re-dispatch pending. v0.11.0 was PRE_0_112 (0.110.0)."
+      "status": "PROMOTED",
+      "versions": [
+        { "tag": "v0.12.0", "nu_plugin": "0.114.1", "nu_protocol": "0.114.1", "has_assets": false, "note": "promoted; CI-built; reqwest+native-tls" },
+        { "tag": "v0.11.0", "nu_plugin": "0.110.0", "nu_protocol": "0.110.0", "has_assets": false, "note": "PRE_0_112; skipped" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-31: promoted v0.12.0; linux aarch64 excluded (openssl cross)."
     },
     {
       "repo": "FMotalleb/nu_plugin_port_extension",
       "name": "nu_plugin_port_extension",
       "plugin_bin": "nu_plugin_port_extension",
-      "tag": "v0.113.1",
-      "has_release": true,
-      "blocker": "PROMOTED",
-      "nu_plugin": "0.113.1",
-      "nu_protocol": "0.113.1",
-      "c1_note": "2026-07-30: promoted to active[]; Wave 1 release nu_plugin_port_extension-0.113.1 published; registry intake open (numan-registry#32).",
-      "stars": 16
+      "stars": 16,
+      "status": "PROMOTED",
+      "versions": [
+        { "tag": "v0.113.1", "nu_plugin": "0.113.1", "nu_protocol": "0.113.1", "has_assets": false, "note": "promoted; CI-built Wave 1" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-30: promoted; Wave 1 release; registry intake numan-registry#32."
     },
     {
       "repo": "PhotonBursted/nu_plugin_vec",
       "name": "nu_plugin_vec",
       "plugin_bin": "nu_plugin_vec",
-      "tag": "v1.1.6",
-      "has_release": true,
-      "blocker": "PRE_0_112",
       "stars": 13,
-      "nu_plugin": "0.105.1",
-      "nu_protocol": "0.105.1",
-      "c1_note": "2026-07-30 Wave 2 research: tag v1.1.6 -> commit 69745d9b17853ff33989b14546fbc51b1ff167d8; release assets empty; nu-plugin/nu-protocol 0.105.1 (below >=0.112 gate) on tag and main; no native system deps (pure Rust + itertools); Windows expected to build; commands: vec add/dot/etc; no numan-plugins release tag yet. Defer until upstream bumps Nu minor."
+      "status": "PRE_0_112",
+      "versions": [
+        { "tag": "v1.1.6", "nu_plugin": "0.105.1", "nu_protocol": "0.105.1", "has_assets": false, "note": "pure Rust + itertools; Windows expected" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-30: nu-plugin 0.105.1. Defer."
     },
     {
       "repo": "fdncred/nu_plugin_pnet",
       "name": "nu_plugin_pnet",
       "plugin_bin": "nu_plugin_pnet",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 9
+      "stars": 9,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags. Same as nu_plugin_net but named pnet for Windows."
     },
     {
       "repo": "WindSoilder/nu_plugin_mongo",
       "name": "nu_plugin_mongo",
       "plugin_bin": "nu_plugin_mongo",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 8
+      "stars": 8,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
     },
     {
       "repo": "hulthe/nu_plugin_msgpack",
       "name": "nu_plugin_msgpack",
       "plugin_bin": "nu_plugin_msgpack",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 7
+      "stars": 7,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
     },
     {
       "repo": "kik4444/nu_plugin_mime",
       "name": "nu_plugin_mime",
       "plugin_bin": "nu_plugin_mime",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 6
+      "stars": 6,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
     },
     {
       "repo": "lizclipse/nu_plugin_ulid",
       "name": "nu_plugin_ulid",
       "plugin_bin": "nu_plugin_ulid",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 6
+      "stars": 6,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags. Note: nushell-works/nu_plugin_nw_ulid is a different fork already in registry."
     },
     {
       "repo": "oderwat/nu_plugin_logfmt",
       "name": "nu_plugin_logfmt",
       "plugin_bin": "nu_plugin_logfmt",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 5
+      "stars": 5,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
     },
     {
       "repo": "WindSoilder/nu_plugin_bin_reader",
       "name": "nu_plugin_bin_reader",
       "plugin_bin": "nu_plugin_bin_reader",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 5
+      "stars": 5,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
     },
     {
       "repo": "yybit/nu_plugin_x509",
       "name": "nu_plugin_x509",
       "plugin_bin": "nu_plugin_x509",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 5
+      "stars": 5,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
     },
     {
       "repo": "Yethal/nu_plugin_hcl",
       "name": "nu_plugin_hcl",
       "plugin_bin": "nu_plugin_hcl",
-      "tag": "0.105.1",
-      "has_release": true,
-      "blocker": "PRE_0_112",
-      "nu_plugin": "0.105.1",
-      "nu_protocol": "0.105.1",
-      "c1_note": "2026-07-31 Wave 2 research: tag 0.105.1 pins nu-plugin 0.105.1 (below >=0.112 gate). Defer.",
-      "stars": 4
-    },
-    {
-      "repo": "adevore/nu_plugin_adevore",
-      "name": "nu_plugin_adevore",
-      "plugin_bin": "nu_plugin_adevore",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 0
-    },
-    {
-      "repo": "ainvaltin/nu_plugin_plist",
-      "name": "nu_plugin_plist",
-      "plugin_bin": "nu_plugin_plist",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 0
-    },
-    {
-      "repo": "amtoine/nu_plugin_kdl",
-      "name": "nu_plugin_kdl",
-      "plugin_bin": "nu_plugin_kdl",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 0
-    },
-    {
-      "repo": "ayax79/nu_plugin_plist",
-      "name": "nu_plugin_plist",
-      "plugin_bin": "nu_plugin_plist",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 0
-    },
-    {
-      "repo": "Berrysoft/nu_plugin_from_hdf5",
-      "name": "nu_plugin_from_hdf5",
-      "plugin_bin": "nu_plugin_from_hdf5",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 0
-    },
-    {
-      "repo": "bluk/nu_plugin_from_bencode",
-      "name": "nu_plugin_from_bencode",
-      "plugin_bin": "nu_plugin_from_bencode",
-      "tag": "v0.11.0",
-      "has_release": true,
-      "blocker": "PRE_0_112",
-      "nu_plugin": "0.93",
-      "nu_protocol": "0.93",
-      "c1_note": "2026-07-31 Wave 2 research: tag v0.11.0 pins nu-plugin 0.93 (below >=0.112 gate). Defer.",
-      "stars": 0
-    },
-    {
-      "repo": "brendon-felix/nu_plugin_ls_colorize",
-      "name": "nu_plugin_ls_colorize",
-      "plugin_bin": "nu_plugin_ls_colorize",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 0
-    },
-    {
-      "repo": "dam4rus/nu_plugin_nuts",
-      "name": "nu_plugin_nuts",
-      "plugin_bin": "nu_plugin_nuts",
-      "tag": "v0.1.2",
-      "has_release": true,
-      "blocker": "PRE_0_112",
-      "stars": 0,
-      "nu_plugin": "0.110.0",
-      "nu_protocol": "0.110.0",
-      "c1_note": "2026-07-31 Wave 2 research: tag v0.1.2 pins nu-plugin/nu-protocol 0.110.0 (below >=0.112 gate). Defer."
-    },
-    {
-      "repo": "devyn/nu_plugin_cassandra_query",
-      "name": "nu_plugin_cassandra_query",
-      "plugin_bin": "nu_plugin_cassandra_query",
-      "tag": "0.3.0",
-      "has_release": true,
-      "blocker": "PRE_0_112",
-      "nu_plugin": "0.101.0",
-      "nu_protocol": "0.101.0",
-      "c1_note": "2026-07-31 Wave 2 research: tag 0.3.0 pins nu-plugin 0.101.0 (below >=0.112 gate). Defer.",
-      "stars": 0
-    },
-    {
-      "repo": "FMotalleb/nu_plugin_qr_maker",
-      "name": "nu_plugin_qr_maker",
-      "plugin_bin": "nu_plugin_qr_maker",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 0
+      "stars": 4,
+      "status": "PRE_0_112",
+      "versions": [
+        { "tag": "0.105.1", "nu_plugin": "0.105.1", "nu_protocol": "0.105.1", "has_assets": true, "note": "latest tag" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-31: nu-plugin 0.105.1. Defer."
     },
     {
       "repo": "fnuttens/nu_plugin_hmac",
       "name": "nu_plugin_hmac",
       "plugin_bin": "nu_plugin_hmac",
-      "tag": "0.27.0",
-      "has_release": true,
-      "blocker": "PROMOTED",
-      "nu_plugin": "0.113.0",
-      "nu_protocol": "0.113.0",
-      "source_commit": "634f14145f88cf4a44b4172fe07a45bca5d21422",
-      "c1_note": "2026-07-31: promoted to active[] for tag 0.27.0 (commit 634f14145f88cf4a44b4172fe07a45bca5d21422; nu-plugin 0.113.0; pure Rust hex+hmac+sha2+whirlpool; edition 2024). Build run 30681968312 green on 4 targets. Registry intake PR#41, production live. Lifecycle-prove requires Nu 0.113.x (local Nu is 0.114.1).",
-      "stars": 0
-    },
-    {
-      "repo": "galuszkak/nu_plugin_bigquery",
-      "name": "nu_plugin_bigquery",
-      "plugin_bin": "nu_plugin_bigquery",
-      "tag": "v0.2.0",
-      "has_release": true,
-      "blocker": "SOURCE_ONLY",
       "stars": 0,
-      "nu_plugin": "0.112.2",
-      "nu_protocol": "0.112.2",
-      "source_commit": "9c9a14e52017d9f0b2208c0c1fc8b4bd7d52f6a6",
-      "c1_note": "2026-07-31 Wave 2 peek: tag v0.2.0 -> commit 9c9a14e52017d9f0b2208c0c1fc8b4bd7d52f6a6; nu-plugin 0.112.2 (eligible); empty upstream assets; google-cloud-auth + BigQuery credentials needed for meaningful lifecycle proof. Keep SOURCE_ONLY until credentialed lifecycle plan exists."
-    },
-    {
-      "repo": "jcornaz/nu_plugin_from_beancount",
-      "name": "nu_plugin_from_beancount",
-      "plugin_bin": "nu_plugin_from_beancount",
-      "tag": "v2.0.0",
-      "has_release": true,
-      "blocker": "PRE_0_112",
-      "stars": 0,
-      "nu_plugin": "0.76",
-      "nu_protocol": "0.76",
-      "c1_note": "2026-07-31 Wave 2 research: tag v2.0.0 pins nu-plugin/nu-protocol 0.76 (below >=0.112 gate). Defer."
+      "status": "PROMOTED",
+      "versions": [
+        { "tag": "0.27.0", "nu_plugin": "0.113.0", "nu_protocol": "0.113.0", "has_assets": false, "note": "promoted; CI-built; pure Rust hex+hmac+sha2+whirlpool" },
+        { "tag": "0.26.0", "nu_plugin": "0.112.0", "nu_protocol": "0.112.0", "has_assets": false, "note": "previous minor — NEEDS RESEARCH to confirm" }
+      ],
+      "backfill_targets": ["0.112"],
+      "c1_note": "2026-07-31: promoted 0.27.0; registry PR#41, production live. Requires Nu 0.113.x."
     },
     {
       "repo": "Kissaki/nu_plugin_bson",
       "name": "nu_plugin_bson",
       "plugin_bin": "nu_plugin_bson",
-      "tag": "v26.1140.0",
-      "has_release": true,
-      "blocker": "PROMOTED",
-      "nu_plugin": "0.114.0",
-      "nu_protocol": "0.114.0",
-      "source_commit": "252f950d01d0a9310baf9bfb22ee282e2d76161e",
-      "c1_note": "2026-07-31: promoted to active[] for tag v26.1140.0 (commit 252f950d01d0a9310baf9bfb22ee282e2d76161e; nu-plugin 0.114.0; pure Rust bson+base64; edition 2024). Build run 30681968312 green on 4 targets. Registry intake PR#41, production live, lifecycle-prove OK Windows/Nu 0.114.1.",
-      "stars": 0
+      "stars": 0,
+      "status": "PROMOTED",
+      "versions": [
+        { "tag": "v26.1140.0", "nu_plugin": "0.114.0", "nu_protocol": "0.114.0", "has_assets": false, "note": "promoted; CI-built; pure Rust bson+base64" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-31: promoted; registry PR#41, production live, lifecycle-prove OK Windows/Nu 0.114.1."
+    },
+    {
+      "repo": "galuszkak/nu_plugin_bigquery",
+      "name": "nu_plugin_bigquery",
+      "plugin_bin": "nu_plugin_bigquery",
+      "stars": 0,
+      "status": "CREDENTIALS",
+      "versions": [
+        { "tag": "v0.2.0", "nu_plugin": "0.112.2", "nu_protocol": "0.112.2", "has_assets": false, "note": "eligible Nu minor but needs Google creds for lifecycle proof" }
+      ],
+      "backfill_targets": ["0.112"],
+      "c1_note": "2026-07-31: nu-plugin 0.112.2 (eligible); needs credentialed lifecycle plan."
+    },
+    {
+      "repo": "jcornaz/nu_plugin_from_beancount",
+      "name": "nu_plugin_from_beancount",
+      "plugin_bin": "nu_plugin_from_beancount",
+      "stars": 0,
+      "status": "PRE_0_112",
+      "versions": [
+        { "tag": "v2.0.0", "nu_plugin": "0.76", "nu_protocol": "0.76", "has_assets": true, "note": "very old" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-31: nu-plugin 0.76. Defer."
+    },
+    {
+      "repo": "dam4rus/nu_plugin_nuts",
+      "name": "nu_plugin_nuts",
+      "plugin_bin": "nu_plugin_nuts",
+      "stars": 0,
+      "status": "PRE_0_112",
+      "versions": [
+        { "tag": "v0.1.2", "nu_plugin": "0.110.0", "nu_protocol": "0.110.0", "has_assets": true, "note": "Nats client" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-31: nu-plugin 0.110.0. Defer."
+    },
+    {
+      "repo": "devyn/nu_plugin_cassandra_query",
+      "name": "nu_plugin_cassandra_query",
+      "plugin_bin": "nu_plugin_cassandra_query",
+      "stars": 0,
+      "status": "PRE_0_112",
+      "versions": [
+        { "tag": "0.3.0", "nu_plugin": "0.101.0", "nu_protocol": "0.101.0", "has_assets": true, "note": "" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-31: nu-plugin 0.101.0. Defer."
+    },
+    {
+      "repo": "bluk/nu_plugin_from_bencode",
+      "name": "nu_plugin_from_bencode",
+      "plugin_bin": "nu_plugin_from_bencode",
+      "stars": 0,
+      "status": "PRE_0_112",
+      "versions": [
+        { "tag": "v0.11.0", "nu_plugin": "0.93", "nu_protocol": "0.93", "has_assets": true, "note": "" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-31: nu-plugin 0.93. Defer."
+    },
+    {
+      "repo": "FMotalleb/nu_plugin_qr_maker",
+      "name": "nu_plugin_qr_maker",
+      "plugin_bin": "nu_plugin_qr_maker",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags. Superseded by nu_plugin_terminal_qr."
+    },
+    {
+      "repo": "adevore/nu_plugin_adevore",
+      "name": "nu_plugin_adevore",
+      "plugin_bin": "nu_plugin_adevore",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
+    },
+    {
+      "repo": "ainvaltin/nu_plugin_plist",
+      "name": "nu_plugin_plist",
+      "plugin_bin": "nu_plugin_plist",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags. Go-based plugin."
+    },
+    {
+      "repo": "amtoine/nu_plugin_kdl",
+      "name": "nu_plugin_kdl",
+      "plugin_bin": "nu_plugin_kdl",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
+    },
+    {
+      "repo": "ayax79/nu_plugin_plist",
+      "name": "nu_plugin_plist",
+      "plugin_bin": "nu_plugin_plist",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
+    },
+    {
+      "repo": "Berrysoft/nu_plugin_from_hdf5",
+      "name": "nu_plugin_from_hdf5",
+      "plugin_bin": "nu_plugin_from_hdf5",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
+    },
+    {
+      "repo": "brendon-felix/nu_plugin_ls_colorize",
+      "name": "nu_plugin_ls_colorize",
+      "plugin_bin": "nu_plugin_ls_colorize",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
     },
     {
       "repo": "LQR471814/nu_plugin_caldav",
       "name": "nu_plugin_caldav",
       "plugin_bin": "nu_plugin_caldav",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 0
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
     },
     {
       "repo": "mrxiaozhuox/nu_plugin_sled",
       "name": "nu_plugin_sled",
       "plugin_bin": "nu_plugin_sled",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 0
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
     },
     {
       "repo": "Neuron-Mr-White/nu_plugin_terminal_qr",
       "name": "nu_plugin_terminal_qr",
       "plugin_bin": "nu_plugin_terminal_qr",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 0
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags. Maintained fork of qr_maker."
     },
     {
       "repo": "pdenapo/nu_plugin_dpkgtable",
       "name": "nu_plugin_dpkgtable",
       "plugin_bin": "nu_plugin_dpkgtable",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 0
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags. Debian-specific."
     },
     {
       "repo": "punund/nu_plugin_ccl",
       "name": "nu_plugin_ccl",
       "plugin_bin": "nu_plugin_ccl",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 0
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
     },
     {
       "repo": "punund/nu_plugin_mime_message",
       "name": "nu_plugin_mime_message",
       "plugin_bin": "nu_plugin_mime_message",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 0
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
     },
     {
       "repo": "realcundo/nu_plugin_dcm",
       "name": "nu_plugin_dcm",
       "plugin_bin": "nu_plugin_dcm",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 0
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags. DICOM medical imaging."
     },
     {
       "repo": "yybit/nu_plugin_rpm",
       "name": "nu_plugin_rpm",
       "plugin_bin": "nu_plugin_rpm",
-      "tag": null,
-      "has_release": false,
-      "blocker": "NO_RELEASE",
-      "stars": 0
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "No tags."
+    },
+    {
+      "repo": "SuaveIV/nu_plugin_audio",
+      "name": "nu_plugin_audio",
+      "plugin_bin": "nu_plugin_audio",
+      "stars": 0,
+      "status": "ELIGIBLE",
+      "versions": [
+        { "tag": "v0.2.8", "nu_plugin": "NEEDS_RESEARCH", "nu_protocol": "NEEDS_RESEARCH", "has_assets": true, "note": "in intake-state; partial platforms (Windows zip + Linux aarch64)" }
+      ],
+      "backfill_targets": [],
+      "c1_note": "Added from awesome-nu. Already in registry intake-state. Needs Nu version research."
+    },
+    {
+      "repo": "nushell/nu_plugin_bexpand",
+      "name": "nu_plugin_bexpand",
+      "plugin_bin": "nu_plugin_bexpand",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Added from awesome-nu. Bash-style brace expansion. Needs research."
+    },
+    {
+      "repo": "nushell/nu_plugin_endecode",
+      "name": "nu_plugin_endecode",
+      "plugin_bin": "nu_plugin_endecode",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Added from awesome-nu. Various encoding schemes. Needs research."
+    },
+    {
+      "repo": "nushell/nu_plugin_formats",
+      "name": "nu_plugin_formats",
+      "plugin_bin": "nu_plugin_formats",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Added from awesome-nu. Parses eml, ics, ini, vcf. Needs research."
+    },
+    {
+      "repo": "nushell/nu_plugin_hashes",
+      "name": "nu_plugin_hashes",
+      "plugin_bin": "nu_plugin_hashes",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Added from awesome-nu. Hash functions from the hashes project. Needs research."
+    },
+    {
+      "repo": "nushell/nu_plugin_input_global_listen",
+      "name": "nu_plugin_input_global_listen",
+      "plugin_bin": "nu_plugin_input_global_listen",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Added from awesome-nu. Keyboard input without focus. Needs research."
+    },
+    {
+      "repo": "nushell/nu_plugin_ldap",
+      "name": "nu_plugin_ldap",
+      "plugin_bin": "nu_plugin_ldap",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Added from awesome-nu. LDAP queries. Needs research."
+    },
+    {
+      "repo": "nushell/nu_plugin_nupsql",
+      "name": "nu_plugin_nupsql",
+      "plugin_bin": "nu_plugin_nupsql",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Added from awesome-nu. Postgres queries. Needs research."
+    },
+    {
+      "repo": "nushell/nu_plugin_periodic_table",
+      "name": "nu_plugin_periodic_table",
+      "plugin_bin": "nu_plugin_periodic_table",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Added from awesome-nu. Periodic table of elements. Needs research."
+    },
+    {
+      "repo": "nushell/nu_plugin_plotters",
+      "name": "nu_plugin_plotters",
+      "plugin_bin": "nu_plugin_plotters",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Added from awesome-nu. Chart plotting. Needs research."
+    },
+    {
+      "repo": "nushell/nu_plugin_termplot",
+      "name": "nu_plugin_termplot",
+      "plugin_bin": "nu_plugin_termplot",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Added from awesome-nu. Terminal plots. Needs research."
+    },
+    {
+      "repo": "nushell/nu_plugin_todoist",
+      "name": "nu_plugin_todoist",
+      "plugin_bin": "nu_plugin_todoist",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Added from awesome-nu. Todoist API. Needs research."
+    },
+    {
+      "repo": "nushell/nu_plugin_todu",
+      "name": "nu_plugin_todu",
+      "plugin_bin": "nu_plugin_todu",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Added from awesome-nu. Project-scoped todos with GitHub/Jira sync. Needs research."
+    },
+    {
+      "repo": "nushell/nu_plugin_handlebars",
+      "name": "nu_plugin_handlebars",
+      "plugin_bin": "nu_plugin_handlebars",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Added from awesome-nu. Handlebars template rendering. Needs research."
+    },
+    {
+      "repo": "nushell/nu_plugin_template",
+      "name": "nu_plugin_template",
+      "plugin_bin": "nu_plugin_template",
+      "stars": 0,
+      "status": "NO_RELEASE",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Added from awesome-nu. String and HTML templating. Needs research."
     }
   ]
 }

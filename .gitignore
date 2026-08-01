@@ -7,3 +7,4 @@ spec-*.json
 __pycache__/
 .tmp-pr-body.md
 .tmp-t.json
+/serena

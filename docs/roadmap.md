@@ -16,7 +16,10 @@ ship source-only tags or incomplete release assets.
   package version or an explicit build revision.
 - Generated registry specs preserve upstream provenance and leave SHA256
   computation to `numan-registry`.
-- `docs/backlog.json` is the demand-ranked source-only candidate list.
+- `docs/backlog.json` (schema v1) is the comprehensive plugin candidate list.
+  It tracks ALL release versions per plugin with their Nu minor compatibility,
+  enabling post-1.0 backfill targeting via the `backfill_targets` field.
+  Source: awesome-nu + manual discovery.
 - PR #4 (`feature/catalog-expansion-wave-1`) is **merged**. `master` includes
   `FMotalleb/nu_plugin_port_extension@0.113.1` and
   `FMotalleb/nu_plugin_image@0.112.2`, plus macOS-15 runner labels.
