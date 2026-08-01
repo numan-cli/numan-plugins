@@ -6,7 +6,7 @@ official registry — implements the binary-delivery half of
 
 ## Why this repo exists
 
-Numan installs plugins from **signed, hash-pinned binary artifacts** (a plugin
+numan installs plugins from **signed, hash-pinned binary artifacts** (a plugin
 install bails if `sha256` is missing). But almost every popular Nushell plugin
 ships source-only — no prebuilt release binaries — so users would need a full
 Rust toolchain to install them. A survey of the curated
