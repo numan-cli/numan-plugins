@@ -43,10 +43,11 @@
       "stars": 82,
       "status": "PROMOTED",
       "versions": [
-        { "tag": "v1.4.15+0.113.1", "nu_plugin": "0.113.1", "nu_protocol": "0.113.1", "has_assets": true, "note": "promoted; CI-built via numan-plugins" }
+        { "tag": "v1.4.16+0.114.1", "nu_plugin": "0.114.1", "nu_protocol": "0.114.1", "has_assets": true, "note": "wave1 0.114 upgrade; CI-built via numan-plugins" },
+        { "tag": "v1.4.15+0.113.1", "nu_plugin": "0.113.1", "nu_protocol": "0.113.1", "has_assets": true, "note": "previous; remains in registry" }
       ],
-      "backfill_targets": [],
-      "c1_note": "2026-07-30: promoted and released via numan-plugins as nu_plugin_highlight-1.4.15; in official registry (no intel mac)."
+      "backfill_targets": ["0.113"],
+      "c1_note": "2026-08-04: wave1 promote v1.4.16+0.114.1 (source_commit c0e768d)."
     },
     {
       "repo": "Euphrasiologist/nu_plugin_plot",
@@ -200,10 +201,11 @@
       "stars": 16,
       "status": "PROMOTED",
       "versions": [
-        { "tag": "v0.113.1", "nu_plugin": "0.113.1", "nu_protocol": "0.113.1", "has_assets": false, "note": "promoted; CI-built Wave 1" }
+        { "tag": "v0.114.1", "nu_plugin": "0.114.1", "nu_protocol": "0.114.1", "has_assets": false, "note": "wave1 0.114 upgrade; CI-built" },
+        { "tag": "v0.113.1", "nu_plugin": "0.113.1", "nu_protocol": "0.113.1", "has_assets": false, "note": "previous; remains in registry" }
       ],
-      "backfill_targets": [],
-      "c1_note": "2026-07-30: promoted; Wave 1 release; registry intake numan-registry#32."
+      "backfill_targets": ["0.113"],
+      "c1_note": "2026-08-04: wave1 promote v0.114.1 (source_commit d4918db)."
     },
     {
       "repo": "PhotonBursted/nu_plugin_vec",
@@ -262,10 +264,12 @@
       "name": "nu_plugin_ulid",
       "plugin_bin": "nu_plugin_ulid",
       "stars": 6,
-      "status": "NO_RELEASE",
-      "versions": [],
-      "backfill_targets": [],
-      "c1_note": "No tags. Note: nushell-works/nu_plugin_nw_ulid is a different fork already in registry."
+      "status": "ELIGIBLE",
+      "versions": [
+        { "tag": "v0.23.0", "nu_plugin": "0.114.0", "nu_protocol": "0.114.0", "has_assets": false, "note": "wave2 queue; pure Rust" }
+      ],
+      "backfill_targets": ["0.114"],
+      "c1_note": "2026-08-04: v0.23.0 pins nu-plugin 0.114.0 (source_commit 3f1df97). Queued wave2. Distinct from nushell-works/nu_plugin_nw_ulid already in registry."
     },
     {
       "repo": "oderwat/nu_plugin_logfmt",
@@ -302,12 +306,13 @@
       "name": "nu_plugin_hcl",
       "plugin_bin": "nu_plugin_hcl",
       "stars": 4,
-      "status": "PRE_0_112",
+      "status": "PROMOTED",
       "versions": [
-        { "tag": "0.105.1", "nu_plugin": "0.105.1", "nu_protocol": "0.105.1", "has_assets": true, "note": "latest tag" }
+        { "tag": "0.114.1", "nu_plugin": "0.114.1", "nu_protocol": "0.114.1", "has_assets": false, "note": "wave1 new; CI-built" },
+        { "tag": "0.105.1", "nu_plugin": "0.105.1", "nu_protocol": "0.105.1", "has_assets": true, "note": "older" }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-07-31: nu-plugin 0.105.1. Defer."
+      "c1_note": "2026-08-04: wave1 promote 0.114.1 (source_commit 71985a3). Upstream shipped 0.114 tags since prior PRE_0_112 note."
     },
     {
       "repo": "fnuttens/nu_plugin_hmac",
@@ -695,6 +700,80 @@
       "versions": [],
       "backfill_targets": [],
       "c1_note": "Added from awesome-nu. String and HTML templating. Needs research."
+    },
+    {
+      "repo": "fdncred/nu_plugin_regex",
+      "name": "nu_plugin_regex",
+      "plugin_bin": "nu_plugin_regex",
+      "stars": 0,
+      "status": "PROMOTED",
+      "versions": [
+        { "tag": "v0.23.0", "nu_plugin": "0.114.0", "nu_protocol": "0.114.0", "has_assets": false, "note": "wave1 0.114 upgrade; CI-built" },
+        { "tag": "v0.22.0", "nu_plugin": "0.113.0", "nu_protocol": "0.113.0", "has_assets": false, "note": "previous; remains in registry" }
+      ],
+      "backfill_targets": ["0.113"],
+      "c1_note": "2026-08-04: wave1 promote v0.23.0 (source_commit 8c7864a)."
+    },
+    {
+      "repo": "fdncred/nu_plugin_file",
+      "name": "nu_plugin_file",
+      "plugin_bin": "nu_plugin_file",
+      "stars": 0,
+      "status": "PROMOTED",
+      "versions": [
+        { "tag": "v0.26.0", "nu_plugin": "0.114.0", "nu_protocol": "0.114.0", "has_assets": false, "note": "wave1; CI-built via numan-plugins" },
+        { "tag": "v0.25.2", "nu_plugin": "0.113.0", "nu_protocol": "0.113.0", "has_assets": true, "note": "prior registry intake" }
+      ],
+      "backfill_targets": ["0.113"],
+      "c1_note": "2026-08-04: wave1 promote v0.26.0 (source_commit 97efd18). Registry already had 0.25.2 for 0.113."
+    },
+    {
+      "repo": "fdncred/nu_plugin_jwalk",
+      "name": "nu_plugin_jwalk",
+      "plugin_bin": "nu_plugin_jwalk",
+      "stars": 0,
+      "status": "ELIGIBLE",
+      "versions": [
+        { "tag": "v0.26.0", "nu_plugin": "0.114.0", "nu_protocol": "0.114.0", "has_assets": false, "note": "wave2 queue" }
+      ],
+      "backfill_targets": ["0.114"],
+      "c1_note": "2026-08-04: v0.26.0 pins nu-plugin 0.114.0 (source_commit 51d1628). Queued wave2."
+    },
+    {
+      "repo": "fdncred/nu_plugin_strutils",
+      "name": "nu_plugin_strutils",
+      "plugin_bin": "nu_plugin_strutils",
+      "stars": 0,
+      "status": "ELIGIBLE",
+      "versions": [
+        { "tag": "v0.22.0", "nu_plugin": "0.114.0", "nu_protocol": "0.114.0", "has_assets": false, "note": "wave2 queue" }
+      ],
+      "backfill_targets": ["0.114"],
+      "c1_note": "2026-08-04: v0.22.0 pins nu-plugin 0.114.0 (source_commit 69d6fe1). Queued wave2."
+    },
+    {
+      "repo": "fdncred/nu_plugin_query_git",
+      "name": "nu_plugin_query_git",
+      "plugin_bin": "nu_plugin_query_git",
+      "stars": 0,
+      "status": "ELIGIBLE",
+      "versions": [
+        { "tag": "v0.24.0", "nu_plugin": "0.114.0", "nu_protocol": "0.114.0", "has_assets": false, "note": "wave2 queue" }
+      ],
+      "backfill_targets": ["0.114"],
+      "c1_note": "2026-08-04: v0.24.0 pins nu-plugin 0.114.0 (source_commit 5d30cde). Queued wave2."
+    },
+    {
+      "repo": "rhino-linux/nu_plugin_nutext",
+      "name": "nu_plugin_nutext",
+      "plugin_bin": "nu_plugin_nutext",
+      "stars": 0,
+      "status": "ELIGIBLE",
+      "versions": [
+        { "tag": "0.6.2", "nu_plugin": "0.114.0", "nu_protocol": "0.114.0", "has_assets": false, "note": "wave2 queue" }
+      ],
+      "backfill_targets": ["0.114"],
+      "c1_note": "2026-08-04: 0.6.2 pins nu-plugin 0.114.0 (source_commit c0c0c3a). Queued wave2."
     }
   ]
 }
