@@ -46,7 +46,7 @@
         { "tag": "v1.4.16+0.114.1", "nu_plugin": "0.114.1", "nu_protocol": "0.114.1", "has_assets": true, "note": "wave1 0.114 upgrade; CI-built via numan-plugins" },
         { "tag": "v1.4.15+0.113.1", "nu_plugin": "0.113.1", "nu_protocol": "0.113.1", "has_assets": true, "note": "previous; remains in registry" }
       ],
-      "backfill_targets": ["0.113"],
+      "backfill_targets": [],
       "c1_note": "2026-08-04: wave1 promote v1.4.16+0.114.1 (source_commit c0e768d)."
     },
     {
@@ -69,7 +69,7 @@
         { "tag": "v0.114.1", "nu_plugin": "0.114.1", "nu_protocol": "0.114.1", "has_assets": false, "note": "promoted; CI-built" },
         { "tag": "v0.113.1", "nu_plugin": "0.113.1", "nu_protocol": "0.113.1", "has_assets": false, "note": "older tag, same repo pattern" }
       ],
-      "backfill_targets": ["0.113"],
+      "backfill_targets": [],
       "c1_note": "2026-07-22: promoted to active[]; registry intake 0.114.1 published; Windows lifecycle-prove OK."
     },
     {
@@ -116,7 +116,7 @@
         { "tag": "v0.23.0", "nu_plugin": "0.114.0", "nu_protocol": "0.114.0", "has_assets": false, "note": "promoted; CI-built; pure Rust" },
         { "tag": "v0.22.0", "nu_plugin": "0.113.0", "nu_protocol": "0.113.0", "has_assets": false, "note": "previous minor" }
       ],
-      "backfill_targets": ["0.113"],
+      "backfill_targets": [],
       "c1_note": "2026-07-31: promoted v0.23.0; registry PR#36, production live, lifecycle-prove OK Windows/Nu 0.114.1."
     },
     {
@@ -141,7 +141,7 @@
         { "tag": "v0.24.0", "nu_plugin": "0.114.0", "nu_protocol": "0.114.0", "has_assets": false, "note": "promoted; CI-built; pure Rust" },
         { "tag": "v0.23.0", "nu_plugin": "0.113.0", "nu_protocol": "0.113.0", "has_assets": false, "note": "previous minor" }
       ],
-      "backfill_targets": ["0.113"],
+      "backfill_targets": [],
       "c1_note": "2026-07-31: promoted v0.24.0; registry PR#36, production live."
     },
     {
@@ -166,7 +166,7 @@
         { "tag": "v0.24.0", "nu_plugin": "0.114.0", "nu_protocol": "0.114.0", "has_assets": false, "note": "promoted; CI-built; pure Rust" },
         { "tag": "v0.23.0", "nu_plugin": "0.113.0", "nu_protocol": "0.113.0", "has_assets": false, "note": "previous minor" }
       ],
-      "backfill_targets": ["0.113"],
+      "backfill_targets": [],
       "c1_note": "2026-07-31: promoted v0.24.0; registry PR#36, production live."
     },
     {
@@ -204,7 +204,7 @@
         { "tag": "v0.114.1", "nu_plugin": "0.114.1", "nu_protocol": "0.114.1", "has_assets": false, "note": "wave1 0.114 upgrade; CI-built" },
         { "tag": "v0.113.1", "nu_plugin": "0.113.1", "nu_protocol": "0.113.1", "has_assets": false, "note": "previous; remains in registry" }
       ],
-      "backfill_targets": ["0.113"],
+      "backfill_targets": [],
       "c1_note": "2026-08-04: wave1 promote v0.114.1 (source_commit d4918db)."
     },
     {
@@ -711,7 +711,7 @@
         { "tag": "v0.23.0", "nu_plugin": "0.114.0", "nu_protocol": "0.114.0", "has_assets": false, "note": "wave1 0.114 upgrade; CI-built" },
         { "tag": "v0.22.0", "nu_plugin": "0.113.0", "nu_protocol": "0.113.0", "has_assets": false, "note": "previous; remains in registry" }
       ],
-      "backfill_targets": ["0.113"],
+      "backfill_targets": [],
       "c1_note": "2026-08-04: wave1 promote v0.23.0 (source_commit 8c7864a)."
     },
     {
@@ -724,7 +724,7 @@
         { "tag": "v0.26.0", "nu_plugin": "0.114.0", "nu_protocol": "0.114.0", "has_assets": false, "note": "wave1; CI-built via numan-plugins" },
         { "tag": "v0.25.2", "nu_plugin": "0.113.0", "nu_protocol": "0.113.0", "has_assets": true, "note": "prior registry intake" }
       ],
-      "backfill_targets": ["0.113"],
+      "backfill_targets": [],
       "c1_note": "2026-08-04: wave1 promote v0.26.0 (source_commit 97efd18). Registry already had 0.25.2 for 0.113."
     },
     {
