@@ -80,6 +80,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          # GraphQL variable placeholders ($owner, $repo, …) must stay literal.
+          # shellcheck disable=SC2016
           gh api graphql --paginate -f query='
             query($owner: String!, $repo: String!, $pr: Int!, $endCursor: String) {
               repository(owner: $owner, name: $repo) {
@@ -195,7 +197,7 @@ jobs:
           COMPOSIO_API_KEY: ${{ secrets.COMPOSIO_API_KEY }}
         run: |
           composio login --api-key "$COMPOSIO_API_KEY"
-          echo "COMPOSIO_HEADERS={\"x-consumer-api-key\":\"$COMPOSIO_API_KEY\"}" >> $GITHUB_ENV
+          echo "COMPOSIO_HEADERS={\"x-consumer-api-key\":\"$COMPOSIO_API_KEY\"}" >> "$GITHUB_ENV"
 
       # Agent has no GitHub token. It edits files and writes a report; the
       # workflow does all the git and GitHub work below.
@@ -326,6 +328,8 @@ jobs:
                 -f body="🤖 **Autopilot** — fixed in \`${PUSHED_SHA}\`. $SUM" || true
               # NB: the input field is threadId, not id. With `id` the mutation
               # errors out and `|| true` hides it, so nothing ever resolves.
+              # GraphQL $id must stay literal for -f id=…
+              # shellcheck disable=SC2016
               gh api graphql -f query='mutation($id: ID!) {
                 resolveReviewThread(input: {threadId: $id}) { thread { isResolved } }
               }' -f id="$TID" || true
