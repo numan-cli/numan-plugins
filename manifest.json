@@ -47,22 +47,12 @@
       "tag": "v4.0.10",
       "source_commit": "fdbd0762cfe8422d55df24e049e149510fd712c7",
       "version": "4.0.10",
-      "exclude_targets": [
-        "x86_64-pc-windows-msvc",
-        "x86_64-apple-darwin"
-      ],
+      "exclude_targets": ["x86_64-pc-windows-msvc", "x86_64-apple-darwin"],
       "exclude_reason": "windows: upstream Cargo.lock has conflicting windows-sys versions, nu-protocol 0.113 GUID type mismatch (E0308), upstream does not build Windows. x86_64 macOS was omitted from this existing immutable release after the macos-13 runner stalled; add it on the next plugin version using macos-15-intel",
       "nu_version": ">=0.113.0 <0.114.0",
-      "verified_with": [
-        "0.113.1"
-      ],
+      "verified_with": ["0.113.1"],
       "description": "DNS utility for Nushell.",
-      "tags": [
-        "plugin",
-        "dns",
-        "network",
-        "ci-built"
-      ]
+      "tags": ["plugin", "dns", "network", "ci-built"]
     },
     {
       "repo": "idanarye/nu_plugin_skim",
@@ -77,12 +67,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Fuzzy finder (skim) integration for Nushell.",
-      "tags": [
-        "plugin",
-        "skim",
-        "fuzzy",
-        "ci-built"
-      ]
+      "tags": ["plugin", "skim", "fuzzy", "ci-built"]
     },
     {
       "repo": "FMotalleb/nu_plugin_desktop_notifications",
@@ -97,12 +82,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Send desktop notifications from Nushell.",
-      "tags": [
-        "plugin",
-        "notifications",
-        "desktop",
-        "ci-built"
-      ]
+      "tags": ["plugin", "notifications", "desktop", "ci-built"]
     },
     {
       "repo": "FMotalleb/nu_plugin_port_extension",
@@ -117,12 +97,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Inspect active network connections and scan ports from Nushell.",
-      "tags": [
-        "plugin",
-        "network",
-        "ports",
-        "ci-built"
-      ]
+      "tags": ["plugin", "network", "ports", "ci-built"]
     },
     {
       "repo": "fdncred/nu_plugin_file",
@@ -137,12 +112,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Inspect a file and return information based on its magic number.",
-      "tags": [
-        "plugin",
-        "file",
-        "filesystem",
-        "ci-built"
-      ]
+      "tags": ["plugin", "file", "filesystem", "ci-built"]
     },
     {
       "repo": "Yethal/nu_plugin_hcl",
@@ -157,12 +127,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Parse HashiCorp HCL into Nushell values.",
-      "tags": [
-        "plugin",
-        "hcl",
-        "config",
-        "ci-built"
-      ]
+      "tags": ["plugin", "hcl", "config", "ci-built"]
     },
     {
       "repo": "FMotalleb/nu_plugin_image",
@@ -173,16 +138,9 @@
       "source_commit": "b44892a469ec3f508725220d3d71caa8342a4ab7",
       "version": "0.112.2",
       "nu_version": ">=0.112.0 <0.113.0",
-      "verified_with": [
-        "0.112.2"
-      ],
+      "verified_with": ["0.112.2"],
       "description": "Render images in the terminal and save ANSI text as images.",
-      "tags": [
-        "plugin",
-        "image",
-        "terminal",
-        "ci-built"
-      ]
+      "tags": ["plugin", "image", "terminal", "ci-built"]
     },
     {
       "repo": "drbrain/nu_plugin_prometheus",
@@ -192,19 +150,12 @@
       "tag": "v0.12.0",
       "source_commit": "3fed1d934ba201ce1d9b78ecb727695588de7ef9",
       "version": "0.12.0",
-      "exclude_targets": [
-        "aarch64-unknown-linux-gnu"
-      ],
+      "exclude_targets": ["aarch64-unknown-linux-gnu"],
       "exclude_reason": "linux aarch64 cross: openssl-sys/native-tls fails to locate target OpenSSL headers/libs under taiki-e cross toolchain (pkg-config resolves host x86_64 paths); Windows and other four targets green on build run 30604641151",
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Query Prometheus from Nushell (instant/range queries, targets, labels, scrape).",
-      "tags": [
-        "plugin",
-        "prometheus",
-        "metrics",
-        "ci-built"
-      ]
+      "tags": ["plugin", "prometheus", "metrics", "ci-built"]
     },
     {
       "repo": "fdncred/nu_plugin_emoji",
@@ -219,12 +170,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Search and insert emoji characters in Nushell pipelines.",
-      "tags": [
-        "plugin",
-        "emoji",
-        "text",
-        "ci-built"
-      ]
+      "tags": ["plugin", "emoji", "text", "ci-built"]
     },
     {
       "repo": "fdncred/nu_plugin_json_path",
@@ -239,12 +185,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Query JSON data with JSONPath expressions in Nushell.",
-      "tags": [
-        "plugin",
-        "json",
-        "jsonpath",
-        "ci-built"
-      ]
+      "tags": ["plugin", "json", "jsonpath", "ci-built"]
     },
     {
       "repo": "fdncred/nu_plugin_parquet",
@@ -259,12 +200,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Read and write Apache Parquet files in Nushell.",
-      "tags": [
-        "plugin",
-        "parquet",
-        "data",
-        "ci-built"
-      ]
+      "tags": ["plugin", "parquet", "data", "ci-built"]
     },
     {
       "repo": "Kissaki/nu_plugin_bson",
@@ -279,12 +215,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Convert between BSON (Binary JSON) and Nushell values.",
-      "tags": [
-        "plugin",
-        "bson",
-        "data",
-        "ci-built"
-      ]
+      "tags": ["plugin", "bson", "data", "ci-built"]
     },
     {
       "repo": "fnuttens/nu_plugin_hmac",
@@ -297,16 +228,9 @@
       "exclude_targets": ["x86_64-apple-darwin"],
       "exclude_reason": "x86_64 macOS omitted; macos-15-intel runner not yet validated for this plugin",
       "nu_version": ">=0.113.0 <0.114.0",
-      "verified_with": [
-        "0.113.1"
-      ],
+      "verified_with": ["0.113.1"],
       "description": "HMAC sealing and verification from Nushell.",
-      "tags": [
-        "plugin",
-        "hmac",
-        "crypto",
-        "ci-built"
-      ]
+      "tags": ["plugin", "hmac", "crypto", "ci-built"]
     },
     {
       "repo": "fdncred/nu_plugin_jwalk",
@@ -321,12 +245,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Walk directory trees with the jwalk crate.",
-      "tags": [
-        "plugin",
-        "filesystem",
-        "walk",
-        "ci-built"
-      ]
+      "tags": ["plugin", "filesystem", "walk"]
     },
     {
       "repo": "fdncred/nu_plugin_strutils",
@@ -341,12 +260,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "A collection of string utilities for Nushell.",
-      "tags": [
-        "plugin",
-        "text",
-        "string",
-        "ci-built"
-      ]
+      "tags": ["plugin", "text", "string"]
     },
     {
       "repo": "fdncred/nu_plugin_query_git",
@@ -361,12 +275,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Query git repositories with GQL and return structured Nushell data.",
-      "tags": [
-        "plugin",
-        "git",
-        "query",
-        "ci-built"
-      ]
+      "tags": ["plugin", "git", "query"]
     },
     {
       "repo": "lizclipse/nu_plugin_ulid",
@@ -381,12 +290,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Generate and parse ULIDs in Nushell.",
-      "tags": [
-        "plugin",
-        "ulid",
-        "id",
-        "ci-built"
-      ]
+      "tags": ["plugin", "ulid", "id"]
     },
     {
       "repo": "rhino-linux/nu_plugin_nutext",
@@ -401,12 +305,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "gettext-style translation helpers for Nushell programs.",
-      "tags": [
-        "plugin",
-        "i18n",
-        "gettext",
-        "ci-built"
-      ]
+      "tags": ["plugin", "i18n", "gettext"]
     }
   ],
   "backlog_note": "Remaining demand-ranked source-only plugins live in docs/backlog.json. Wave 1 promoted. Wave 2: jwalk 0.26.0, strutils 0.22.0, query_git 0.24.0, ulid 0.23.0, nutext 0.6.2.",
