@@ -1,10 +1,32 @@
-# Numan Plugins Roadmap
+# Repo-local roadmap for numan-plugins
 
-**Status date:** 2026-07-31
+This repo owns CI-built plugin binaries for upstreams without compliant
+release assets. The roadmap that covers the entire three-repo plan —
+catalog intake, signing, plugin backfills, client compat, lifecycle
+evidence, and the active-plugin gate — lives in the consolidated
+cross-repo plan:
 
-This repository builds binary plugin artifacts for Numan's official registry.
-It is the controlled escape hatch for useful Nushell plugins whose upstreams
-ship source-only tags or incomplete release assets.
+[**`numan/docs/plans/consolidated-multi-repo-roadmap.md`**](https://github.com/tonythethompson/numan/blob/master/docs/plans/consolidated-multi-repo-roadmap.md)
+
+Repo-local roadmaps keep operational detail. The cross-repo drill is enforced by
+[`scripts/check-roadmap-drift.py`](https://github.com/tonythethompson/numan/blob/master/scripts/check-roadmap-drift.py),
+which CI runs at `.github/workflows/roadmap-drift.yml` and which fails the
+workflow run if this page drifts from the consolidated truth.
+
+## Repo-local detail
+
+Use this page for **operational** detail that belongs only to
+`numan-plugins`:
+
+- Workflow manifests under `.github/workflows/` (`build.yml`,
+  `repo-safety.yml`, `windows-recheck` / release paths).
+- Per-upstream build matrix decisions (`docs/upstream-build-decisions.md`).
+- Backlog triage notes (`docs/backlog.json` schema + review log).
+- Completed catalog-wave checklists and registry handoff notes below.
+
+Promote any cross-repo claim back into the consolidated roadmap via a
+coordinated contract bump (`numan/scripts/bump-contract.sh`), not by editing
+contract pins in this repo alone.
 
 ## Current Baseline
 
