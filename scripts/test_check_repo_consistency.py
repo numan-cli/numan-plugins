@@ -88,6 +88,40 @@ class CheckRepoConsistencyTests(unittest.TestCase):
             found = self.mod.check_no_pr_refs(manifest, backlog)
             self.assertTrue(any("backlog_note" in item for item in found))
 
+    def test_pr_number_in_c1_note_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            backlog = root / "docs" / "backlog.json"
+            backlog.parent.mkdir()
+            backlog.write_text(
+                json.dumps(
+                    {
+                        "note": "ok",
+                        "plugins": [
+                            {
+                                "name": "nu_plugin_x",
+                                "c1_note": "in official registry (numan-registry#45)",
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            found = self.mod.check_no_pr_refs(backlog)
+            self.assertTrue(any("c1_note" in item for item in found))
+
+    def test_pr_url_in_roadmap_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            roadmap = root / "docs" / "roadmap.md"
+            roadmap.parent.mkdir()
+            roadmap.write_text(
+                "See [intake](https://github.com/tonythethompson/numan-registry/pull/45).\n",
+                encoding="utf-8",
+            )
+            found = self.mod.check_no_pr_refs(roadmap)
+            self.assertTrue(found)
+
 
 if __name__ == "__main__":
     unittest.main()

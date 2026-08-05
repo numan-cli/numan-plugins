@@ -71,7 +71,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-08-05: wave1 v1.4.16+0.114.1 in official registry (numan-registry#43); lifecycle-prove OK Linux/Nu 0.114.1."
+      "c1_note": "2026-08-05: wave1 v1.4.16+0.114.1 in official registry; lifecycle-prove OK Linux/Nu 0.114.1."
     },
     {
       "repo": "Euphrasiologist/nu_plugin_plot",
@@ -177,7 +177,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-07-31: promoted v0.23.0; registry PR#36, production live, lifecycle-prove OK Windows/Nu 0.114.1."
+      "c1_note": "2026-07-31: promoted v0.23.0; registry intake complete; production live, lifecycle-prove OK Windows/Nu 0.114.1."
     },
     {
       "repo": "FMotalleb/nu_plugin_audio_hook",
@@ -220,7 +220,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-07-31: promoted v0.24.0; registry PR#36, production live."
+      "c1_note": "2026-07-31: promoted v0.24.0; registry intake complete; production live."
     },
     {
       "repo": "FMotalleb/nu_plugin_image",
@@ -238,7 +238,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-07-30: promoted; Wave 1 release; registry intake numan-registry#32."
+      "c1_note": "2026-07-30: promoted; Wave 1 release; registry intake."
     },
     {
       "repo": "fdncred/nu_plugin_parquet",
@@ -263,7 +263,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-07-31: promoted v0.24.0; registry PR#36, production live."
+      "c1_note": "2026-07-31: promoted v0.24.0; registry intake complete; production live."
     },
     {
       "repo": "JosephTLyons/nu_plugin_units",
@@ -331,7 +331,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-08-05: wave1 v0.114.1 in official registry (numan-registry#43); lifecycle-prove OK Linux/Nu 0.114.1."
+      "c1_note": "2026-08-05: wave1 v0.114.1 in official registry; lifecycle-prove OK Linux/Nu 0.114.1."
     },
     {
       "repo": "PhotonBursted/nu_plugin_vec",
@@ -407,7 +407,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-08-05: wave2 v0.23.0 in official registry (numan-registry#45); lifecycle-prove OK Linux/Nu 0.114.1. Distinct from nushell-works/nu_plugin_nw_ulid."
+      "c1_note": "2026-08-05: wave2 v0.23.0 in official registry; lifecycle-prove OK Linux+Windows/Nu 0.114.1. Distinct from nushell-works/nu_plugin_nw_ulid."
     },
     {
       "repo": "oderwat/nu_plugin_logfmt",
@@ -462,7 +462,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-08-05: wave1 0.114.1 in official registry (numan-registry#43); lifecycle-prove OK Linux/Nu 0.114.1."
+      "c1_note": "2026-08-05: wave1 0.114.1 in official registry; lifecycle-prove OK Linux/Nu 0.114.1."
     },
     {
       "repo": "fnuttens/nu_plugin_hmac",
@@ -487,7 +487,7 @@
         }
       ],
       "backfill_targets": ["0.112"],
-      "c1_note": "2026-07-31: promoted 0.27.0; registry PR#41, production live. Requires Nu 0.113.x."
+      "c1_note": "2026-07-31: promoted 0.27.0; registry intake complete; production live. Requires Nu 0.113.x."
     },
     {
       "repo": "Kissaki/nu_plugin_bson",
@@ -505,7 +505,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-07-31: promoted; registry PR#41, production live, lifecycle-prove OK Windows/Nu 0.114.1."
+      "c1_note": "2026-07-31: promoted; registry intake complete; production live, lifecycle-prove OK Windows/Nu 0.114.1."
     },
     {
       "repo": "galuszkak/nu_plugin_bigquery",
@@ -928,7 +928,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-08-05: wave1 v0.23.0 in official registry (numan-registry#43); lifecycle-prove OK Linux/Nu 0.114.1."
+      "c1_note": "2026-08-05: wave1 v0.23.0 in official registry; lifecycle-prove OK Linux/Nu 0.114.1."
     },
     {
       "repo": "fdncred/nu_plugin_file",
@@ -953,7 +953,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-08-05: wave1 v0.26.0 in official registry (numan-registry#43); lifecycle-prove OK Linux/Nu 0.114.1."
+      "c1_note": "2026-08-05: wave1 v0.26.0 in official registry; lifecycle-prove OK Linux/Nu 0.114.1."
     },
     {
       "repo": "fdncred/nu_plugin_jwalk",
@@ -971,7 +971,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-08-05: wave2 v0.26.0 in official registry (numan-registry#45); lifecycle-prove OK Linux/Nu 0.114.1."
+      "c1_note": "2026-08-05: wave2 v0.26.0 in official registry; lifecycle-prove OK Linux+Windows/Nu 0.114.1."
     },
     {
       "repo": "fdncred/nu_plugin_strutils",
@@ -989,7 +989,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-08-05: wave2 v0.22.0 in official registry (numan-registry#45); lifecycle-prove OK Linux/Nu 0.114.1."
+      "c1_note": "2026-08-05: wave2 v0.22.0 in official registry; lifecycle-prove OK Linux+Windows/Nu 0.114.1."
     },
     {
       "repo": "fdncred/nu_plugin_query_git",
@@ -1007,7 +1007,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-08-05: wave2 v0.24.0 in official registry (numan-registry#45); lifecycle-prove OK Linux/Nu 0.114.1."
+      "c1_note": "2026-08-05: wave2 v0.24.0 in official registry; lifecycle-prove OK Linux+Windows/Nu 0.114.1."
     },
     {
       "repo": "rhino-linux/nu_plugin_nutext",
@@ -1025,7 +1025,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-08-05: wave2 0.6.2 in official registry (numan-registry#45); lifecycle-prove OK Linux/Nu 0.114.1."
+      "c1_note": "2026-08-05: wave2 0.6.2 in official registry; lifecycle-prove OK Linux+Windows/Nu 0.114.1."
     }
   ]
 }
