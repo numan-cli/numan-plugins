@@ -43,6 +43,7 @@ then pins those URLs and signs the index with the official trust root.
 | `docs/roadmap.md` | remaining plugin catalog, build pipeline, and registry handoff plan |
 | `.github/workflows/build.yml` | manual matrix build → package → release → emit spec |
 | `.github/workflows/repo-safety.yml` | required manifest, test, archive, spec, and workflow checks |
+| `.pre-commit-config.yaml` | local JSON format + README/backlog consistency hooks |
 | `scripts/package_plugin.py` | normalize a built binary into a `.tar.gz`/`.zip` |
 | `scripts/gen_spec.py` | emit a `numan-registry` `kind:binary` spec (no sha256) |
 | `scripts/release_transaction.py` | claim, verify, finalize, or clean up an owned draft release |
@@ -88,12 +89,31 @@ rest build on native runners.
 - `fdncred/nu_plugin_parquet` @ `v0.24.0` → `nu_plugin_parquet` 0.24.0
 - `Kissaki/nu_plugin_bson` @ `v26.1140.0` → `nu_plugin_bson` 26.1140.0
 - `fnuttens/nu_plugin_hmac` @ `0.27.0` → `nu_plugin_hmac` 0.27.0
+- `fdncred/nu_plugin_jwalk` @ `v0.26.0` → `nu_plugin_jwalk` 0.26.0
+- `fdncred/nu_plugin_strutils` @ `v0.22.0` → `nu_plugin_strutils` 0.22.0
+- `fdncred/nu_plugin_query_git` @ `v0.24.0` → `nu_plugin_query_git` 0.24.0
+- `lizclipse/nu_plugin_ulid` @ `v0.23.0` → `nu_plugin_ulid` 0.23.0
+- `rhino-linux/nu_plugin_nutext` @ `0.6.2` → `nu_plugin_nutext` 0.6.2
 
 ## Registry-side follow-up
 
 Generated specs include the schema's `source` block with the immutable upstream
 commit in `source.rev`. Registry intake must preserve that provenance in the
 signed index and independently download and hash every release asset.
+
+## Development
+
+Local checks mirror CI:
+
+```bash
+python3 scripts/format_json.py --check
+python3 scripts/check_repo_consistency.py
+python3 -m unittest discover -s scripts -p "test_*.py" -v
+python3 scripts/validate_manifest.py --verify-upstream
+```
+
+Optional: `pip install pre-commit && pre-commit install` to run the
+JSON format and consistency hooks on commit.
 
 ## PR review
 
