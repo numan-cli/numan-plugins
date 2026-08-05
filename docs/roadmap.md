@@ -1,5 +1,7 @@
 # Repo-local roadmap for numan-plugins
 
+> **Default branch:** `main` (aligned with `numan-registry`). The legacy `master` branch remains temporarily for URL compatibility.
+
 This repo owns CI-built plugin binaries for upstreams without compliant
 release assets. The roadmap that covers the entire three-repo plan —
 catalog intake, signing, plugin backfills, client compat, lifecycle
