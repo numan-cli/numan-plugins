@@ -40,36 +40,30 @@ contract pins in this repo alone.
   package version or an explicit build revision.
 - Generated registry specs preserve upstream provenance and leave SHA256
   computation to `numan-registry`.
-- `docs/backlog.json` (schema v1) is the comprehensive plugin candidate list.
-  It tracks ALL release versions per plugin with their Nu minor compatibility,
-  enabling post-1.0 backfill targeting via the `backfill_targets` field.
+- `docs/backlog.json` (schema v1) is the comprehensive **plugin candidate** list
+  (not the live catalog). It tracks release versions per plugin with Nu minor
+  compatibility via `versions[]` / `backfill_targets`. Live catalog × Nu overview:
+  [`numan-registry/docs/catalog-compat.md`](https://github.com/tonythethompson/numan-registry/blob/main/docs/catalog-compat.md).
   Source: awesome-nu + manual discovery.
-- branch `feature/catalog-expansion-wave-1` is **merged**. `master` includes
-  `FMotalleb/nu_plugin_port_extension@0.113.1` and
-  `FMotalleb/nu_plugin_image@0.112.2`, plus macOS-15 runner labels.
-- Wave 1 release assets are published:
-  `nu_plugin_port_extension-0.113.1` and `nu_plugin_image-0.112.2`.
+- Wave 1 and Wave 2 CI-built plugins are on **`main`**, published, and intaken
+  into the official registry. Wave 2 targets Nu 0.114; Wave 1 includes Nu
+  0.113.1 and Nu 0.112.2. `manifest.json` `active[]` currently holds 20 plugins.
 - Release upload uses claim-ID upload (upload-by-id) to avoid softprops
   creating a second draft.
-- Registry Wave 1 intake, lifecycle-prove, production, and client smoke are
-  complete.
 
-## Immediate Work: Finish Catalog Wave 1
+## Immediate Work: Grow Catalog Depth For 1.0
 
-Checklist after wave 1 promote merges:
+Wave 1 and Wave 2 checklists are closed. Next: promote one or two backlog
+candidates at a time through build → registry intake → lifecycle-prove. Keep
+README `Currently active` and `docs/backlog.json` statuses in the same PR.
 
-- [x] Pull the merge commit into `master`.
+Historical Wave 1 checklist (complete):
+
+- [x] Merge wave-1 promote into `main`.
 - [x] Merge Windows Recheck `shell: bash` fix.
-- [x] Dispatch `build-plugins` manually with only:
-  `nu_plugin_port_extension,nu_plugin_image`.
-- [x] Confirm the workflow checks each upstream tag against its recorded
-  `source_commit`.
-- [x] Confirm all expected target assets are present and no pre-existing release
-  or asset was replaced.
-- [x] Download the generated `spec-*.json` artifacts for registry intake.
-- [x] Do not rebuild existing releases unless a new package version or explicit
-  build revision has been chosen.
-- [x] Do not publish any registry changes from this repo.
+- [x] Dispatch `build-plugins` for `nu_plugin_port_extension,nu_plugin_image`.
+- [x] Confirm tag↔`source_commit` checks and immutable releases.
+- [x] Registry intake + lifecycle-prove + production + client smoke.
 - [x] Merge release upload-by-id fix for future waves.
 
 ## Candidate Promotion Gates
