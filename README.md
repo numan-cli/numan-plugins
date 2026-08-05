@@ -19,8 +19,8 @@ archive per target, and publishes them as GitHub release assets.
 [`numan-registry`](https://github.com/tonythethompson/numan-registry)
 then pins those URLs and signs the index with the official trust root.
 
-Plugins that already publish compliant upstream release assets can be intaken
-directly in `numan-registry` without a stop here. For the live catalog × Nu
+Plugins that already publish compliant upstream release assets can be ingested
+directly into `numan-registry` without a stop here. For the live catalog × Nu
 matrix, see
 [`docs/catalog-compat.md`](https://github.com/tonythethompson/numan-registry/blob/main/docs/catalog-compat.md)
 in the registry. For demand-ranked candidates **not yet** built, see
