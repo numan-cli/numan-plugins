@@ -17,12 +17,21 @@
       "tag": "v1.4.16+0.114.1",
       "source_commit": "c0e768d66e9cff17c791e1c5138d518409285599",
       "version": "1.4.16",
-      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
       "exclude_reason": "Intel Mac EOL; not supported",
       "nu_version": ">=0.114.0 <0.115.0",
-      "verified_with": ["0.114.1"],
+      "verified_with": [
+        "0.114.1"
+      ],
       "description": "Syntax highlighting for Nushell values and code.",
-      "tags": ["plugin", "highlight", "syntax", "ci-built"]
+      "tags": [
+        "plugin",
+        "highlight",
+        "syntax",
+        "ci-built"
+      ]
     },
     {
       "repo": "fdncred/nu_plugin_regex",
@@ -32,12 +41,21 @@
       "tag": "v0.23.0",
       "source_commit": "8c7864a8050d75869af8ad5e6a961da23eb71ae9",
       "version": "0.23.0",
-      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
       "exclude_reason": "Intel Mac EOL; not supported",
       "nu_version": ">=0.114.0 <0.115.0",
-      "verified_with": ["0.114.1"],
+      "verified_with": [
+        "0.114.1"
+      ],
       "description": "Search text with regular expressions in Nushell pipelines.",
-      "tags": ["plugin", "regex", "text", "ci-built"]
+      "tags": [
+        "plugin",
+        "regex",
+        "text",
+        "ci-built"
+      ]
     },
     {
       "repo": "dead10ck/nu_plugin_dns",
@@ -47,12 +65,22 @@
       "tag": "v4.0.10",
       "source_commit": "fdbd0762cfe8422d55df24e049e149510fd712c7",
       "version": "4.0.10",
-      "exclude_targets": ["x86_64-pc-windows-msvc", "x86_64-apple-darwin"],
+      "exclude_targets": [
+        "x86_64-pc-windows-msvc",
+        "x86_64-apple-darwin"
+      ],
       "exclude_reason": "windows: upstream Cargo.lock has conflicting windows-sys versions, nu-protocol 0.113 GUID type mismatch (E0308), upstream does not build Windows. x86_64 macOS was omitted from this existing immutable release after the macos-13 runner stalled; add it on the next plugin version using macos-15-intel",
       "nu_version": ">=0.113.0 <0.114.0",
-      "verified_with": ["0.113.1"],
+      "verified_with": [
+        "0.113.1"
+      ],
       "description": "DNS utility for Nushell.",
-      "tags": ["plugin", "dns", "network", "ci-built"]
+      "tags": [
+        "plugin",
+        "dns",
+        "network",
+        "ci-built"
+      ]
     },
     {
       "repo": "idanarye/nu_plugin_skim",
@@ -62,12 +90,21 @@
       "tag": "v0.29.1",
       "source_commit": "b86f26023a166492a0c2aea1e2c8cf803c29f813",
       "version": "0.29.1",
-      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
       "exclude_reason": "x86_64 macOS was omitted from this existing immutable release after the macos-13 runner stalled; add it on the next plugin version using macos-15-intel",
       "nu_version": ">=0.114.0 <0.115.0",
-      "verified_with": ["0.114.1"],
+      "verified_with": [
+        "0.114.1"
+      ],
       "description": "Fuzzy finder (skim) integration for Nushell.",
-      "tags": ["plugin", "skim", "fuzzy", "ci-built"]
+      "tags": [
+        "plugin",
+        "skim",
+        "fuzzy",
+        "ci-built"
+      ]
     },
     {
       "repo": "FMotalleb/nu_plugin_desktop_notifications",
@@ -77,12 +114,21 @@
       "tag": "v0.114.1",
       "source_commit": "c97e0de9a0ef712d2258b806989de507dfb01405",
       "version": "0.114.1",
-      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
       "exclude_reason": "x86_64 macOS was omitted from this existing immutable release after the macos-13 runner stalled; add it on the next plugin version using macos-15-intel",
       "nu_version": ">=0.114.0 <0.115.0",
-      "verified_with": ["0.114.1"],
+      "verified_with": [
+        "0.114.1"
+      ],
       "description": "Send desktop notifications from Nushell.",
-      "tags": ["plugin", "notifications", "desktop", "ci-built"]
+      "tags": [
+        "plugin",
+        "notifications",
+        "desktop",
+        "ci-built"
+      ]
     },
     {
       "repo": "FMotalleb/nu_plugin_port_extension",
@@ -92,12 +138,21 @@
       "tag": "v0.114.1",
       "source_commit": "d4918db40f6feca8cc1d2ad965141e5b205e13f0",
       "version": "0.114.1",
-      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
       "exclude_reason": "Intel Mac EOL; not supported",
       "nu_version": ">=0.114.0 <0.115.0",
-      "verified_with": ["0.114.1"],
+      "verified_with": [
+        "0.114.1"
+      ],
       "description": "Inspect active network connections and scan ports from Nushell.",
-      "tags": ["plugin", "network", "ports", "ci-built"]
+      "tags": [
+        "plugin",
+        "network",
+        "ports",
+        "ci-built"
+      ]
     },
     {
       "repo": "fdncred/nu_plugin_file",
@@ -107,12 +162,21 @@
       "tag": "v0.26.0",
       "source_commit": "97efd18e8df8ea6e33d8c4b6b64c2fa717a647d6",
       "version": "0.26.0",
-      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
       "exclude_reason": "Intel Mac EOL; not supported",
       "nu_version": ">=0.114.0 <0.115.0",
-      "verified_with": ["0.114.1"],
+      "verified_with": [
+        "0.114.1"
+      ],
       "description": "Inspect a file and return information based on its magic number.",
-      "tags": ["plugin", "file", "filesystem", "ci-built"]
+      "tags": [
+        "plugin",
+        "file",
+        "filesystem",
+        "ci-built"
+      ]
     },
     {
       "repo": "Yethal/nu_plugin_hcl",
@@ -122,12 +186,21 @@
       "tag": "0.114.1",
       "source_commit": "71985a31326d074d23ee6c9cea88bc032d267f72",
       "version": "0.114.1",
-      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
       "exclude_reason": "Intel Mac EOL; not supported",
       "nu_version": ">=0.114.0 <0.115.0",
-      "verified_with": ["0.114.1"],
+      "verified_with": [
+        "0.114.1"
+      ],
       "description": "Parse HashiCorp HCL into Nushell values.",
-      "tags": ["plugin", "hcl", "config", "ci-built"]
+      "tags": [
+        "plugin",
+        "hcl",
+        "config",
+        "ci-built"
+      ]
     },
     {
       "repo": "FMotalleb/nu_plugin_image",
@@ -138,9 +211,16 @@
       "source_commit": "b44892a469ec3f508725220d3d71caa8342a4ab7",
       "version": "0.112.2",
       "nu_version": ">=0.112.0 <0.113.0",
-      "verified_with": ["0.112.2"],
+      "verified_with": [
+        "0.112.2"
+      ],
       "description": "Render images in the terminal and save ANSI text as images.",
-      "tags": ["plugin", "image", "terminal", "ci-built"]
+      "tags": [
+        "plugin",
+        "image",
+        "terminal",
+        "ci-built"
+      ]
     },
     {
       "repo": "drbrain/nu_plugin_prometheus",
@@ -150,12 +230,21 @@
       "tag": "v0.12.0",
       "source_commit": "3fed1d934ba201ce1d9b78ecb727695588de7ef9",
       "version": "0.12.0",
-      "exclude_targets": ["aarch64-unknown-linux-gnu"],
+      "exclude_targets": [
+        "aarch64-unknown-linux-gnu"
+      ],
       "exclude_reason": "linux aarch64 cross: openssl-sys/native-tls fails to locate target OpenSSL headers/libs under taiki-e cross toolchain (pkg-config resolves host x86_64 paths); Windows and other four targets green on build run 30604641151",
       "nu_version": ">=0.114.0 <0.115.0",
-      "verified_with": ["0.114.1"],
+      "verified_with": [
+        "0.114.1"
+      ],
       "description": "Query Prometheus from Nushell (instant/range queries, targets, labels, scrape).",
-      "tags": ["plugin", "prometheus", "metrics", "ci-built"]
+      "tags": [
+        "plugin",
+        "prometheus",
+        "metrics",
+        "ci-built"
+      ]
     },
     {
       "repo": "fdncred/nu_plugin_emoji",
@@ -165,12 +254,21 @@
       "tag": "v0.23.0",
       "source_commit": "e11cb9d5db772f904c11b8f1f3d0072de542d56c",
       "version": "0.23.0",
-      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
       "exclude_reason": "x86_64 macOS omitted; macos-15-intel runner not yet validated for this plugin",
       "nu_version": ">=0.114.0 <0.115.0",
-      "verified_with": ["0.114.1"],
+      "verified_with": [
+        "0.114.1"
+      ],
       "description": "Search and insert emoji characters in Nushell pipelines.",
-      "tags": ["plugin", "emoji", "text", "ci-built"]
+      "tags": [
+        "plugin",
+        "emoji",
+        "text",
+        "ci-built"
+      ]
     },
     {
       "repo": "fdncred/nu_plugin_json_path",
@@ -180,12 +278,21 @@
       "tag": "v0.24.0",
       "source_commit": "2c7296394cec4519d42eb63ed7758aa332a01a26",
       "version": "0.24.0",
-      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
       "exclude_reason": "x86_64 macOS omitted; macos-15-intel runner not yet validated for this plugin",
       "nu_version": ">=0.114.0 <0.115.0",
-      "verified_with": ["0.114.1"],
+      "verified_with": [
+        "0.114.1"
+      ],
       "description": "Query JSON data with JSONPath expressions in Nushell.",
-      "tags": ["plugin", "json", "jsonpath", "ci-built"]
+      "tags": [
+        "plugin",
+        "json",
+        "jsonpath",
+        "ci-built"
+      ]
     },
     {
       "repo": "fdncred/nu_plugin_parquet",
@@ -195,12 +302,21 @@
       "tag": "v0.24.0",
       "source_commit": "0d194688079cbd1cb2820018f78ca70a34e21745",
       "version": "0.24.0",
-      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
       "exclude_reason": "x86_64 macOS omitted; macos-15-intel runner not yet validated for this plugin",
       "nu_version": ">=0.114.0 <0.115.0",
-      "verified_with": ["0.114.1"],
+      "verified_with": [
+        "0.114.1"
+      ],
       "description": "Read and write Apache Parquet files in Nushell.",
-      "tags": ["plugin", "parquet", "data", "ci-built"]
+      "tags": [
+        "plugin",
+        "parquet",
+        "data",
+        "ci-built"
+      ]
     },
     {
       "repo": "Kissaki/nu_plugin_bson",
@@ -210,12 +326,21 @@
       "tag": "v26.1140.0",
       "source_commit": "252f950d01d0a9310baf9bfb22ee282e2d76161e",
       "version": "26.1140.0",
-      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
       "exclude_reason": "x86_64 macOS omitted; macos-15-intel runner not yet validated for this plugin",
       "nu_version": ">=0.114.0 <0.115.0",
-      "verified_with": ["0.114.1"],
+      "verified_with": [
+        "0.114.1"
+      ],
       "description": "Convert between BSON (Binary JSON) and Nushell values.",
-      "tags": ["plugin", "bson", "data", "ci-built"]
+      "tags": [
+        "plugin",
+        "bson",
+        "data",
+        "ci-built"
+      ]
     },
     {
       "repo": "fnuttens/nu_plugin_hmac",
@@ -225,15 +350,144 @@
       "tag": "0.27.0",
       "source_commit": "634f14145f88cf4a44b4172fe07a45bca5d21422",
       "version": "0.27.0",
-      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
       "exclude_reason": "x86_64 macOS omitted; macos-15-intel runner not yet validated for this plugin",
       "nu_version": ">=0.113.0 <0.114.0",
-      "verified_with": ["0.113.1"],
+      "verified_with": [
+        "0.113.1"
+      ],
       "description": "HMAC sealing and verification from Nushell.",
-      "tags": ["plugin", "hmac", "crypto", "ci-built"]
+      "tags": [
+        "plugin",
+        "hmac",
+        "crypto",
+        "ci-built"
+      ]
+    },
+    {
+      "repo": "fdncred/nu_plugin_jwalk",
+      "name": "nu_plugin_jwalk",
+      "owner": "fdncred",
+      "plugin_bin": "nu_plugin_jwalk",
+      "tag": "v0.26.0",
+      "source_commit": "51d162849b8ac9a8e187923f3bc45fde4bd1a0ec",
+      "version": "0.26.0",
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
+      "exclude_reason": "Intel Mac EOL; not supported",
+      "nu_version": ">=0.114.0 <0.115.0",
+      "verified_with": [
+        "0.114.1"
+      ],
+      "description": "Walk directory trees with the jwalk crate.",
+      "tags": [
+        "plugin",
+        "filesystem",
+        "walk",
+        "ci-built"
+      ]
+    },
+    {
+      "repo": "fdncred/nu_plugin_strutils",
+      "name": "nu_plugin_strutils",
+      "owner": "fdncred",
+      "plugin_bin": "nu_plugin_strutils",
+      "tag": "v0.22.0",
+      "source_commit": "69d6fe1cadec263897333dc4373da7c9b8c67316",
+      "version": "0.22.0",
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
+      "exclude_reason": "Intel Mac EOL; not supported",
+      "nu_version": ">=0.114.0 <0.115.0",
+      "verified_with": [
+        "0.114.1"
+      ],
+      "description": "A collection of string utilities for Nushell.",
+      "tags": [
+        "plugin",
+        "text",
+        "string",
+        "ci-built"
+      ]
+    },
+    {
+      "repo": "fdncred/nu_plugin_query_git",
+      "name": "nu_plugin_query_git",
+      "owner": "fdncred",
+      "plugin_bin": "nu_plugin_query_git",
+      "tag": "v0.24.0",
+      "source_commit": "5d30cdebc68a958732632b6bc9d152a16ab5aaff",
+      "version": "0.24.0",
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
+      "exclude_reason": "Intel Mac EOL; not supported",
+      "nu_version": ">=0.114.0 <0.115.0",
+      "verified_with": [
+        "0.114.1"
+      ],
+      "description": "Query git repositories with GQL and return structured Nushell data.",
+      "tags": [
+        "plugin",
+        "git",
+        "query",
+        "ci-built"
+      ]
+    },
+    {
+      "repo": "lizclipse/nu_plugin_ulid",
+      "name": "nu_plugin_ulid",
+      "owner": "lizclipse",
+      "plugin_bin": "nu_plugin_ulid",
+      "tag": "v0.23.0",
+      "source_commit": "3f1df977a727da35ae4afc0a40d21f35b85df7b5",
+      "version": "0.23.0",
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
+      "exclude_reason": "Intel Mac EOL; not supported",
+      "nu_version": ">=0.114.0 <0.115.0",
+      "verified_with": [
+        "0.114.1"
+      ],
+      "description": "Generate and parse ULIDs in Nushell.",
+      "tags": [
+        "plugin",
+        "ulid",
+        "id",
+        "ci-built"
+      ]
+    },
+    {
+      "repo": "rhino-linux/nu_plugin_nutext",
+      "name": "nu_plugin_nutext",
+      "owner": "rhino-linux",
+      "plugin_bin": "nu_plugin_nutext",
+      "tag": "0.6.2",
+      "source_commit": "c0c0c3afaae0f6a09f7c923acc89c7f21a10ae05",
+      "version": "0.6.2",
+      "exclude_targets": [
+        "x86_64-apple-darwin"
+      ],
+      "exclude_reason": "Intel Mac EOL; not supported",
+      "nu_version": ">=0.114.0 <0.115.0",
+      "verified_with": [
+        "0.114.1"
+      ],
+      "description": "gettext-style translation helpers for Nushell programs.",
+      "tags": [
+        "plugin",
+        "i18n",
+        "gettext",
+        "ci-built"
+      ]
     }
   ],
-  "backlog_note": "Remaining demand-ranked source-only plugins live in docs/backlog.json. Wave 1 (this PR): highlight 1.4.16, regex 0.23.0, port_extension 0.114.1, file 0.26.0, hcl 0.114.1. Wave 2 queued: jwalk 0.26.0, strutils 0.22.0, query_git 0.24.0, ulid 0.23.0, nutext 0.6.2.",
+  "backlog_note": "Remaining demand-ranked source-only plugins live in docs/backlog.json. Wave 1 promoted. Wave 2 (this PR): jwalk 0.26.0, strutils 0.22.0, query_git 0.24.0, ulid 0.23.0, nutext 0.6.2.",
   "target_runner_map": {
     "x86_64-unknown-linux-gnu": "ubuntu-latest",
     "aarch64-unknown-linux-gnu": "ubuntu-latest (cross)",
