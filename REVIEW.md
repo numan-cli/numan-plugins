@@ -39,7 +39,6 @@ Publishing builds run only via manual `build-plugins` dispatch with a non-empty 
 - [ ] Packaging / release scripts keep draft ownership, refuse overwrite, and fail closed on incomplete asset sets.
 - [ ] Cross-platform assumptions are explicit (Windows-only paths only at Windows boundaries).
 - [ ] Tests cover failure modes for packaging and release transaction helpers.
-- [ ] Scope matches PR description; backlog-only edits do not silently change `active[]` publish set.
 
 ## Handoff notes (for reviewers of build/manifest PRs)
 
