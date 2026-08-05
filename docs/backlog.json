@@ -396,18 +396,18 @@
       "name": "nu_plugin_ulid",
       "plugin_bin": "nu_plugin_ulid",
       "stars": 6,
-      "status": "ELIGIBLE",
+      "status": "PROMOTED",
       "versions": [
         {
           "tag": "v0.23.0",
           "nu_plugin": "0.114.0",
           "nu_protocol": "0.114.0",
-          "has_assets": false,
+          "has_assets": true,
           "note": "wave2 promote; CI-built via numan-plugins"
         }
       ],
-      "backfill_targets": ["0.114"],
-      "c1_note": "2026-08-05: wave2 promote v0.23.0 (source_commit 3f1df97). Distinct from nushell-works/nu_plugin_nw_ulid. 0.114 version pending registry intake."
+      "backfill_targets": [],
+      "c1_note": "2026-08-05: wave2 v0.23.0 in official registry (numan-registry#45); lifecycle-prove OK Linux/Nu 0.114.1. Distinct from nushell-works/nu_plugin_nw_ulid."
     },
     {
       "repo": "oderwat/nu_plugin_logfmt",
@@ -960,72 +960,72 @@
       "name": "nu_plugin_jwalk",
       "plugin_bin": "nu_plugin_jwalk",
       "stars": 9,
-      "status": "ELIGIBLE",
+      "status": "PROMOTED",
       "versions": [
         {
           "tag": "v0.26.0",
           "nu_plugin": "0.114.0",
           "nu_protocol": "0.114.0",
-          "has_assets": false,
+          "has_assets": true,
           "note": "wave2 promote; CI-built via numan-plugins"
         }
       ],
-      "backfill_targets": ["0.114"],
-      "c1_note": "2026-08-05: wave2 promote v0.26.0 (source_commit 51d1628). 0.114 version pending registry intake."
+      "backfill_targets": [],
+      "c1_note": "2026-08-05: wave2 v0.26.0 in official registry (numan-registry#45); lifecycle-prove OK Linux/Nu 0.114.1."
     },
     {
       "repo": "fdncred/nu_plugin_strutils",
       "name": "nu_plugin_strutils",
       "plugin_bin": "nu_plugin_strutils",
       "stars": 5,
-      "status": "ELIGIBLE",
+      "status": "PROMOTED",
       "versions": [
         {
           "tag": "v0.22.0",
           "nu_plugin": "0.114.0",
           "nu_protocol": "0.114.0",
-          "has_assets": false,
+          "has_assets": true,
           "note": "wave2 promote; CI-built via numan-plugins"
         }
       ],
-      "backfill_targets": ["0.114"],
-      "c1_note": "2026-08-05: wave2 promote v0.22.0 (source_commit 69d6fe1). 0.114 version pending registry intake."
+      "backfill_targets": [],
+      "c1_note": "2026-08-05: wave2 v0.22.0 in official registry (numan-registry#45); lifecycle-prove OK Linux/Nu 0.114.1."
     },
     {
       "repo": "fdncred/nu_plugin_query_git",
       "name": "nu_plugin_query_git",
       "plugin_bin": "nu_plugin_query_git",
       "stars": 8,
-      "status": "ELIGIBLE",
+      "status": "PROMOTED",
       "versions": [
         {
           "tag": "v0.24.0",
           "nu_plugin": "0.114.0",
           "nu_protocol": "0.114.0",
-          "has_assets": false,
+          "has_assets": true,
           "note": "wave2 promote; CI-built via numan-plugins"
         }
       ],
-      "backfill_targets": ["0.114"],
-      "c1_note": "2026-08-05: wave2 promote v0.24.0 (source_commit 5d30cde). 0.114 version pending registry intake."
+      "backfill_targets": [],
+      "c1_note": "2026-08-05: wave2 v0.24.0 in official registry (numan-registry#45); lifecycle-prove OK Linux/Nu 0.114.1."
     },
     {
       "repo": "rhino-linux/nu_plugin_nutext",
       "name": "nu_plugin_nutext",
       "plugin_bin": "nu_plugin_nutext",
       "stars": 1,
-      "status": "ELIGIBLE",
+      "status": "PROMOTED",
       "versions": [
         {
           "tag": "0.6.2",
           "nu_plugin": "0.114.0",
           "nu_protocol": "0.114.0",
-          "has_assets": false,
+          "has_assets": true,
           "note": "wave2 promote; CI-built via numan-plugins"
         }
       ],
-      "backfill_targets": ["0.114"],
-      "c1_note": "2026-08-05: wave2 promote 0.6.2 (source_commit c0c0c3a). MSRV 1.95; CI stable. 0.114 version pending registry intake."
+      "backfill_targets": [],
+      "c1_note": "2026-08-05: wave2 0.6.2 in official registry (numan-registry#45); lifecycle-prove OK Linux/Nu 0.114.1."
     }
   ]
 }
