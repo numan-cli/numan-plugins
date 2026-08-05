@@ -1,25 +1,30 @@
 # numan-plugins
 
-CI build+sign pipeline feeder for the [numan](https://github.com/tonythethompson/numan)
+CI build pipeline feeder for the [numan](https://github.com/tonythethompson/numan)
 official registry — implements the binary-delivery half of
 [numan #30](https://github.com/tonythethompson/numan/issues/30).
+
+**Default branch:** `main` (aligned with `numan-registry`; client stays on `master`).
 
 ## Why this repo exists
 
 numan installs plugins from **signed, hash-pinned binary artifacts** (a plugin
-install bails if `sha256` is missing). But almost every popular Nushell plugin
-ships source-only — no prebuilt release binaries — so users would need a full
-Rust toolchain to install them. A survey of the curated
-[`awesome-nu`](https://github.com/nushell/awesome-nu) plugin list found that
-**every** plugin with a compliant release asset is already in the registry; the
-~50 most-wanted plugins (highlight, dns, regex, dbus, plot, compress, units, …)
-are all source-only and cannot be hand-intaken.
+install bails if `sha256` is missing). Many popular Nushell plugins still ship
+source-only — no prebuilt release binaries — so users would need a full Rust
+toolchain to install them.
 
-This repo closes that gap: it cross-compiles those plugins from immutable
+This repo closes that gap for selected plugins: it cross-compiles from immutable
 upstream commits (with tags retained for human-facing provenance), packages one
 archive per target, and publishes them as GitHub release assets.
 [`numan-registry`](https://github.com/tonythethompson/numan-registry)
 then pins those URLs and signs the index with the official trust root.
+
+Plugins that already publish compliant upstream release assets can be intaken
+directly in `numan-registry` without a stop here. For the live catalog × Nu
+matrix, see
+[`docs/catalog-compat.md`](https://github.com/tonythethompson/numan-registry/blob/main/docs/catalog-compat.md)
+in the registry. For demand-ranked candidates **not yet** built, see
+[`docs/backlog.json`](docs/backlog.json) here.
 
 ## Trust boundary
 
@@ -39,8 +44,9 @@ then pins those URLs and signs the index with the official trust root.
 | Path | Purpose |
 |------|---------|
 | `manifest.json` | `active[]` = plugins built now; build matrix + target→runner map |
-| `docs/backlog.json` | demand-ranked source-only plugins awaiting promotion |
-| `docs/roadmap.md` | remaining plugin catalog, build pipeline, and registry handoff plan |
+| `docs/backlog.json` | Demand-ranked plugin candidates (statuses, Nu deps per tag) |
+| `docs/roadmap.md` | Repo-local build/handoff plan (points at consolidated 1.0 roadmap) |
+| Registry [`catalog-compat.md`](https://github.com/tonythethompson/numan-registry/blob/main/docs/catalog-compat.md) | Master list of **live** official packages × Nu constraints |
 | `.github/workflows/build.yml` | manual matrix build → package → release → emit spec |
 | `.github/workflows/repo-safety.yml` | required manifest, test, archive, spec, and workflow checks |
 | `.pre-commit-config.yaml` | local JSON format + README/backlog consistency hooks |
