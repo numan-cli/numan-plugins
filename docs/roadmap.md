@@ -47,18 +47,17 @@ contract pins in this repo alone.
   `FMotalleb/nu_plugin_image@0.112.2`, plus macOS-15 runner labels.
 - Wave 1 release assets are published:
   `nu_plugin_port_extension-0.113.1` and `nu_plugin_image-0.112.2`.
-- Release upload uses claim-ID upload
-  (upload-by-id)
-  to avoid softprops creating a second draft.
+- Release upload uses claim-ID upload (upload-by-id) to avoid softprops
+  creating a second draft.
 - Registry Wave 1 intake, lifecycle-prove, production, and client smoke are
-  complete (registry intake).
+  complete.
 
 ## Immediate Work: Finish Catalog Wave 1
 
 Checklist after wave 1 promote merges:
 
 - [x] Pull the merge commit into `master`.
-- [x] Merge Windows Recheck `shell: bash` fix (Windows Recheck shell fix).
+- [x] Merge Windows Recheck `shell: bash` fix.
 - [x] Dispatch `build-plugins` manually with only:
   `nu_plugin_port_extension,nu_plugin_image`.
 - [x] Confirm the workflow checks each upstream tag against its recorded
@@ -69,7 +68,7 @@ Checklist after wave 1 promote merges:
 - [x] Do not rebuild existing releases unless a new package version or explicit
   build revision has been chosen.
 - [x] Do not publish any registry changes from this repo.
-- [x] Merge release upload-by-id fix (release upload-by-id fix) for future waves.
+- [x] Merge release upload-by-id fix for future waves.
 
 ## Candidate Promotion Gates
 
