@@ -46,7 +46,7 @@ contract pins in this repo alone.
   [`numan-registry/docs/catalog-compat.md`](https://github.com/tonythethompson/numan-registry/blob/main/docs/catalog-compat.md).
   Source: awesome-nu + manual discovery.
 - Wave 1 and Wave 2 Nu 0.114 CI-built plugins are on **`main`**, published, and
-  intaken into the official registry. `manifest.json` `active[]` currently holds
+  ingested into the official registry. `manifest.json` `active[]` currently holds
   20 plugins.
 - Release upload uses claim-ID upload (upload-by-id) to avoid softprops
   creating a second draft.
