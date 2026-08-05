@@ -84,6 +84,19 @@ Assets published; registry intake merged as
 [numan-registry#32](https://github.com/tonythethompson/numan-registry/pull/32);
 production + client smoke complete 2026-07-31.
 
+### Wave 2 Completion (Nu 0.114 CI-built)
+
+- [x] `fdncred/nu_plugin_jwalk@0.26.0`
+- [x] `fdncred/nu_plugin_strutils@0.22.0`
+- [x] `fdncred/nu_plugin_query_git@0.24.0`
+- [x] `lizclipse/nu_plugin_ulid@0.23.0`
+- [x] `rhino-linux/nu_plugin_nutext@0.6.2`
+
+Assets published ([build 30985049217](https://github.com/tonythethompson/numan-plugins/actions/runs/30985049217));
+registry intake [numan-registry#45](https://github.com/tonythethompson/numan-registry/pull/45);
+production [30996546918](https://github.com/tonythethompson/numan-registry/actions/runs/30996546918);
+lifecycle-prove OK Linux x86_64 / Nu 0.114.1.
+
 ### Wave 2 Research
 
 Use `docs/backlog.json` as the starting queue. Good next research candidates

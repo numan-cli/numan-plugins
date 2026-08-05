@@ -245,7 +245,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Walk directory trees with the jwalk crate.",
-      "tags": ["plugin", "filesystem", "walk"]
+      "tags": ["plugin", "filesystem", "walk", "ci-built"]
     },
     {
       "repo": "fdncred/nu_plugin_strutils",
@@ -260,7 +260,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "A collection of string utilities for Nushell.",
-      "tags": ["plugin", "text", "string"]
+      "tags": ["plugin", "text", "string", "ci-built"]
     },
     {
       "repo": "fdncred/nu_plugin_query_git",
@@ -275,7 +275,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Query git repositories with GQL and return structured Nushell data.",
-      "tags": ["plugin", "git", "query"]
+      "tags": ["plugin", "git", "query", "ci-built"]
     },
     {
       "repo": "lizclipse/nu_plugin_ulid",
@@ -290,7 +290,7 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "Generate and parse ULIDs in Nushell.",
-      "tags": ["plugin", "ulid", "id"]
+      "tags": ["plugin", "ulid", "id", "ci-built"]
     },
     {
       "repo": "rhino-linux/nu_plugin_nutext",
@@ -305,10 +305,10 @@
       "nu_version": ">=0.114.0 <0.115.0",
       "verified_with": ["0.114.1"],
       "description": "gettext-style translation helpers for Nushell programs.",
-      "tags": ["plugin", "i18n", "gettext"]
+      "tags": ["plugin", "i18n", "gettext", "ci-built"]
     }
   ],
-  "backlog_note": "Remaining demand-ranked source-only plugins live in docs/backlog.json. Wave 1 promoted. Wave 2: jwalk 0.26.0, strutils 0.22.0, query_git 0.24.0, ulid 0.23.0, nutext 0.6.2.",
+  "backlog_note": "Remaining demand-ranked source-only plugins live in docs/backlog.json. Wave 1 and wave 2 (jwalk, strutils, query_git, ulid, nutext) are in the official registry.",
   "target_runner_map": {
     "x86_64-unknown-linux-gnu": "ubuntu-latest",
     "aarch64-unknown-linux-gnu": "ubuntu-latest (cross)",
