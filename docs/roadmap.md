@@ -117,7 +117,7 @@ production + client smoke complete 2026-07-31.
 Assets published ([build 30985049217](https://github.com/tonythethompson/numan-plugins/actions/runs/30985049217));
 registry intake [numan-registry#45](https://github.com/tonythethompson/numan-registry/pull/45);
 production [30996546918](https://github.com/tonythethompson/numan-registry/actions/runs/30996546918);
-lifecycle-prove OK Linux x86_64 / Nu 0.114.1.
+lifecycle-prove OK Linux x86_64 and Windows x64 / Nu 0.114.1 ([numan-registry#47](https://github.com/tonythethompson/numan-registry/pull/47)).
 
 ### Wave 2 Research
 
