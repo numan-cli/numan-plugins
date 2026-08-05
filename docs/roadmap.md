@@ -42,23 +42,23 @@ contract pins in this repo alone.
   It tracks ALL release versions per plugin with their Nu minor compatibility,
   enabling post-1.0 backfill targeting via the `backfill_targets` field.
   Source: awesome-nu + manual discovery.
-- PR #4 (`feature/catalog-expansion-wave-1`) is **merged**. `master` includes
+- branch `feature/catalog-expansion-wave-1` is **merged**. `master` includes
   `FMotalleb/nu_plugin_port_extension@0.113.1` and
   `FMotalleb/nu_plugin_image@0.112.2`, plus macOS-15 runner labels.
 - Wave 1 release assets are published:
   `nu_plugin_port_extension-0.113.1` and `nu_plugin_image-0.112.2`.
 - Release upload uses claim-ID upload
-  ([PR #12](https://github.com/tonythethompson/numan-plugins/pull/12))
+  (upload-by-id)
   to avoid softprops creating a second draft.
 - Registry Wave 1 intake, lifecycle-prove, production, and client smoke are
-  complete ([numan-registry#32](https://github.com/tonythethompson/numan-registry/pull/32)).
+  complete (registry intake).
 
 ## Immediate Work: Finish Catalog Wave 1
 
-Checklist after PR #4 merges:
+Checklist after wave 1 promote merges:
 
 - [x] Pull the merge commit into `master`.
-- [x] Merge Windows Recheck `shell: bash` fix (PR #8).
+- [x] Merge Windows Recheck `shell: bash` fix (Windows Recheck shell fix).
 - [x] Dispatch `build-plugins` manually with only:
   `nu_plugin_port_extension,nu_plugin_image`.
 - [x] Confirm the workflow checks each upstream tag against its recorded
@@ -69,7 +69,7 @@ Checklist after PR #4 merges:
 - [x] Do not rebuild existing releases unless a new package version or explicit
   build revision has been chosen.
 - [x] Do not publish any registry changes from this repo.
-- [x] Merge release upload-by-id fix (PR #12) for future waves.
+- [x] Merge release upload-by-id fix (release upload-by-id fix) for future waves.
 
 ## Candidate Promotion Gates
 
@@ -102,8 +102,7 @@ then hand them to `numan-registry`.
 - [x] `FMotalleb/nu_plugin_port_extension@0.113.1`
 - [x] `FMotalleb/nu_plugin_image@0.112.2`
 
-Assets published; registry intake merged as
-[numan-registry#32](https://github.com/tonythethompson/numan-registry/pull/32);
+Assets published; registry intake complete;
 production + client smoke complete 2026-07-31.
 
 ### Wave 2 Completion (Nu 0.114 CI-built)

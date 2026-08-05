@@ -21,7 +21,16 @@ BACKLOG_PATH = REPO_ROOT / "docs" / "backlog.json"
 README_PATH = REPO_ROOT / "README.md"
 
 ACTIVE_HEADING = "## Currently active"
-PR_REF_RE = re.compile(r"\bthis\s+pr\b", re.IGNORECASE)
+PR_REF_RE = re.compile(
+    r"(?:"
+    r"\bthis\s+pr\b|"
+    r"\bPR\s*#\s*\d+|"
+    r"\bnuman-(?:registry|plugins)#\d+|"
+    r"https?://github\.com/[^\s)]+/pull/\d+"
+    r")",
+    re.IGNORECASE,
+)
+ROADMAP_PATH = REPO_ROOT / "docs" / "roadmap.md"
 PENDING_REGISTRY_RE = re.compile(r"pending\s+registry", re.IGNORECASE)
 ACTIVE_LINE_RE = re.compile(
     r"^- `(?P<repo>[^`]+)` @ `(?P<tag>[^`]+)` → `(?P<name>[^`]+)` (?P<version>\S+)\s*$"
@@ -160,7 +169,7 @@ def main(argv: list[str] | None = None) -> int:
 
     errors: list[str] = []
     errors.extend(check_readme_active(args.manifest, args.readme))
-    errors.extend(check_no_pr_refs(args.manifest, args.backlog))
+    errors.extend(check_no_pr_refs(args.manifest, args.backlog, ROADMAP_PATH))
     errors.extend(check_backlog_promoted(args.backlog))
 
     if errors:
