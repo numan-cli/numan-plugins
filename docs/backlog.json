@@ -407,7 +407,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-08-05: wave2 v0.23.0 in official registry (numan-registry#45); lifecycle-prove OK Linux+Windows/Nu 0.114.1. Distinct from nushell-works/nu_plugin_nw_ulid."
+      "c1_note": "2026-08-05: wave2 v0.23.0 in official registry; lifecycle-prove OK Linux+Windows/Nu 0.114.1. Distinct from nushell-works/nu_plugin_nw_ulid."
     },
     {
       "repo": "oderwat/nu_plugin_logfmt",
@@ -971,7 +971,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-08-05: wave2 v0.26.0 in official registry (numan-registry#45); lifecycle-prove OK Linux+Windows/Nu 0.114.1."
+      "c1_note": "2026-08-05: wave2 v0.26.0 in official registry; lifecycle-prove OK Linux+Windows/Nu 0.114.1."
     },
     {
       "repo": "fdncred/nu_plugin_strutils",
@@ -989,7 +989,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-08-05: wave2 v0.22.0 in official registry (numan-registry#45); lifecycle-prove OK Linux+Windows/Nu 0.114.1."
+      "c1_note": "2026-08-05: wave2 v0.22.0 in official registry; lifecycle-prove OK Linux+Windows/Nu 0.114.1."
     },
     {
       "repo": "fdncred/nu_plugin_query_git",
@@ -1007,7 +1007,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-08-05: wave2 v0.24.0 in official registry (numan-registry#45); lifecycle-prove OK Linux+Windows/Nu 0.114.1."
+      "c1_note": "2026-08-05: wave2 v0.24.0 in official registry; lifecycle-prove OK Linux+Windows/Nu 0.114.1."
     },
     {
       "repo": "rhino-linux/nu_plugin_nutext",
@@ -1025,7 +1025,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-08-05: wave2 0.6.2 in official registry (numan-registry#45); lifecycle-prove OK Linux+Windows/Nu 0.114.1."
+      "c1_note": "2026-08-05: wave2 0.6.2 in official registry; lifecycle-prove OK Linux+Windows/Nu 0.114.1."
     }
   ]
 }
