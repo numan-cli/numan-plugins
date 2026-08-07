@@ -766,11 +766,11 @@
           "nu_plugin": "0.114.1",
           "nu_protocol": "0.114.1",
           "has_assets": true,
-          "note": "registry #55 merged + staging OK; awaiting production CDN publish. Full platform incl. .tar.xz; Windows lifecycle-prove OK Nu 0.114.1"
+          "note": "on official CDN (registry #55 + production run 31158897784); full platform incl. .tar.xz; Windows lifecycle-prove OK Nu 0.114.1"
         }
       ],
       "backfill_targets": [],
-      "c1_note": "Already PROMOTED via 0.2.8 (Nu 0.113) on the official CDN. 2026-08-07: ABI bump 0.2.10 (Nu 0.114) accepted in registry #55 (staging); production publish still pending. Not CI-built via numan-plugins (upstream cargo-dist)."
+      "c1_note": "PROMOTED on official CDN: 0.2.8 (Nu 0.113) and 0.2.10 (Nu 0.114 full-platform upstream cargo-dist). Not CI-built via numan-plugins."
     },
     {
       "repo": "nushell/nu_plugin_bexpand",
