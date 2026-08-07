@@ -752,18 +752,25 @@
       "name": "nu_plugin_audio",
       "plugin_bin": "nu_plugin_audio",
       "stars": 0,
-      "status": "ELIGIBLE",
+      "status": "PROMOTED",
       "versions": [
         {
           "tag": "v0.2.8",
-          "nu_plugin": "NEEDS_RESEARCH",
-          "nu_protocol": "NEEDS_RESEARCH",
+          "nu_plugin": "0.113.1",
+          "nu_protocol": "0.113.1",
           "has_assets": true,
-          "note": "in intake-state; partial platforms (Windows zip + Linux aarch64)"
+          "note": "in official registry; Windows + Linux aarch64; Nu 0.113 band"
+        },
+        {
+          "tag": "v0.2.10",
+          "nu_plugin": "0.114.1",
+          "nu_protocol": "0.114.1",
+          "has_assets": true,
+          "note": "in official registry intake; full platform incl. .tar.xz; Windows lifecycle-prove OK Nu 0.114.1"
         }
       ],
       "backfill_targets": [],
-      "c1_note": "Added from awesome-nu. Already in registry intake-state. Needs Nu version research."
+      "c1_note": "2026-08-07: promoted ABI bump 0.2.10 (Nu 0.114) with full-platform upstream assets; 0.2.8 retained for Nu 0.113. Not CI-built via numan-plugins (upstream cargo-dist)."
     },
     {
       "repo": "nushell/nu_plugin_bexpand",
