@@ -39,6 +39,8 @@ in the registry. For demand-ranked candidates **not yet** built, see
   build revision. New releases are assembled and verified as run-owned drafts,
   then made public only after the complete asset set is confirmed.
 
+Vulnerability reporting and scope: [SECURITY.md](SECURITY.md).
+
 ## Layout
 
 | Path | Purpose |
@@ -125,3 +127,10 @@ JSON format and consistency hooks on commit.
 
 Reviewers follow [`REVIEW.md`](REVIEW.md) for severity labels, trust-boundary
 invariants, and the review checklist.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for how to report issues in this build pipeline.
+Signed-index and client issues go to
+[numan-registry](https://github.com/tonythethompson/numan-registry/blob/main/SECURITY.md)
+and [numan](https://github.com/tonythethompson/numan/blob/main/SECURITY.md).
