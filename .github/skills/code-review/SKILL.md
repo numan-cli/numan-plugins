@@ -1,6 +1,29 @@
-# numan-plugins PR review
+---
+name: code-review
+description: >-
+  Review numan-plugins pull requests against REVIEW.md severity labels, build
+  and trust-boundary invariants, CI gates, and handoff notes. Use for Copilot
+  code review, PR review requests, and any pull-request or diff review in this
+  repository.
+---
 
-Use this file when reviewing pull requests (human or automated). The [README](README.md) remains the source for layout and build flow; this file focuses on **what to flag in review**.
+# numan-plugins code review
+
+When reviewing a pull request or diff in this repository, follow the canonical
+guide at [`REVIEW.md`](../../../REVIEW.md). Prefer that file over paraphrased
+memory. The [README](../../../README.md) remains the source for layout and build
+flow.
+
+## How to review
+
+1. Read the PR description and changed files; stay within the stated scope.
+2. Apply severity labels from `REVIEW.md` (P0–P3). Lead with P0/P1 findings.
+3. Flag any violation of the architecture invariants listed below, especially
+   trust-boundary and publish-path rules.
+4. For manifest or packaging changes, verify upstream pins, draft-then-finalize
+   release behavior, and handoff fields for `numan-registry`.
+5. Leave actionable comments with concrete fixes. Do not approve or request
+   changes as a human gate; report findings only.
 
 ## CI gates (must pass)
 
@@ -11,7 +34,8 @@ Use this file when reviewing pull requests (human or automated). The [README](RE
 - `python3 scripts/validate_manifest.py --verify-upstream`
 - Workflow lint (`actionlint`) via repo-safety
 
-Publishing builds run only via manual `build-plugins` dispatch with a non-empty package list. Pushes and pull requests must not publish releases.
+Publishing builds run only via manual `build-plugins` dispatch with a non-empty
+package list. Pushes and pull requests must not publish releases.
 
 ## Severity labels
 
