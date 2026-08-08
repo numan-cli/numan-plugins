@@ -938,6 +938,24 @@
       "c1_note": "2026-08-05: wave1 v0.23.0 in official registry; lifecycle-prove OK Linux/Nu 0.114.1."
     },
     {
+      "repo": "dead10ck/nu_plugin_dns",
+      "name": "nu_plugin_dns",
+      "plugin_bin": "nu_plugin_dns",
+      "stars": 55,
+      "status": "PROMOTED",
+      "versions": [
+        {
+          "tag": "v4.0.10",
+          "nu_plugin": "0.113.0",
+          "nu_protocol": "0.113.0",
+          "has_assets": false,
+          "note": "CI-built via numan-plugins; linux x64/arm64 + macOS arm64; Windows excluded"
+        }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-07-21: CI-built v4.0.10 in official registry (Nu >=0.113 <0.114); no Windows (upstream build fails); intel mac omitted from this immutable release."
+    },
+    {
       "repo": "fdncred/nu_plugin_file",
       "name": "nu_plugin_file",
       "plugin_bin": "nu_plugin_file",

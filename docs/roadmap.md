@@ -22,7 +22,8 @@ Use this page for **operational** detail that belongs only to
 
 - Workflow manifests under `.github/workflows/` (`build.yml`,
   `repo-safety.yml`, `windows-recheck` / release paths).
-- Per-upstream build matrix decisions (`docs/upstream-build-decisions.md`).
+- Per-package target exclusions and reasons in `manifest.json`
+  (`exclude_targets` / `exclude_reason`).
 - Backlog triage notes (`docs/backlog.json` schema + review log).
 - Completed catalog-wave checklists and registry handoff notes below.
 
@@ -94,11 +95,12 @@ then hand them to `numan-registry`.
 
 ### Wave 1 Completion
 
-- [x] `FMotalleb/nu_plugin_port_extension@0.113.1`
+- [x] `FMotalleb/nu_plugin_port_extension@0.114.1` (earlier `0.113.1` retained in registry history)
 - [x] `FMotalleb/nu_plugin_image@0.112.2`
 
 Assets published; registry intake complete;
-production + client smoke complete 2026-07-31.
+production + client smoke complete 2026-07-31 (the port_extension Nu 0.114 bump
+occurred during the Wave 1 Nu 0.114 intake).
 
 ### Wave 2 Completion (Nu 0.114 CI-built)
 
@@ -120,7 +122,7 @@ are source-only plugins with tags and enough demand to justify CI-built assets:
 
 - [x] `devyn/nu_plugin_dbus` — researched 2026-07-30: `PRE_0_112` (nu-plugin 0.101.0; libdbus; not Windows)
 - [x] `PhotonBursted/nu_plugin_vec` — researched 2026-07-30: `PRE_0_112` (nu-plugin 0.105.1; pure Rust; Windows expected)
-- [x] `drbrain/nu_plugin_prometheus` — promoted 2026-07-31 to `active[]` as `v0.12.0` (nu-plugin/nu-protocol 0.114.1; commit `3fed1d934ba201ce1d9b78ecb727695588de7ef9`). Windows locked green; `aarch64-unknown-linux-gnu` excluded (openssl-sys cross). Awaiting successful `build-plugins` release. `v0.11.0` was `PRE_0_112` (0.110.0).
+- [x] `drbrain/nu_plugin_prometheus` — promoted 2026-07-31 to `active[]` as `v0.12.0` (nu-plugin/nu-protocol 0.114.1; commit `3fed1d934ba201ce1d9b78ecb727695588de7ef9`). Windows locked green; `aarch64-unknown-linux-gnu` excluded (openssl-sys cross). CI-built release published; in official registry. `v0.11.0` was `PRE_0_112` (0.110.0).
 - [ ] `galuszkak/nu_plugin_bigquery` — peeked 2026-07-31: `v0.2.0` pins nu-plugin 0.112.2 (eligible) but needs Google credentials for meaningful lifecycle proof
 - [x] `jcornaz/nu_plugin_from_beancount` — researched 2026-07-31: `PRE_0_112` (nu-plugin 0.76)
 - [x] `dam4rus/nu_plugin_nuts` — researched 2026-07-31: `PRE_0_112` (nu-plugin 0.110.0)
