@@ -8,10 +8,11 @@
       "plugin_bin": "nu_plugin_clipboard",
       "tag": "v0.110.0",
       "has_release": true,
-      "blocker": "PRE_0_112",
+      "blocker": "PRE_0_114",
       "nu_plugin": "0.110.0",
       "nu_protocol": "0.110.0",
       "c1_note": "2026-07-22: latest release pins nu-plugin 0.110.0 (below Batch 1 gate >=0.112). Deferred.",
+      "c2_note": "2026-08-09: still at 0.110.0 on main. Same author updated desktop_notifications to 0.114.1 but not this. arboard dep needs X11/Wayland. Deferred.",
       "stars": 85
     },
     {
@@ -20,19 +21,23 @@
       "plugin_bin": "nu_plugin_skim",
       "tag": "v0.29.1",
       "has_release": true,
-      "blocker": "SOURCE_ONLY",
+      "blocker": "PROMOTED",
       "nu_plugin": "0.114",
       "nu_protocol": "0.114",
       "c1_note": "2026-07-22: nu-plugin/nu-protocol 0.114 at v0.29.1; release assets empty (CI-build). First Batch 1 promote candidate.",
+      "c2_note": "2026-08-09: promoted to active[]; manifest updated to v0.29.1, nu_version >=0.114.0 <0.115.0, verified_with 0.114.1.",
       "stars": 85
     },
     {
       "repo": "cptpiepmatz/nu-plugin-highlight",
       "name": "nu-plugin-highlight",
       "plugin_bin": "nu_plugin_highlight",
-      "tag": "v1.4.15+0.113.1",
+      "tag": "v1.4.16+0.114.1",
       "has_release": true,
-      "blocker": "SOURCE_ONLY",
+      "blocker": "PROMOTED",
+      "nu_plugin": "0.114.1",
+      "nu_protocol": "0.114.1",
+      "c1_note": "2026-08-09: promoted to active[]; updated from v1.4.15+0.113.1 to v1.4.16+0.114.1.",
       "stars": 82
     },
     {
@@ -43,6 +48,30 @@
       "has_release": false,
       "blocker": "NO_RELEASE",
       "stars": 71
+    },
+    {
+      "repo": "amtoine/nu_plugin_explore",
+      "name": "nu_plugin_explore",
+      "plugin_bin": "nu_plugin_explore",
+      "tag": "0.101.0",
+      "has_release": true,
+      "blocker": "ABANDONED",
+      "nu_plugin": "0.102.0",
+      "nu_protocol": "0.102.0",
+      "c2_note": "2026-08-09: latest tag 0.101.0, main at nu-plugin 0.102.0 (12 versions behind). Appears unmaintained since early 2025. Fork candidate — interactive data explorer is high-value UX.",
+      "stars": 200
+    },
+    {
+      "repo": "abusch/nu_plugin_semver",
+      "name": "nu_plugin_semver",
+      "plugin_bin": "nu_plugin_semver",
+      "tag": "v0.11.17",
+      "has_release": true,
+      "blocker": "PRE_0_114",
+      "nu_plugin": "0.113.0",
+      "nu_protocol": "0.113.0",
+      "c2_note": "2026-08-09: latest tag v0.11.17, main at nu-plugin 0.113.0 (1 version behind). Pure Rust (semver, strum, typetag). Watch upstream — release-plz bot active, may bump soon.",
+      "stars": 50
     },
     {
       "repo": "FMotalleb/nu_plugin_desktop_notifications",
@@ -335,7 +364,10 @@
       "plugin_bin": "nu_plugin_qr_maker",
       "tag": null,
       "has_release": false,
-      "blocker": "NO_RELEASE",
+      "blocker": "ABANDONED",
+      "nu_plugin": "0.94.0",
+      "nu_protocol": "0.94.0",
+      "c2_note": "2026-08-09: no tags, main at nu-plugin 0.94.0 (20 versions behind). 0 stars. Abandoned. qr2term dep is pure Rust but not worth forking at this demand.",
       "stars": 0
     },
     {
