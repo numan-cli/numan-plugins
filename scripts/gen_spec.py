@@ -96,7 +96,23 @@ def parse_packaged(path: Path) -> list[dict]:
 
 
 def verify_packaged_assets(rows: list[dict], assets_dir: Path) -> None:
-    """Verify that every recorded asset exists and matches its recorded SHA-256."""
+    """Verify packaged assets match records and reject orphan archives.
+
+    Every record must resolve to a file whose SHA-256 matches. Every file in
+    ``assets_dir`` must also be named by a record — otherwise a successful
+    archive upload paired with a failed package-record upload would leave an
+    orphan that ``release_transaction upload`` would publish outside the spec.
+    """
+    expected_names = {row["filename"] for row in rows}
+    unexpected = sorted(
+        path.name
+        for path in assets_dir.iterdir()
+        if path.is_file() and path.name not in expected_names
+    )
+    if unexpected:
+        raise ValueError(
+            "orphan assets without package records: " + ", ".join(unexpected)
+        )
     for row in rows:
         asset = assets_dir / row["filename"]
         if not asset.is_file():

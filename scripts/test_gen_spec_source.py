@@ -176,6 +176,24 @@ class BuildSpecSourceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "hash mismatch"):
                 self.gs.verify_packaged_assets(rows, root)
 
+    def test_rejects_orphan_assets_without_package_records(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            kept = root / "kept.tar.gz"
+            kept.write_bytes(b"kept")
+            orphan = root / "orphan.tar.gz"
+            orphan.write_bytes(b"orphan")
+            rows = [
+                {
+                    "filename": "kept.tar.gz",
+                    "sha256": hashlib.sha256(b"kept").hexdigest(),
+                    "target": "linux",
+                    "exe": "p",
+                }
+            ]
+            with self.assertRaisesRegex(ValueError, "orphan assets without package records"):
+                self.gs.verify_packaged_assets(rows, root)
+
 
 if __name__ == "__main__":
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(BuildSpecSourceTests)
