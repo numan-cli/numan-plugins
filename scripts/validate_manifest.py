@@ -69,6 +69,43 @@ def expected_targets(manifest: dict, entry: dict) -> list[str]:
     return targets
 
 
+def validate_intake_fields(name: str, entry: dict) -> None:
+    """Validate intake_mode and tag rules for a single active entry."""
+    intake_mode = entry.get("intake_mode", "tagged")
+    if intake_mode not in INTAKE_MODES:
+        raise ValueError(f"{name}: intake_mode must be one of {sorted(INTAKE_MODES)}")
+    tag = entry.get("tag")
+    if intake_mode == "tagged":
+        if not isinstance(tag, str) or not tag:
+            raise ValueError(f"{name}: tag is required when intake_mode is 'tagged'")
+    elif tag is not None and not isinstance(tag, str):
+        raise ValueError(f"{name}: tag must be a string or null")
+
+
+def validate_active_entry(manifest: dict, entry: dict, names: set[str]) -> str:
+    """Validate one active entry and record its name in ``names``.
+
+    Returns:
+        str: The entry's plugin name.
+    """
+    if not isinstance(entry, dict):
+        raise ValueError("active entries must be objects")
+    missing = sorted(REQUIRED_FIELDS - set(entry))
+    if missing:
+        raise ValueError(f"active entry missing fields: {', '.join(missing)}")
+    name = entry["name"]
+    if not isinstance(name, str) or not name:
+        raise ValueError("active entry name must be non-empty")
+    if name in names:
+        raise ValueError(f"duplicate active plugin name: {name}")
+    names.add(name)
+    if not SHA_RE.fullmatch(entry["source_commit"]):
+        raise ValueError(f"{name}: source_commit must be 40 lowercase hex characters")
+    validate_intake_fields(name, entry)
+    expected_targets(manifest, entry)
+    return name
+
+
 def validate_manifest(manifest: dict, only: list[str] | None = None) -> list[dict]:
     """
     Validate active manifest entries and optionally select named plugins.
@@ -92,29 +129,7 @@ def validate_manifest(manifest: dict, only: list[str] | None = None) -> list[dic
 
     names: set[str] = set()
     for entry in active:
-        if not isinstance(entry, dict):
-            raise ValueError("active entries must be objects")
-        missing = sorted(REQUIRED_FIELDS - set(entry))
-        if missing:
-            raise ValueError(f"active entry missing fields: {', '.join(missing)}")
-        name = entry["name"]
-        if not isinstance(name, str) or not name:
-            raise ValueError("active entry name must be non-empty")
-        if name in names:
-            raise ValueError(f"duplicate active plugin name: {name}")
-        names.add(name)
-        if not SHA_RE.fullmatch(entry["source_commit"]):
-            raise ValueError(f"{name}: source_commit must be 40 lowercase hex characters")
-        intake_mode = entry.get("intake_mode", "tagged")
-        if intake_mode not in INTAKE_MODES:
-            raise ValueError(f"{name}: intake_mode must be one of {sorted(INTAKE_MODES)}")
-        tag = entry.get("tag")
-        if intake_mode == "tagged":
-            if not isinstance(tag, str) or not tag:
-                raise ValueError(f"{name}: tag is required when intake_mode is 'tagged'")
-        elif tag is not None and not isinstance(tag, str):
-            raise ValueError(f"{name}: tag must be a string or null")
-        expected_targets(manifest, entry)
+        validate_active_entry(manifest, entry, names)
 
     if only is None:
         return active
