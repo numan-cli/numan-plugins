@@ -118,6 +118,23 @@ class BuildSpecSourceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "at least one target must succeed"):
             self.gs.build_spec(entry, [], "https://example.invalid", ["linux"], partial=True)
 
+    def test_partial_rejects_zero_targets_with_zero_expected(self):
+        entry = {
+            "owner": "o",
+            "name": "p",
+            "plugin_bin": "p",
+            "repo": "o/p",
+            "tag": "v1",
+            "source_commit": "1" * 40,
+            "version": "1.0.0",
+            "nu_version": "*",
+            "verified_with": [],
+            "description": "p",
+            "tags": ["plugin"],
+        }
+        with self.assertRaisesRegex(ValueError, "at least one target must succeed"):
+            self.gs.build_spec(entry, [], "https://example.invalid", [], partial=True)
+
     def test_partial_still_rejects_unexpected_target(self):
         entry = {
             "owner": "o",

@@ -95,6 +95,8 @@ jobs:
           persist-credentials: false
 
       - name: Verify immutable checkout
+        id: verify_checkout
+        continue-on-error: true
         working-directory: src
         shell: bash
         env:
@@ -102,6 +104,9 @@ jobs:
         run: test "$(git rev-parse HEAD)" = "$SOURCE_COMMIT"
 
       - name: Recheck upstream tag provenance
+        id: recheck_provenance
+        if: steps.verify_checkout.outcome == 'success'
+        continue-on-error: true
         # Windows runners default to pwsh, where $MATRIX_NAME is not an env var.
         shell: bash
         env:
@@ -111,6 +116,32 @@ jobs:
           --manifest numan-plugins/manifest.json
           --only "$MATRIX_NAME"
           --verify-upstream
+
+      - name: Record provenance failure and fail the leg
+        if: steps.verify_checkout.outcome == 'failure' || steps.recheck_provenance.outcome == 'failure'
+        shell: bash
+        env:
+          MATRIX_NAME: ${{ matrix.name }}
+        run: |
+          mkdir -p provenance-failure
+          echo "$MATRIX_NAME" > "provenance-failure/$MATRIX_NAME.txt"
+
+      - name: Upload provenance failure marker
+        if: steps.verify_checkout.outcome == 'failure' || steps.recheck_provenance.outcome == 'failure'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: provenance-failure-${{ matrix.name }}-${{ matrix.triple }}
+          path: provenance-failure/*
+          if-no-files-found: error
+
+      - name: Fail the leg on provenance mismatch
+        if: steps.verify_checkout.outcome == 'failure' || steps.recheck_provenance.outcome == 'failure'
+        shell: bash
+        env:
+          MATRIX_NAME: ${{ matrix.name }}
+        run: |
+          echo "Upstream provenance check failed for $MATRIX_NAME; this must block release, not be treated as a missing target." >&2
+          exit 1
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
@@ -200,6 +231,25 @@ jobs:
           path: numan-plugins
           persist-credentials: false
 
+      - name: Check for upstream provenance failures
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        continue-on-error: true
+        with:
+          pattern: provenance-failure-${{ matrix.plugin.name }}-*
+          path: provenance-failure
+          merge-multiple: true
+
+      - name: Refuse to publish on provenance mismatch
+        shell: bash
+        env:
+          PLUGIN_NAME: ${{ matrix.plugin.name }}
+        run: |
+          if [ -d provenance-failure ] && [ -n "$(ls -A provenance-failure 2>/dev/null)" ]; then
+            echo "One or more targets for $PLUGIN_NAME failed upstream provenance verification (tag moved or checkout mismatch)." >&2
+            echo "Refusing to publish a partial or complete spec for this plugin." >&2
+            exit 1
+          fi
+
       - name: Collect this plugin's assets
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
@@ -267,8 +317,8 @@ jobs:
           print(f"### {name}: target coverage")
           print(f"- shipped: {', '.join(sorted(shipped)) or '(none)'}")
           if missing:
-              print(f"- **missing (build failed or excluded): {', '.join(missing)}**")
-              print("  Check the corresponding `build` matrix job logs above for the failure.")
+              print(f"- **missing from packaged artifacts: {', '.join(missing)}**")
+              print("  Check the corresponding `build` matrix job and artifact-upload logs.")
           else:
               print("- all expected targets shipped")
           PY

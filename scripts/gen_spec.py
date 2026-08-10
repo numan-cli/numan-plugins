@@ -144,11 +144,11 @@ def build_spec(
         if missing:
             details.append(f"missing targets: {', '.join(missing)}")
         raise ValueError("; ".join(details))
+    if partial and not actual:
+        raise ValueError("no targets packaged; at least one target must succeed")
     if missing:
         if not partial:
             raise ValueError(f"missing targets: {', '.join(missing)}")
-        if not actual:
-            raise ValueError("no targets packaged; at least one target must succeed")
         print(
             f"WARN: partial spec — missing target(s): {', '.join(missing)}",
             file=sys.stderr,
