@@ -166,6 +166,8 @@ def build_spec(
     intake_mode = entry.get("intake_mode", "tagged")
     if intake_mode == "commit-snapshot":
         date = snapshot_date or datetime.now(timezone.utc).strftime("%Y%m%d")
+        if not re.fullmatch(r"\d{8}", date):
+            raise ValueError(f"snapshot_date must be YYYYMMDD, got: {date!r}")
         version = derive_snapshot_version(entry["source_commit"], date)
         description_suffix = (
             f" CI-built from {entry['repo']}@{entry['source_commit'][:7]} "
