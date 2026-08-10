@@ -8,3 +8,4 @@ __pycache__/
 .tmp-pr-body.md
 .tmp-t.json
 /serena
+/.claude/worktrees
