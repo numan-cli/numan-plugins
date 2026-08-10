@@ -214,7 +214,7 @@ jobs:
     # though other targets' artifacts uploaded fine. Run as long as the run
     # wasn't cancelled, so a single failed target degrades to a partial spec
     # instead of blocking every target for every plugin in this run.
-    if: ${{ !cancelled() && needs.setup.result == 'success' }}
+    if: ${{ always() && !cancelled() && needs.setup.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write # Required only to publish the release tag, release, and assets.
