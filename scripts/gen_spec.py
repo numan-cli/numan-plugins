@@ -30,6 +30,7 @@ import hashlib
 import json
 import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 from validate_manifest import expected_targets, validate_upstream_repo
@@ -127,6 +128,16 @@ def verify_packaged_assets(rows: list[dict], assets_dir: Path) -> None:
             )
 
 
+def derive_snapshot_version(source_commit: str, date: str) -> str:
+    """Derive a synthetic prerelease version for a commit-snapshot entry.
+
+    Format: 0.0.0-snapshot.<YYYYMMDD>.<7-char-sha>. The date prefix guarantees
+    snapshots sort monotonically under SemVer prerelease rules regardless of
+    SHA ordering, which the resolver and update command depend on.
+    """
+    return f"0.0.0-snapshot.{date}.{source_commit[:7]}"
+
+
 def build_spec(
     entry: dict,
     packaged_rows: list[dict],
@@ -134,6 +145,7 @@ def build_spec(
     expected: list[str],
     *,
     partial: bool = False,
+    snapshot_date: str | None = None,
 ) -> dict:
     """
     Build a registry specification from manifest metadata and packaged artifact records.
@@ -145,7 +157,10 @@ def build_spec(
         expected (list[str]): Target names required in the specification.
         partial (bool): When True, allow the spec to ship with only the targets
             that succeeded instead of requiring every expected target.
-    
+        snapshot_date (str | None): Override for the YYYYMMDD date used in a
+            commit-snapshot version; defaults to today (UTC). Exists for
+            deterministic testing.
+
     Returns:
         dict: Registry specification containing plugin metadata and binary artifact targets.
     
@@ -181,10 +196,24 @@ def build_spec(
 
     validate_upstream_repo(entry)
     upstream_repo = entry.get("upstream_repo")
-    description = (
-        entry["description"]
-        + f" CI-built from {entry['repo']}@{entry['tag']} and signed under the official trust root."
-    )
+
+    intake_mode = entry.get("intake_mode", "tagged")
+    if intake_mode == "commit-snapshot":
+        date = snapshot_date or datetime.now(timezone.utc).strftime("%Y%m%d")
+        if not re.fullmatch(r"\d{8}", date):
+            raise ValueError(f"snapshot_date must be YYYYMMDD, got: {date!r}")
+        version = derive_snapshot_version(entry["source_commit"], date)
+        description_suffix = (
+            f" CI-built from {entry['repo']}@{entry['source_commit'][:7]} "
+            "(commit snapshot, no tagged release) and pinned + hash-verified + signed downstream in numan-registry."
+        )
+    else:
+        version = entry["version"]
+        description_suffix = (
+            f" CI-built from {entry['repo']}@{entry['tag']} and pinned + hash-verified + signed downstream in numan-registry."
+        )
+
+    description = entry["description"] + description_suffix
     source = {
         "git": f"https://github.com/{entry['repo']}",
         "rev": entry["source_commit"],
@@ -194,14 +223,14 @@ def build_spec(
         description += f" (numan-maintained fork; upstream: {upstream_repo})"
         source["upstream"] = f"https://github.com/{upstream_repo}"
 
-    return {
+    spec = {
         "owner": entry["owner"],
         "name": entry["name"],
         "description": description,
         "repo": f"https://github.com/{entry['repo']}",
         "type": "plugin",
         "tags": entry["tags"],
-        "version": entry["version"],
+        "version": version,
         "nu_version": entry["nu_version"],
         "verified_with": entry["verified_with"],
         "source": source,
@@ -210,6 +239,9 @@ def build_spec(
             "targets": {k: targets[k] for k in sorted(targets)},
         },
     }
+    if intake_mode == "commit-snapshot":
+        spec["provenance"] = "commit-snapshot"
+    return spec
 
 
 def main() -> int:
@@ -225,6 +257,12 @@ def main() -> int:
         action="store_true",
         help="Emit a spec with only the targets that packaged successfully instead of failing on missing targets",
     )
+    ap.add_argument(
+        "--snapshot-date",
+        help="YYYYMMDD override for commit-snapshot versions; must match the "
+        "date the workflow used to derive the package/release version, or "
+        "the generated spec's version won't match the published release tag",
+    )
     args = ap.parse_args()
 
     manifest = json.loads((REPO_ROOT / "manifest.json").read_text(encoding="utf-8"))
@@ -238,6 +276,7 @@ def main() -> int:
             args.release_base,
             expected_targets(manifest, entry),
             partial=args.partial,
+            snapshot_date=args.snapshot_date,
         )
     except ValueError as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
