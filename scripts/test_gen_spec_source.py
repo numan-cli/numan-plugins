@@ -391,6 +391,21 @@ class BuildSpecSourceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "orphan assets without package records"):
                 self.gs.verify_packaged_assets(rows, root)
 
+    def test_rejects_missing_assets_directory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            missing_path = root / "nonexistent"
+            rows = [
+                {
+                    "filename": "package.tar.gz",
+                    "sha256": "a" * 64,
+                    "target": "linux",
+                    "exe": "p",
+                }
+            ]
+            with self.assertRaisesRegex(ValueError, "assets dir not found"):
+                self.gs.verify_packaged_assets(rows, missing_path)
+
 
 if __name__ == "__main__":
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(BuildSpecSourceTests)
