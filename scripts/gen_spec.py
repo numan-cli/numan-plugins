@@ -30,6 +30,7 @@ import hashlib
 import json
 import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 from validate_manifest import expected_targets
@@ -109,11 +110,22 @@ def verify_packaged_assets(rows: list[dict], assets_dir: Path) -> None:
             )
 
 
+def derive_snapshot_version(source_commit: str, date: str) -> str:
+    """Derive a synthetic prerelease version for a commit-snapshot entry.
+
+    Format: 0.0.0-snapshot.<YYYYMMDD>.<7-char-sha>. The date prefix guarantees
+    snapshots sort monotonically under SemVer prerelease rules regardless of
+    SHA ordering, which the resolver and update command depend on.
+    """
+    return f"0.0.0-snapshot.{date}.{source_commit[:7]}"
+
+
 def build_spec(
     entry: dict,
     packaged_rows: list[dict],
     release_base: str,
     expected: list[str],
+    snapshot_date: str | None = None,
 ) -> dict:
     """
     Build a registry specification from manifest metadata and packaged artifact records.
@@ -123,6 +135,9 @@ def build_spec(
         packaged_rows (list[dict]): Validated packaged artifacts keyed by target.
         release_base (str): Base URL for released artifact files.
         expected (list[str]): Target names required in the specification.
+        snapshot_date (str | None): Override for the YYYYMMDD date used in a
+            commit-snapshot version; defaults to today (UTC). Exists for
+            deterministic testing.
     
     Returns:
         dict: Registry specification containing plugin metadata and binary artifact targets.
@@ -148,15 +163,28 @@ def build_spec(
             "executable_path": r["exe"],
         }
 
-    return {
+    intake_mode = entry.get("intake_mode", "tagged")
+    if intake_mode == "commit-snapshot":
+        date = snapshot_date or datetime.now(timezone.utc).strftime("%Y%m%d")
+        version = derive_snapshot_version(entry["source_commit"], date)
+        description_suffix = (
+            f" CI-built from {entry['repo']}@{entry['source_commit'][:7]} "
+            "(commit snapshot, no tagged release) and signed under the official trust root."
+        )
+    else:
+        version = entry["version"]
+        description_suffix = (
+            f" CI-built from {entry['repo']}@{entry['tag']} and signed under the official trust root."
+        )
+
+    spec = {
         "owner": entry["owner"],
         "name": entry["name"],
-        "description": entry["description"]
-        + f" CI-built from {entry['repo']}@{entry['tag']} and signed under the official trust root.",
+        "description": entry["description"] + description_suffix,
         "repo": f"https://github.com/{entry['repo']}",
         "type": "plugin",
         "tags": entry["tags"],
-        "version": entry["version"],
+        "version": version,
         "nu_version": entry["nu_version"],
         "verified_with": entry["verified_with"],
         "source": {
@@ -169,6 +197,9 @@ def build_spec(
             "targets": {k: targets[k] for k in sorted(targets)},
         },
     }
+    if intake_mode == "commit-snapshot":
+        spec["provenance"] = "commit-snapshot"
+    return spec
 
 
 def main() -> int:

@@ -17,7 +17,6 @@ REQUIRED_FIELDS = {
     "name",
     "owner",
     "plugin_bin",
-    "tag",
     "source_commit",
     "version",
     "nu_version",
@@ -25,6 +24,7 @@ REQUIRED_FIELDS = {
     "description",
     "tags",
 }
+INTAKE_MODES = {"tagged", "commit-snapshot"}
 
 
 def load_manifest(path: Path) -> dict:
@@ -104,6 +104,15 @@ def validate_manifest(manifest: dict, only: list[str] | None = None) -> list[dic
         names.add(name)
         if not SHA_RE.fullmatch(entry["source_commit"]):
             raise ValueError(f"{name}: source_commit must be 40 lowercase hex characters")
+        intake_mode = entry.get("intake_mode", "tagged")
+        if intake_mode not in INTAKE_MODES:
+            raise ValueError(f"{name}: intake_mode must be one of {sorted(INTAKE_MODES)}")
+        tag = entry.get("tag")
+        if intake_mode == "tagged":
+            if not isinstance(tag, str) or not tag:
+                raise ValueError(f"{name}: tag is required when intake_mode is 'tagged'")
+        elif tag is not None and not isinstance(tag, str):
+            raise ValueError(f"{name}: tag must be a string or null")
         expected_targets(manifest, entry)
 
     if only is None:
@@ -146,8 +155,15 @@ def resolve_tag(repo: str, tag: str) -> str:
 
 
 def verify_upstream(entries: list[dict]) -> None:
-    """Require every entry's upstream tag to match its immutable source commit."""
+    """Require every entry's upstream tag to match its immutable source commit.
+
+    Entries with intake_mode 'commit-snapshot' have no tag to verify against;
+    source_commit is the sole provenance anchor and is trusted as pinned.
+    """
     for entry in entries:
+        if entry.get("intake_mode", "tagged") == "commit-snapshot":
+            print(f"OK: {entry['repo']} (commit-snapshot) -> {entry['source_commit']}")
+            continue
         actual = resolve_tag(entry["repo"], entry["tag"])
         expected = entry["source_commit"]
         if actual != expected:

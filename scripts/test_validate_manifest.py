@@ -115,6 +115,33 @@ class ValidateManifestTests(unittest.TestCase):
                     self.mod.main(["--manifest", str(manifest), "--verify-upstream"]),
                 )
 
+    def test_commit_snapshot_entry_allows_missing_tag(self):
+        entries = self.mod.validate_manifest(
+            self.manifest([self.entry(intake_mode="commit-snapshot", tag=None)])
+        )
+        self.assertEqual(entries[0]["intake_mode"], "commit-snapshot")
+
+    def test_commit_snapshot_entry_allows_absent_tag_key(self):
+        entry = self.entry(intake_mode="commit-snapshot")
+        del entry["tag"]
+        entries = self.mod.validate_manifest(self.manifest([entry]))
+        self.assertNotIn("tag", entries[0])
+
+    def test_tagged_entry_still_requires_tag(self):
+        entry = self.entry(tag=None)
+        with self.assertRaisesRegex(ValueError, "tag is required"):
+            self.mod.validate_manifest(self.manifest([entry]))
+
+    def test_rejects_unknown_intake_mode(self):
+        with self.assertRaisesRegex(ValueError, "intake_mode must be one of"):
+            self.mod.validate_manifest(self.manifest([self.entry(intake_mode="bogus")]))
+
+    def test_verify_upstream_skips_commit_snapshot(self):
+        entry = self.entry(intake_mode="commit-snapshot", tag=None)
+        with mock.patch.object(self.mod, "resolve_tag") as resolve_tag:
+            self.mod.verify_upstream([entry])
+            resolve_tag.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
