@@ -8,16 +8,17 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+GITHUB_REPO_SLUG_RE = re.compile(r"^[^/\s]+/[^/\s]+$")
 COMMAND_TIMEOUT_SECONDS = 30
 REQUIRED_FIELDS = {
     "repo",
     "name",
     "owner",
     "plugin_bin",
-    "tag",
     "source_commit",
     "version",
     "nu_version",
@@ -25,6 +26,7 @@ REQUIRED_FIELDS = {
     "description",
     "tags",
 }
+INTAKE_MODES = {"tagged", "commit-snapshot"}
 
 
 def load_manifest(path: Path) -> dict:
@@ -68,6 +70,71 @@ def expected_targets(manifest: dict, entry: dict) -> list[str]:
     return targets
 
 
+def validate_intake_fields(name: str, entry: dict) -> None:
+    """Validate intake_mode and tag rules for a single active entry."""
+    intake_mode = entry.get("intake_mode", "tagged")
+    if not isinstance(intake_mode, str):
+        raise ValueError(f"{name}: intake_mode must be one of {sorted(INTAKE_MODES)}")
+    if intake_mode not in INTAKE_MODES:
+        raise ValueError(f"{name}: intake_mode must be one of {sorted(INTAKE_MODES)}")
+    tag = entry.get("tag")
+    if intake_mode == "tagged":
+        if not isinstance(tag, str) or not tag:
+            raise ValueError(f"{name}: tag is required and must be non-empty")
+    elif tag is not None and not isinstance(tag, str):
+        raise ValueError(f"{name}: tag must be a string or null")
+
+
+def validate_upstream_repo(entry: dict) -> None:
+    """Enforce ADR 0001 fork-identity invariants: only 'numan-maintained' may
+    set upstream_repo, it must be required (not optional) for that owner, and
+    it must not equal repo (a fork can't claim to be its own upstream)."""
+    name = entry["name"]
+    upstream_repo = entry.get("upstream_repo")
+    if upstream_repo is not None:
+        if not isinstance(upstream_repo, str) or not upstream_repo:
+            raise ValueError(f"{name}: upstream_repo must be a non-empty string when present")
+        if not GITHUB_REPO_SLUG_RE.fullmatch(upstream_repo):
+            raise ValueError(
+                f"{name}: upstream_repo must be 'owner/name', got {upstream_repo!r}"
+            )
+        if entry.get("owner") != "numan-maintained":
+            raise ValueError(
+                f"{name}: upstream_repo requires owner 'numan-maintained' "
+                "(a fork must not claim the original owner's identity)"
+            )
+        if upstream_repo.lower() == str(entry.get("repo", "")).lower():
+            raise ValueError(f"{name}: upstream_repo must not be the same as repo")
+    elif entry.get("owner") == "numan-maintained":
+        raise ValueError(f"{name}: owner 'numan-maintained' requires upstream_repo")
+
+
+def validate_active_entry(manifest: dict, entry: dict, names: set[str]) -> str:
+    """Validate one active entry and record its name in ``names``.
+
+    Returns:
+        str: The entry's plugin name.
+    """
+    if not isinstance(entry, dict):
+        raise ValueError("active entries must be objects")
+    missing = sorted(REQUIRED_FIELDS - set(entry))
+    if missing:
+        raise ValueError(f"active entry missing fields: {', '.join(missing)}")
+    name = entry["name"]
+    if not isinstance(name, str) or not name:
+        raise ValueError("active entry name must be non-empty")
+    if name in names:
+        raise ValueError(f"duplicate active plugin name: {name}")
+    names.add(name)
+    source_commit = entry["source_commit"]
+    if not isinstance(source_commit, str) or not SHA_RE.fullmatch(source_commit):
+        raise ValueError(f"{name}: source_commit must be 40 lowercase hex characters")
+    validate_intake_fields(name, entry)
+    validate_upstream_repo(entry)
+    expected_targets(manifest, entry)
+    return name
+
+
 def validate_manifest(manifest: dict, only: list[str] | None = None) -> list[dict]:
     """
     Validate active manifest entries and optionally select named plugins.
@@ -91,20 +158,7 @@ def validate_manifest(manifest: dict, only: list[str] | None = None) -> list[dic
 
     names: set[str] = set()
     for entry in active:
-        if not isinstance(entry, dict):
-            raise ValueError("active entries must be objects")
-        missing = sorted(REQUIRED_FIELDS - set(entry))
-        if missing:
-            raise ValueError(f"active entry missing fields: {', '.join(missing)}")
-        name = entry["name"]
-        if not isinstance(name, str) or not name:
-            raise ValueError("active entry name must be non-empty")
-        if name in names:
-            raise ValueError(f"duplicate active plugin name: {name}")
-        names.add(name)
-        if not SHA_RE.fullmatch(entry["source_commit"]):
-            raise ValueError(f"{name}: source_commit must be 40 lowercase hex characters")
-        expected_targets(manifest, entry)
+        validate_active_entry(manifest, entry, names)
 
     if only is None:
         return active
@@ -145,9 +199,56 @@ def resolve_tag(repo: str, tag: str) -> str:
     raise ValueError(f"upstream tag not found: {repo}@{tag}")
 
 
+def verify_commit_exists(repo: str, sha: str) -> None:
+    """Confirm a commit-snapshot's source_commit is fetchable from repo.
+
+    ls-remote can't confirm an arbitrary unadvertised commit, so this does a
+    scoped shallow fetch instead -- a bad SHA fails fast here rather than
+    after a full cross-platform build.
+    """
+    url = f"https://github.com/{repo}.git"
+    with tempfile.TemporaryDirectory() as tmp:
+        init = subprocess.run(
+            ["git", "init", "--quiet", tmp],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=COMMAND_TIMEOUT_SECONDS,
+        )
+        if init.returncode != 0:
+            raise ValueError(f"failed to init temp git repo: {init.stderr.strip()}")
+        result = subprocess.run(
+            ["git", "-C", tmp, "fetch", "--quiet", "--depth", "1", url, sha],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=COMMAND_TIMEOUT_SECONDS,
+        )
+        if result.returncode != 0:
+            raise ValueError(f"source_commit not found upstream: {repo}@{sha}")
+        result = subprocess.run(
+            ["git", "-C", tmp, "cat-file", "-t", sha],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=COMMAND_TIMEOUT_SECONDS,
+        )
+        if result.returncode != 0 or result.stdout.strip() != "commit":
+            raise ValueError(f"source_commit is not a commit object: {repo}@{sha}")
+
+
 def verify_upstream(entries: list[dict]) -> None:
-    """Require every entry's upstream tag to match its immutable source commit."""
+    """Require every entry's upstream tag to match its immutable source commit.
+
+    Entries with intake_mode 'commit-snapshot' have no tag to verify against;
+    source_commit's existence upstream is checked instead so a bad SHA fails
+    here rather than after a full cross-platform build.
+    """
     for entry in entries:
+        if entry.get("intake_mode", "tagged") == "commit-snapshot":
+            verify_commit_exists(entry["repo"], entry["source_commit"])
+            print(f"OK: {entry['repo']} (commit-snapshot) -> {entry['source_commit']}")
+            continue
         actual = resolve_tag(entry["repo"], entry["tag"])
         expected = entry["source_commit"]
         if actual != expected:

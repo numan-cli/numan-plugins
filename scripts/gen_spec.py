@@ -30,9 +30,10 @@ import hashlib
 import json
 import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
-from validate_manifest import expected_targets
+from validate_manifest import expected_targets, validate_upstream_repo
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -109,11 +110,22 @@ def verify_packaged_assets(rows: list[dict], assets_dir: Path) -> None:
             )
 
 
+def derive_snapshot_version(source_commit: str, date: str) -> str:
+    """Derive a synthetic prerelease version for a commit-snapshot entry.
+
+    Format: 0.0.0-snapshot.<YYYYMMDD>.<7-char-sha>. The date prefix guarantees
+    snapshots sort monotonically under SemVer prerelease rules regardless of
+    SHA ordering, which the resolver and update command depend on.
+    """
+    return f"0.0.0-snapshot.{date}.{source_commit[:7]}"
+
+
 def build_spec(
     entry: dict,
     packaged_rows: list[dict],
     release_base: str,
     expected: list[str],
+    snapshot_date: str | None = None,
 ) -> dict:
     """
     Build a registry specification from manifest metadata and packaged artifact records.
@@ -123,12 +135,16 @@ def build_spec(
         packaged_rows (list[dict]): Validated packaged artifacts keyed by target.
         release_base (str): Base URL for released artifact files.
         expected (list[str]): Target names required in the specification.
+        snapshot_date (str | None): Override for the YYYYMMDD date used in a
+            commit-snapshot version; defaults to today (UTC). Exists for
+            deterministic testing.
     
     Returns:
         dict: Registry specification containing plugin metadata and binary artifact targets.
     
     Raises:
-        ValueError: If packaged targets are missing or include unexpected targets.
+        ValueError: If packaged targets are missing or include unexpected targets,
+            or if ``upstream_repo`` / owner fork-identity invariants fail.
     """
     actual = {row["target"] for row in packaged_rows}
     missing = sorted(set(expected) - actual)
@@ -148,27 +164,54 @@ def build_spec(
             "executable_path": r["exe"],
         }
 
-    return {
+    validate_upstream_repo(entry)
+    upstream_repo = entry.get("upstream_repo")
+
+    intake_mode = entry.get("intake_mode", "tagged")
+    if intake_mode == "commit-snapshot":
+        date = snapshot_date or datetime.now(timezone.utc).strftime("%Y%m%d")
+        if not re.fullmatch(r"\d{8}", date):
+            raise ValueError(f"snapshot_date must be YYYYMMDD, got: {date!r}")
+        version = derive_snapshot_version(entry["source_commit"], date)
+        description_suffix = (
+            f" CI-built from {entry['repo']}@{entry['source_commit'][:7]} "
+            "(commit snapshot, no tagged release) and pinned + hash-verified + signed downstream in numan-registry."
+        )
+    else:
+        version = entry["version"]
+        description_suffix = (
+            f" CI-built from {entry['repo']}@{entry['tag']} and pinned + hash-verified + signed downstream in numan-registry."
+        )
+
+    description = entry["description"] + description_suffix
+    source = {
+        "git": f"https://github.com/{entry['repo']}",
+        "rev": entry["source_commit"],
+        "cargo_name": entry["plugin_bin"],
+    }
+    if upstream_repo is not None:
+        description += f" (numan-maintained fork; upstream: {upstream_repo})"
+        source["upstream"] = f"https://github.com/{upstream_repo}"
+
+    spec = {
         "owner": entry["owner"],
         "name": entry["name"],
-        "description": entry["description"]
-        + f" CI-built from {entry['repo']}@{entry['tag']} and signed under the official trust root.",
+        "description": description,
         "repo": f"https://github.com/{entry['repo']}",
         "type": "plugin",
         "tags": entry["tags"],
-        "version": entry["version"],
+        "version": version,
         "nu_version": entry["nu_version"],
         "verified_with": entry["verified_with"],
-        "source": {
-            "git": f"https://github.com/{entry['repo']}",
-            "rev": entry["source_commit"],
-            "cargo_name": entry["plugin_bin"],
-        },
+        "source": source,
         "artifact": {
             "kind": "binary",
             "targets": {k: targets[k] for k in sorted(targets)},
         },
     }
+    if intake_mode == "commit-snapshot":
+        spec["provenance"] = "commit-snapshot"
+    return spec
 
 
 def main() -> int:
@@ -179,6 +222,12 @@ def main() -> int:
     ap.add_argument("--assets-dir", required=True, type=Path)
     ap.add_argument("--release-base", required=True, help="release asset download base URL (no trailing slash)")
     ap.add_argument("--out", required=True, type=Path)
+    ap.add_argument(
+        "--snapshot-date",
+        help="YYYYMMDD override for commit-snapshot versions; must match the "
+        "date the workflow used to derive the package/release version, or "
+        "the generated spec's version won't match the published release tag",
+    )
     args = ap.parse_args()
 
     manifest = json.loads((REPO_ROOT / "manifest.json").read_text(encoding="utf-8"))
@@ -191,6 +240,7 @@ def main() -> int:
             rows,
             args.release_base,
             expected_targets(manifest, entry),
+            snapshot_date=args.snapshot_date,
         )
     except ValueError as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
