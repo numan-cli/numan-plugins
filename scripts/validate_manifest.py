@@ -179,12 +179,15 @@ def verify_commit_exists(repo: str, sha: str) -> None:
     """
     url = f"https://github.com/{repo}.git"
     with tempfile.TemporaryDirectory() as tmp:
-        subprocess.run(
+        init = subprocess.run(
             ["git", "init", "--quiet", tmp],
-            check=True,
+            check=False,
             capture_output=True,
+            text=True,
             timeout=COMMAND_TIMEOUT_SECONDS,
         )
+        if init.returncode != 0:
+            raise ValueError(f"failed to init temp git repo: {init.stderr.strip()}")
         result = subprocess.run(
             ["git", "-C", tmp, "fetch", "--quiet", "--depth", "1", url, sha],
             check=False,
