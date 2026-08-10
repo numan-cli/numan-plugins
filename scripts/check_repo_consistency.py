@@ -51,8 +51,9 @@ def expected_readme_lines(active: list[dict]) -> list[str]:
         # Entries with empty verified_with go in the "Pending" section, not "Currently active"
         if not entry.get("verified_with"):
             continue
+        tag_display = entry.get("tag") or f"commit {entry['source_commit'][:7]}"
         lines.append(
-            f"- `{entry['repo']}` @ `{entry['tag']}` → `{entry['name']}` {entry['version']}"
+            f"- `{entry['repo']}` @ `{tag_display}` → `{entry['name']}` {entry['version']}"
         )
     return lines
 
