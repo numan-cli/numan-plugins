@@ -72,14 +72,13 @@ def expected_targets(manifest: dict, entry: dict) -> list[str]:
 def validate_intake_fields(name: str, entry: dict) -> None:
     """Validate intake_mode and tag rules for a single active entry."""
     intake_mode = entry.get("intake_mode", "tagged")
+    if not isinstance(intake_mode, str):
+        raise ValueError(f"{name}: intake_mode must be one of {sorted(INTAKE_MODES)}")
     if intake_mode not in INTAKE_MODES:
         raise ValueError(f"{name}: intake_mode must be one of {sorted(INTAKE_MODES)}")
     tag = entry.get("tag")
-    if intake_mode == "tagged":
-        if not isinstance(tag, str) or not tag:
-            raise ValueError(f"{name}: tag is required when intake_mode is 'tagged'")
-    elif tag is not None and not isinstance(tag, str):
-        raise ValueError(f"{name}: tag must be a string or null")
+    if not isinstance(tag, str) or not tag:
+        raise ValueError(f"{name}: tag is required and must be non-empty")
 
 
 def validate_active_entry(manifest: dict, entry: dict, names: set[str]) -> str:
@@ -99,7 +98,8 @@ def validate_active_entry(manifest: dict, entry: dict, names: set[str]) -> str:
     if name in names:
         raise ValueError(f"duplicate active plugin name: {name}")
     names.add(name)
-    if not SHA_RE.fullmatch(entry["source_commit"]):
+    source_commit = entry["source_commit"]
+    if not isinstance(source_commit, str) or not SHA_RE.fullmatch(source_commit):
         raise ValueError(f"{name}: source_commit must be 40 lowercase hex characters")
     validate_intake_fields(name, entry)
     expected_targets(manifest, entry)
@@ -194,6 +194,15 @@ def verify_commit_exists(repo: str, sha: str) -> None:
         )
         if result.returncode != 0:
             raise ValueError(f"source_commit not found upstream: {repo}@{sha}")
+        result = subprocess.run(
+            ["git", "-C", tmp, "cat-file", "-t", sha],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=COMMAND_TIMEOUT_SECONDS,
+        )
+        if result.returncode != 0 or result.stdout.strip() != "commit":
+            raise ValueError(f"source_commit is not a commit object: {repo}@{sha}")
 
 
 def verify_upstream(entries: list[dict]) -> None:

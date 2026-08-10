@@ -115,17 +115,17 @@ class ValidateManifestTests(unittest.TestCase):
                     self.mod.main(["--manifest", str(manifest), "--verify-upstream"]),
                 )
 
-    def test_commit_snapshot_entry_allows_missing_tag(self):
-        entries = self.mod.validate_manifest(
-            self.manifest([self.entry(intake_mode="commit-snapshot", tag=None)])
-        )
-        self.assertEqual(entries[0]["intake_mode"], "commit-snapshot")
+    def test_commit_snapshot_entry_requires_tag(self):
+        with self.assertRaisesRegex(ValueError, "tag is required"):
+            self.mod.validate_manifest(
+                self.manifest([self.entry(intake_mode="commit-snapshot", tag=None)])
+            )
 
-    def test_commit_snapshot_entry_allows_absent_tag_key(self):
+    def test_commit_snapshot_entry_rejects_absent_tag_key(self):
         entry = self.entry(intake_mode="commit-snapshot")
         del entry["tag"]
-        entries = self.mod.validate_manifest(self.manifest([entry]))
-        self.assertNotIn("tag", entries[0])
+        with self.assertRaisesRegex(ValueError, "tag is required"):
+            self.mod.validate_manifest(self.manifest([entry]))
 
     def test_tagged_entry_still_requires_tag(self):
         entry = self.entry(tag=None)
@@ -137,26 +137,52 @@ class ValidateManifestTests(unittest.TestCase):
             self.mod.validate_manifest(self.manifest([self.entry(intake_mode="bogus")]))
 
     def test_verify_upstream_skips_tag_check_for_commit_snapshot(self):
-        entry = self.entry(intake_mode="commit-snapshot", tag=None)
+        entry = self.entry(intake_mode="commit-snapshot")
         with mock.patch.object(self.mod, "resolve_tag") as resolve_tag:
             with mock.patch.object(self.mod, "verify_commit_exists"):
                 self.mod.verify_upstream([entry])
                 resolve_tag.assert_not_called()
 
     def test_verify_upstream_checks_commit_exists_for_commit_snapshot(self):
-        entry = self.entry(intake_mode="commit-snapshot", tag=None)
+        entry = self.entry(intake_mode="commit-snapshot")
         with mock.patch.object(self.mod, "verify_commit_exists") as verify_commit_exists:
             self.mod.verify_upstream([entry])
             verify_commit_exists.assert_called_once_with(entry["repo"], entry["source_commit"])
 
     def test_verify_upstream_fails_when_snapshot_commit_missing_upstream(self):
-        entry = self.entry(intake_mode="commit-snapshot", tag=None)
+        entry = self.entry(intake_mode="commit-snapshot")
         with mock.patch.object(
             self.mod,
             "verify_commit_exists",
             side_effect=ValueError("source_commit not found upstream: owner/repo@" + "a" * 40),
         ):
             with self.assertRaisesRegex(ValueError, "source_commit not found upstream"):
+                self.mod.verify_upstream([entry])
+
+    def test_rejects_non_string_intake_mode_list(self):
+        with self.assertRaisesRegex(ValueError, "intake_mode must be one of"):
+            self.mod.validate_manifest(self.manifest([self.entry(intake_mode=["tagged"])]))
+
+    def test_rejects_non_string_intake_mode_dict(self):
+        with self.assertRaisesRegex(ValueError, "intake_mode must be one of"):
+            self.mod.validate_manifest(self.manifest([self.entry(intake_mode={"mode": "tagged"})]))
+
+    def test_rejects_null_source_commit(self):
+        with self.assertRaisesRegex(ValueError, "source_commit must be 40 lowercase"):
+            self.mod.validate_manifest(self.manifest([self.entry(source_commit=None)]))
+
+    def test_rejects_non_string_source_commit(self):
+        with self.assertRaisesRegex(ValueError, "source_commit must be 40 lowercase"):
+            self.mod.validate_manifest(self.manifest([self.entry(source_commit=123)]))
+
+    def test_verify_upstream_rejects_non_commit_object(self):
+        entry = self.entry(intake_mode="commit-snapshot")
+        with mock.patch.object(
+            self.mod,
+            "verify_commit_exists",
+            side_effect=ValueError("source_commit is not a commit object: owner/repo@" + "a" * 40),
+        ):
+            with self.assertRaisesRegex(ValueError, "source_commit is not a commit object"):
                 self.mod.verify_upstream([entry])
 
 
