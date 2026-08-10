@@ -159,6 +159,10 @@ def build_spec(
         "cargo_name": entry["plugin_bin"],
     }
     if upstream_repo:
+        if entry.get("owner") != "numan-maintained":
+            raise ValueError(
+                f"{entry['name']}: upstream_repo requires owner 'numan-maintained'"
+            )
         description += f" (numan-maintained fork; upstream: {upstream_repo})"
         source["upstream"] = f"https://github.com/{upstream_repo}"
 
