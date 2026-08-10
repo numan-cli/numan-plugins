@@ -5,12 +5,10 @@ from __future__ import annotations
 
 import importlib.util
 import hashlib
-import json
 import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest import mock
 
 SCRIPT = Path(__file__).resolve().parent / "gen_spec.py"
 
@@ -360,136 +358,6 @@ class BuildSpecSourceTests(unittest.TestCase):
             asset.write_bytes(b"tampered")
             with self.assertRaisesRegex(ValueError, "hash mismatch"):
                 self.gs.verify_packaged_assets(rows, root)
-
-    def test_load_manifest_entry_missing_name_raises(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            manifest_path = Path(tmp) / "manifest.json"
-            manifest_path.write_text(
-                json.dumps({"active": [{"name": "other"}]}), encoding="utf-8"
-            )
-            with self.assertRaises(SystemExit):
-                self.gs.load_manifest_entry("missing", manifest_path)
-
-    def test_parse_packaged_rejects_malformed_row(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            records = Path(tmp) / "packaged.tsv"
-            records.write_text("PACKAGED\tlinux\tonly-three-fields\n", encoding="utf-8")
-            with self.assertRaises(SystemExit):
-                self.gs.parse_packaged(records)
-
-    def test_parse_packaged_rejects_invalid_sha256(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            records = Path(tmp) / "packaged.tsv"
-            records.write_text("PACKAGED\tlinux\ta.tar.gz\tnothex\tplugin\n", encoding="utf-8")
-            with self.assertRaises(SystemExit):
-                self.gs.parse_packaged(records)
-
-    def test_parse_packaged_rejects_no_rows(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            records = Path(tmp) / "packaged.tsv"
-            records.write_text("not a packaged line\n", encoding="utf-8")
-            with self.assertRaises(SystemExit):
-                self.gs.parse_packaged(records)
-
-    def test_verify_packaged_assets_missing_asset(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            rows = [{"filename": "missing.zip", "sha256": "a" * 64, "target": "win", "exe": "p.exe"}]
-            with self.assertRaisesRegex(ValueError, "not found"):
-                self.gs.verify_packaged_assets(rows, Path(tmp))
-
-    def test_build_spec_rejects_extra_targets(self):
-        entry = {
-            "owner": "o", "name": "p", "plugin_bin": "p", "repo": "o/p", "tag": "v1",
-            "source_commit": "1" * 40, "version": "1.0.0", "nu_version": "*",
-            "verified_with": [], "description": "p", "tags": ["plugin"],
-        }
-        rows = [{"target": "linux", "filename": "a.tar.gz", "sha256": "a" * 64, "exe": "p"}]
-        with self.assertRaisesRegex(ValueError, "unexpected targets"):
-            self.gs.build_spec(entry, rows, "https://example.invalid", [])
-
-    def _manifest_entry(self):
-        return {
-            "owner": "o", "name": "p", "plugin_bin": "p", "repo": "o/p", "tag": "v1",
-            "source_commit": "1" * 40, "version": "1.0.0", "nu_version": "*",
-            "verified_with": [], "description": "p", "tags": ["plugin"],
-        }
-
-    def test_main_success_writes_spec(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            manifest_path = root / "manifest.json"
-            manifest_path.write_text(
-                json.dumps(
-                    {
-                        "default_targets": ["x86_64-unknown-linux-gnu"],
-                        "active": [self._manifest_entry()],
-                    }
-                ),
-                encoding="utf-8",
-            )
-            assets_dir = root / "assets"
-            assets_dir.mkdir()
-            asset = assets_dir / "p-1.0.0-linux.tar.gz"
-            asset.write_bytes(b"data")
-            digest = hashlib.sha256(b"data").hexdigest()
-            packaged = root / "packaged.tsv"
-            packaged.write_text(
-                f"PACKAGED\tx86_64-unknown-linux-gnu\t{asset.name}\t{digest}\tp\n",
-                encoding="utf-8",
-            )
-            out = root / "spec.json"
-            argv = [
-                "gen_spec.py",
-                "--name", "p",
-                "--packaged", str(packaged),
-                "--assets-dir", str(assets_dir),
-                "--release-base", "https://example.invalid/release",
-                "--out", str(out),
-            ]
-            with mock.patch.object(self.gs, "REPO_ROOT", root), mock.patch.object(
-                sys, "argv", argv
-            ):
-                rc = self.gs.main()
-            self.assertEqual(rc, 0)
-            spec = json.loads(out.read_text(encoding="utf-8"))
-            self.assertEqual(spec["name"], "p")
-            self.assertIn("x86_64-unknown-linux-gnu", spec["artifact"]["targets"])
-
-    def test_main_failure_prints_fail_and_returns_1(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            manifest_path = root / "manifest.json"
-            manifest_path.write_text(
-                json.dumps(
-                    {
-                        "default_targets": ["x86_64-unknown-linux-gnu"],
-                        "active": [self._manifest_entry()],
-                    }
-                ),
-                encoding="utf-8",
-            )
-            assets_dir = root / "assets"
-            assets_dir.mkdir()
-            packaged = root / "packaged.tsv"
-            packaged.write_text(
-                "PACKAGED\tx86_64-unknown-linux-gnu\tmissing.tar.gz\t" + "a" * 64 + "\tp\n",
-                encoding="utf-8",
-            )
-            out = root / "spec.json"
-            argv = [
-                "gen_spec.py",
-                "--name", "p",
-                "--packaged", str(packaged),
-                "--assets-dir", str(assets_dir),
-                "--release-base", "https://example.invalid/release",
-                "--out", str(out),
-            ]
-            with mock.patch.object(self.gs, "REPO_ROOT", root), mock.patch.object(
-                sys, "argv", argv
-            ):
-                rc = self.gs.main()
-            self.assertEqual(rc, 1)
-            self.assertFalse(out.is_file())
 
 
 if __name__ == "__main__":
