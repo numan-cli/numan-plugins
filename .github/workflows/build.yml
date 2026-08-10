@@ -178,6 +178,12 @@ jobs:
 
   release:
     needs: [setup, build]
+    # build's matrix has fail-fast:false, but a job with any failing matrix leg
+    # still reports overall failure, which would otherwise skip this job even
+    # though other targets' artifacts uploaded fine. Run as long as the run
+    # wasn't cancelled, so a single failed target degrades to a partial spec
+    # instead of blocking every target for every plugin in this run.
+    if: ${{ !cancelled() && needs.setup.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write # Required only to publish the release tag, release, and assets.
@@ -226,14 +232,46 @@ jobs:
         run: |
           cat records/*.txt > packaged.tsv
           base="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$PLUGIN_NAME-$PLUGIN_VERSION"
+          # --partial is always passed: it's a no-op when every expected target
+          # packaged successfully, and ships the working subset (with a WARN on
+          # stderr) when one or more per-target matrix jobs failed above.
           python3 numan-plugins/scripts/gen_spec.py \
             --name "$PLUGIN_NAME" \
             --packaged packaged.tsv \
             --assets-dir dl \
             --release-base "$base" \
+            --partial \
             --out "spec-$PLUGIN_NAME.json"
           echo "----- spec-$PLUGIN_NAME.json -----"
           cat "spec-$PLUGIN_NAME.json"
+
+      - name: Summarize target coverage for maintainer review
+        shell: bash
+        env:
+          PLUGIN_NAME: ${{ matrix.plugin.name }}
+        run: |
+          python3 - "$PLUGIN_NAME" "spec-$PLUGIN_NAME.json" <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          import sys
+
+          sys.path.insert(0, "numan-plugins/scripts")
+          from validate_manifest import expected_targets
+
+          name, spec_path = sys.argv[1], sys.argv[2]
+          manifest = json.load(open("numan-plugins/manifest.json", encoding="utf-8"))
+          entry = next(p for p in manifest["active"] if p["name"] == name)
+          expected = set(expected_targets(manifest, entry))
+          shipped = set(json.load(open(spec_path, encoding="utf-8"))["artifact"]["targets"])
+          missing = sorted(expected - shipped)
+
+          print(f"### {name}: target coverage")
+          print(f"- shipped: {', '.join(sorted(shipped)) or '(none)'}")
+          if missing:
+              print(f"- **missing (build failed or excluded): {', '.join(missing)}**")
+              print("  Check the corresponding `build` matrix job logs above for the failure.")
+          else:
+              print("- all expected targets shipped")
+          PY
 
       - name: Upload spec for numan-registry intake
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
