@@ -103,6 +103,8 @@ def verify_packaged_assets(rows: list[dict], assets_dir: Path) -> None:
     archive upload paired with a failed package-record upload would leave an
     orphan that ``release_transaction upload`` would publish outside the spec.
     """
+    if not assets_dir.is_dir():
+        raise ValueError(f"assets dir not found: {assets_dir}")
     expected_names = {row["filename"] for row in rows}
     unexpected = sorted(
         path.name
