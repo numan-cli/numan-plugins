@@ -1,0 +1,28 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: en-US
+branch: master
+nodes_managed: true
+exported_at: "2026-08-01T04:13:05Z"
+modules:
+    "":
+        dir_name: Numan Plugin Build & Release Orchestrator
+        title: Numan Plugin Build & Release Orchestrator
+        scope:
+            - README.md
+            - .gitignore
+            - manifest.json
+        source_files: []
+        children:
+            - scripts
+        depends_on: []
+        related_to: []
+    scripts:
+        dir_name: Plugin Release & Packaging CLI Utilities
+        title: Plugin Release & Packaging CLI Utilities
+        scope:
+            - scripts/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []

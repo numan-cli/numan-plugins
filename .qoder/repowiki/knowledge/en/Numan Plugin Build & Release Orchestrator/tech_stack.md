@@ -1,0 +1,1 @@
+Python CLI scripts for packaging/spec generation/release orchestration; GitHub Actions workflows on ubuntu-latest, macos-15-intel, macos-15, and windows-latest runners; Rust toolchains with taiki-e/setup-cross-toolchain-action for cross-compilation; JSON-based manifest schema driving the entire pipeline.

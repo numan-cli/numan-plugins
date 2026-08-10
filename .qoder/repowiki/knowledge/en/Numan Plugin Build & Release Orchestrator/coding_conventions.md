@@ -1,0 +1,4 @@
+- Each active plugin entry in `manifest.json` pins both a human-facing `tag` and an immutable `source_commit`, with `exclude_targets` + `exclude_reason` documenting why any platform is omitted.
+- Artifacts follow a strict naming convention: `<name>-<version>` releases with `.tar.gz` on Unix and `.zip` on Windows, plus a sibling `spec-<name>.json` artifact.
+- Cross-compilation targets are declared once in `default_targets` and mapped to runner images via `target_runner_map`, keeping the matrix declarative rather than hardcoded in workflows.
+- Scripts are single-purpose CLIs invoked by the workflow (package, spec generation, release transaction) rather than monolithic tools, keeping each script focused on one transformation step.

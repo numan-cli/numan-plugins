@@ -1,7 +1,7 @@
 name: build-plugins
 
 # Cross-compile the plugins listed in manifest.json `active[]` from their upstream
-# tags, package one archive per target, publish them as GitHub release assets on
+# immutable commits, package one archive per target, publish them as GitHub release assets on
 # THIS repo, and emit a numan-registry spec per plugin. Signing does NOT happen
 # here — numan-registry pins these asset URLs via add-package.py and signs the
 # index with the official trust root.
@@ -10,17 +10,12 @@ on:
   workflow_dispatch:
     inputs:
       only:
-        description: "Comma-separated plugin names to build (blank = all active)"
-        required: false
-        default: ""
-  push:
-    paths:
-      - manifest.json
-      - scripts/**
-      - .github/workflows/build.yml
+        description: "Comma-separated active plugin names to publish"
+        required: true
+        type: string
 
 permissions:
-  contents: write # create releases + upload assets
+  contents: read
 
 jobs:
   setup:
@@ -29,26 +24,37 @@ jobs:
       plugins: ${{ steps.select.outputs.plugins }}
       matrix: ${{ steps.select.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Validate selection and immutable upstream revisions
+        env:
+          ONLY_INPUT: ${{ inputs.only }}
+        run: >-
+          python3 scripts/validate_manifest.py
+          --only "$ONLY_INPUT"
+          --verify-upstream
       - id: select
+        env:
+          ONLY_INPUT: ${{ inputs.only }}
         shell: bash
         run: |
-          only="${{ github.event.inputs.only }}"
+          only="$ONLY_INPUT"
           python3 - "$only" <<'PY' >> "$GITHUB_OUTPUT"
           import json, sys
           TARGETS = [
               {"triple": "x86_64-unknown-linux-gnu", "os": "ubuntu-latest", "cross": False},
               {"triple": "aarch64-unknown-linux-gnu", "os": "ubuntu-latest", "cross": True},
-              {"triple": "x86_64-apple-darwin", "os": "macos-13", "cross": False},
-              {"triple": "aarch64-apple-darwin", "os": "macos-14", "cross": False},
+              {"triple": "x86_64-apple-darwin", "os": "macos-15-intel", "cross": False},
+              {"triple": "aarch64-apple-darwin", "os": "macos-15", "cross": False},
               {"triple": "x86_64-pc-windows-msvc", "os": "windows-latest", "cross": False},
           ]
           only = [s.strip() for s in (sys.argv[1] or "").split(",") if s.strip()]
           active = json.load(open("manifest.json"))["active"]
-          if only:
-              active = [p for p in active if p["name"] in only]
+          active = [p for p in active if p["name"] in only]
           plugins = [{"name": p["name"], "repo": p["repo"], "tag": p["tag"],
-                      "version": p["version"], "bin": p["plugin_bin"]} for p in active]
+                      "source_commit": p["source_commit"], "version": p["version"],
+                      "bin": p["plugin_bin"]} for p in active]
           include = []
           for p in active:
               excluded = set(p.get("exclude_targets", []))
@@ -57,13 +63,14 @@ jobs:
                       continue
                   include.append({
                       "name": p["name"], "repo": p["repo"], "tag": p["tag"],
+                      "source_commit": p["source_commit"],
                       "version": p["version"], "bin": p["plugin_bin"],
                       "triple": t["triple"], "os": t["os"], "cross": t["cross"],
                   })
           print("plugins=" + json.dumps(plugins))
           print("matrix=" + json.dumps({"include": include}))
           PY
-          echo "Selected $(python3 -c 'import json;print(len(json.load(open("manifest.json"))["active"]))') active plugin(s)"
+          echo "Selected $(python3 -c 'import json,sys; only={s.strip() for s in sys.argv[1].split(",")}; print(sum(p["name"] in only for p in json.load(open("manifest.json"))["active"]))' "$only") plugin(s)"
 
   build:
     needs: setup
@@ -73,56 +80,97 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout numan-plugins (build scripts)
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           path: numan-plugins
+          persist-credentials: false
 
       - name: Checkout plugin source
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: ${{ matrix.repo }}
-          ref: ${{ matrix.tag }}
+          ref: ${{ matrix.source_commit }}
           path: src
           submodules: recursive
+          persist-credentials: false
+
+      - name: Verify immutable checkout
+        working-directory: src
+        shell: bash
+        env:
+          SOURCE_COMMIT: ${{ matrix.source_commit }}
+        run: test "$(git rev-parse HEAD)" = "$SOURCE_COMMIT"
+
+      - name: Recheck upstream tag provenance
+        # Windows runners default to pwsh, where $MATRIX_NAME is not an env var.
+        shell: bash
+        env:
+          MATRIX_NAME: ${{ matrix.name }}
+        run: >-
+          python3 numan-plugins/scripts/validate_manifest.py
+          --manifest numan-plugins/manifest.json
+          --only "$MATRIX_NAME"
+          --verify-upstream
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
         with:
+          toolchain: stable
           targets: ${{ matrix.triple }}
 
       - name: Set up cross linker (Linux aarch64)
         if: ${{ matrix.cross }}
-        uses: taiki-e/setup-cross-toolchain-action@v1
+        uses: taiki-e/setup-cross-toolchain-action@12b7ad4acfa95a1476779d6c06699b96ec1691f8 # v1
         with:
           target: ${{ matrix.triple }}
 
       - name: Build
         working-directory: src
         shell: bash
-        run: cargo build --release --locked --target ${{ matrix.triple }}
+        env:
+          MATRIX_TRIPLE: ${{ matrix.triple }}
+        run: |
+          set -euo pipefail
+
+          errfile="$(mktemp)"
+          if ! cargo build --release --locked --target "$MATRIX_TRIPLE" 2>"$errfile"; then
+            if grep -q -- "--locked" "$errfile"; then
+              echo "Locked build failed due to lockfile update; retrying without --locked" >&2
+              cat "$errfile" >&2
+              cargo build --release --target "$MATRIX_TRIPLE"
+            else
+              cat "$errfile" >&2
+              exit 1
+            fi
+          fi
 
       - name: Package
         shell: bash
+        env:
+          MATRIX_BIN: ${{ matrix.bin }}
+          MATRIX_NAME: ${{ matrix.name }}
+          MATRIX_TRIPLE: ${{ matrix.triple }}
+          MATRIX_VERSION: ${{ matrix.version }}
         run: |
-          bin="${{ matrix.bin }}"
-          binpath="src/target/${{ matrix.triple }}/release/${bin}"
+          bin="$MATRIX_BIN"
+          binpath="src/target/$MATRIX_TRIPLE/release/${bin}"
           [ -f "${binpath}.exe" ] && binpath="${binpath}.exe"
           python3 numan-plugins/scripts/package_plugin.py \
             --binary "$binpath" \
-            --name "${{ matrix.name }}" \
-            --version "${{ matrix.version }}" \
-            --target "${{ matrix.triple }}" \
-            --outdir dist | tee "package-${{ matrix.name }}-${{ matrix.triple }}.txt"
+            --name "$MATRIX_NAME" \
+            --version "$MATRIX_VERSION" \
+            --target "$MATRIX_TRIPLE" \
+            --outdir dist | tee "package-$MATRIX_NAME-$MATRIX_TRIPLE.txt"
 
       - name: Upload archive
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: asset-${{ matrix.name }}-${{ matrix.triple }}
           path: dist/*
           if-no-files-found: error
 
       - name: Upload package record
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: record-${{ matrix.name }}-${{ matrix.triple }}
           path: package-${{ matrix.name }}-${{ matrix.triple }}.txt
@@ -131,56 +179,122 @@ jobs:
   release:
     needs: [setup, build]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required only to publish the release tag, release, and assets.
     strategy:
       fail-fast: false
       matrix:
         plugin: ${{ fromJSON(needs.setup.outputs.plugins) }}
+    concurrency:
+      group: publish-${{ matrix.plugin.name }}-${{ matrix.plugin.version }}
+      cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           path: numan-plugins
+          persist-credentials: false
 
       - name: Collect this plugin's assets
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           pattern: asset-${{ matrix.plugin.name }}-*
           path: dl
           merge-multiple: true
 
       - name: Collect this plugin's package records
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           pattern: record-${{ matrix.plugin.name }}-*
           path: records
           merge-multiple: true
 
-      - name: Publish release assets
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ matrix.plugin.name }}-${{ matrix.plugin.version }}
-          name: ${{ matrix.plugin.name }} ${{ matrix.plugin.version }}
-          body: |
-            CI-built Nushell plugin binaries for `${{ matrix.plugin.name }}`,
-            cross-compiled from `${{ matrix.plugin.repo }}@${{ matrix.plugin.tag }}`.
-            Pinned + hash-verified + signed downstream in numan-registry.
-          files: dl/*
+      - name: Refuse an existing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PLUGIN_NAME: ${{ matrix.plugin.name }}
+          PLUGIN_VERSION: ${{ matrix.plugin.version }}
+        run: >-
+          python3 numan-plugins/scripts/ensure_release_absent.py
+          --repo "$GITHUB_REPOSITORY"
+          --tag "$PLUGIN_NAME-$PLUGIN_VERSION"
 
-      - name: Generate numan-registry spec
+      - name: Verify records and generate numan-registry spec
         shell: bash
+        env:
+          PLUGIN_NAME: ${{ matrix.plugin.name }}
+          PLUGIN_VERSION: ${{ matrix.plugin.version }}
         run: |
           cat records/*.txt > packaged.tsv
-          base="${{ github.server_url }}/${{ github.repository }}/releases/download/${{ matrix.plugin.name }}-${{ matrix.plugin.version }}"
+          base="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$PLUGIN_NAME-$PLUGIN_VERSION"
           python3 numan-plugins/scripts/gen_spec.py \
-            --name "${{ matrix.plugin.name }}" \
+            --name "$PLUGIN_NAME" \
             --packaged packaged.tsv \
+            --assets-dir dl \
             --release-base "$base" \
-            --out "spec-${{ matrix.plugin.name }}.json"
-          echo "----- spec-${{ matrix.plugin.name }}.json -----"
-          cat "spec-${{ matrix.plugin.name }}.json"
+            --out "spec-$PLUGIN_NAME.json"
+          echo "----- spec-$PLUGIN_NAME.json -----"
+          cat "spec-$PLUGIN_NAME.json"
 
       - name: Upload spec for numan-registry intake
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: spec-${{ matrix.plugin.name }}
           path: spec-${{ matrix.plugin.name }}.json
           if-no-files-found: error
+
+      - name: Claim immutable tag and draft release
+        id: claim
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PLUGIN_NAME: ${{ matrix.plugin.name }}
+          PLUGIN_VERSION: ${{ matrix.plugin.version }}
+          RELEASE_BODY: |
+            CI-built Nushell plugin binaries for `${{ matrix.plugin.name }}`,
+            cross-compiled from `${{ matrix.plugin.repo }}@${{ matrix.plugin.tag }}`
+            at commit `${{ matrix.plugin.source_commit }}`.
+            Pinned + hash-verified + signed downstream in numan-registry.
+        run: >-
+          python3 numan-plugins/scripts/release_transaction.py claim
+          --repo "$GITHUB_REPOSITORY"
+          --tag "$PLUGIN_NAME-$PLUGIN_VERSION"
+          --commit "$GITHUB_SHA"
+          --name "$PLUGIN_NAME $PLUGIN_VERSION"
+          --body "$RELEASE_BODY"
+
+      - name: Upload assets to the owned draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLAIMED_RELEASE_ID: ${{ steps.claim.outputs.release_id }}
+        run: >-
+          python3 numan-plugins/scripts/release_transaction.py upload
+          --repo "$GITHUB_REPOSITORY"
+          --release-id "$CLAIMED_RELEASE_ID"
+          --assets-dir dl
+
+      - name: Verify and publish the complete draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLAIMED_RELEASE_ID: ${{ steps.claim.outputs.release_id }}
+          PLUGIN_NAME: ${{ matrix.plugin.name }}
+          PLUGIN_VERSION: ${{ matrix.plugin.version }}
+        run: >-
+          python3 numan-plugins/scripts/release_transaction.py finalize
+          --repo "$GITHUB_REPOSITORY"
+          --release-id "$CLAIMED_RELEASE_ID"
+          --tag "$PLUGIN_NAME-$PLUGIN_VERSION"
+          --commit "$GITHUB_SHA"
+          --assets-dir dl
+
+      - name: Clean up this run's failed draft
+        if: (failure() || cancelled()) && steps.claim.outputs.release_id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLAIMED_RELEASE_ID: ${{ steps.claim.outputs.release_id }}
+          PLUGIN_NAME: ${{ matrix.plugin.name }}
+          PLUGIN_VERSION: ${{ matrix.plugin.version }}
+        run: >-
+          python3 numan-plugins/scripts/release_transaction.py cleanup
+          --repo "$GITHUB_REPOSITORY"
+          --release-id "$CLAIMED_RELEASE_ID"
+          --tag "$PLUGIN_NAME-$PLUGIN_VERSION"
+          --commit "$GITHUB_SHA"

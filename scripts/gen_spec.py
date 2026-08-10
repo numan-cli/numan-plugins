@@ -18,6 +18,7 @@ Usage:
   python scripts/gen_spec.py \\
     --name nu_plugin_regex \\
     --packaged packaged.tsv \\
+    --assets-dir dl \\
     --release-base https://github.com/<org>/numan-plugins/releases/download/nu_plugin_regex-0.22.0 \\
     --out spec.json
 """
@@ -25,14 +26,32 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 
+from validate_manifest import expected_targets
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 def load_manifest_entry(name: str, manifest_path: Path | None = None) -> dict:
+    """
+    Find the active manifest entry with the specified name.
+    
+    Parameters:
+        name (str): Manifest entry name to find.
+        manifest_path (Path | None): Path to the manifest file, or the repository manifest when omitted.
+    
+    Returns:
+        dict: The matching active manifest entry.
+    
+    Raises:
+        SystemExit: If no active manifest entry matches the specified name.
+    """
     path = manifest_path or (REPO_ROOT / "manifest.json")
     manifest = json.loads(path.read_text(encoding="utf-8"))
     for entry in manifest.get("active", []):
@@ -43,11 +62,32 @@ def load_manifest_entry(name: str, manifest_path: Path | None = None) -> dict:
 
 
 def parse_packaged(path: Path) -> list[dict]:
+    """
+    Parse and validate packaged artifact records from a TSV file.
+    
+    Returns:
+    	list[dict]: Unique target records containing the target, filename, SHA-256 hash, and executable path.
+    
+    Raises:
+    	SystemExit: If a record is malformed, contains a duplicate target or invalid SHA-256 hash, or no records are found.
+    """
     rows = []
+    targets = set()
     for line in path.read_text(encoding="utf-8").splitlines():
         if not line.startswith("PACKAGED\t"):
             continue
-        _, target, filename, sha256, exe = line.split("\t")
+        parts = line.split("\t")
+        if len(parts) != 5:
+            print(f"FAIL: malformed PACKAGED row: {line}", file=sys.stderr)
+            raise SystemExit(1)
+        _, target, filename, sha256, exe = parts
+        if target in targets:
+            print(f"FAIL: duplicate PACKAGED target: {target}", file=sys.stderr)
+            raise SystemExit(1)
+        if not SHA256_RE.fullmatch(sha256):
+            print(f"FAIL: invalid sha256 for {target}: {sha256}", file=sys.stderr)
+            raise SystemExit(1)
+        targets.add(target)
         rows.append({"target": target, "filename": filename, "sha256": sha256, "exe": exe})
     if not rows:
         print(f"FAIL: no PACKAGED rows in {path}", file=sys.stderr)
@@ -55,8 +95,51 @@ def parse_packaged(path: Path) -> list[dict]:
     return rows
 
 
-def build_spec(entry: dict, packaged_rows: list[dict], release_base: str) -> dict:
-    """Build a registry spec dict from a manifest entry and PACKAGED rows."""
+def verify_packaged_assets(rows: list[dict], assets_dir: Path) -> None:
+    """Verify that every recorded asset exists and matches its recorded SHA-256."""
+    for row in rows:
+        asset = assets_dir / row["filename"]
+        if not asset.is_file():
+            raise ValueError(f"packaged asset not found: {asset}")
+        actual = hashlib.sha256(asset.read_bytes()).hexdigest()
+        if actual != row["sha256"]:
+            raise ValueError(
+                f"packaged asset hash mismatch for {asset.name}: "
+                f"expected {row['sha256']}, got {actual}"
+            )
+
+
+def build_spec(
+    entry: dict,
+    packaged_rows: list[dict],
+    release_base: str,
+    expected: list[str],
+) -> dict:
+    """
+    Build a registry specification from manifest metadata and packaged artifact records.
+    
+    Parameters:
+        entry (dict): Manifest metadata for the plugin.
+        packaged_rows (list[dict]): Validated packaged artifacts keyed by target.
+        release_base (str): Base URL for released artifact files.
+        expected (list[str]): Target names required in the specification.
+    
+    Returns:
+        dict: Registry specification containing plugin metadata and binary artifact targets.
+    
+    Raises:
+        ValueError: If packaged targets are missing or include unexpected targets.
+    """
+    actual = {row["target"] for row in packaged_rows}
+    missing = sorted(set(expected) - actual)
+    extra = sorted(actual - set(expected))
+    if missing or extra:
+        details = []
+        if missing:
+            details.append(f"missing targets: {', '.join(missing)}")
+        if extra:
+            details.append(f"unexpected targets: {', '.join(extra)}")
+        raise ValueError("; ".join(details))
     base = release_base.rstrip("/")
     targets = {}
     for r in packaged_rows:
@@ -78,7 +161,7 @@ def build_spec(entry: dict, packaged_rows: list[dict], release_base: str) -> dic
         "verified_with": entry["verified_with"],
         "source": {
             "git": f"https://github.com/{entry['repo']}",
-            "rev": entry["tag"],
+            "rev": entry["source_commit"],
             "cargo_name": entry["plugin_bin"],
         },
         "artifact": {
@@ -89,16 +172,29 @@ def build_spec(entry: dict, packaged_rows: list[dict], release_base: str) -> dic
 
 
 def main() -> int:
+    """Validate packaged records and write a registry intake specification."""
     ap = argparse.ArgumentParser()
     ap.add_argument("--name", required=True)
     ap.add_argument("--packaged", required=True, type=Path)
+    ap.add_argument("--assets-dir", required=True, type=Path)
     ap.add_argument("--release-base", required=True, help="release asset download base URL (no trailing slash)")
     ap.add_argument("--out", required=True, type=Path)
     args = ap.parse_args()
 
+    manifest = json.loads((REPO_ROOT / "manifest.json").read_text(encoding="utf-8"))
     entry = load_manifest_entry(args.name)
     rows = parse_packaged(args.packaged)
-    spec = build_spec(entry, rows, args.release_base)
+    try:
+        verify_packaged_assets(rows, args.assets_dir)
+        spec = build_spec(
+            entry,
+            rows,
+            args.release_base,
+            expected_targets(manifest, entry),
+        )
+    except ValueError as exc:
+        print(f"FAIL: {exc}", file=sys.stderr)
+        return 1
 
     args.out.write_text(json.dumps(spec, indent=2) + "\n", encoding="utf-8")
     print(

@@ -14,6 +14,9 @@ concurrency:
   group: pr-review-${{ github.event.pull_request.number || inputs.pr_number }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   cline-pr-review:
     if: |
@@ -28,29 +31,66 @@ jobs:
       issues: read
 
     steps:
+      - name: Check reviewer credentials
+        id: cline-key
+        env:
+          CLINE_API_KEY: ${{ secrets.CLINE_API_KEY }}
+        run: |
+          if [ -n "$CLINE_API_KEY" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Report unavailable reviewer credentials
+        if: steps.cline-key.outputs.available != 'true'
+        run: echo "::notice::Cline review skipped because CLINE_API_KEY is not configured"
+
       - name: Checkout repository
-        uses: actions/checkout@v7
+        if: steps.cline-key.outputs.available == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        if: steps.cline-key.outputs.available == 'true'
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 22
-          cache: "npm"
 
       - name: Install Cline CLI
-        run: npm install -g cline
+        if: steps.cline-key.outputs.available == 'true'
+        env:
+          CLINE_INTEGRITY: sha512-3+RfBKRFk1s89FxYZJpM9t1dGLrpz/9WlP/zO9QP2U36C2A5ZvW7wbNKe8eFgYn52ihvKnT7wIel8KQz2vSf8Q==
+          CLINE_VERSION: 3.0.47
+        run: |
+          archive=$(npm pack --silent "cline@$CLINE_VERSION")
+          node - "$archive" "$CLINE_INTEGRITY" <<'NODE'
+          const crypto = require("crypto");
+          const fs = require("fs");
+          const [archive, expected] = process.argv.slice(2);
+          const actual = "sha512-" + crypto.createHash("sha512")
+            .update(fs.readFileSync(archive)).digest("base64");
+          if (actual !== expected) {
+            throw new Error(`Cline archive integrity mismatch: ${actual}`);
+          }
+          NODE
+          npm install -g "./$archive"
 
       - name: Configure Cline Authentication
+        if: steps.cline-key.outputs.available == 'true'
+        env:
+          CLINE_API_KEY: ${{ secrets.CLINE_API_KEY }}
         # Replace 'anthropic' with your provider of choice (openai, openrouter, etc.)
         # and ensure the corresponding secret is set in your repo settings.
         run: |
           cline auth --provider cline-pass \
-            --apikey "${{ secrets.CLINE_API_KEY }}" \
+            --apikey "$CLINE_API_KEY" \
             --modelid cline-pass/deepseek-v4-pro
 
       - name: Get PR number
+        if: steps.cline-key.outputs.available == 'true'
         id: pr
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
@@ -60,6 +100,7 @@ jobs:
           fi
 
       - name: Review PR with Cline
+        if: steps.cline-key.outputs.available == 'true'
         env:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           GITHUB_REPO: ${{ github.repository }}
@@ -87,6 +128,10 @@ jobs:
 
           PR: #${PR_NUMBER}
 
+          ## Required reading (in the checked-out repo)
+          - REVIEW.md
+          - README.md
+
           ## Gather context
           Use `gh` commands to fetch the PR diff, details, and checks.
 
@@ -103,15 +148,16 @@ jobs:
 
           ## Review systematically
 
-          1. **Architecture fit** — does the change respect dependency direction? No domain → infra leaks.
-          2. **No fake readiness** — provider registered ≠ model downloaded ≠ stage ran ≠ stage succeeded.
-          3. **Pipeline stage rules** — original artifacts preserved on skip/fail. Statuses distinguish success/skipped/failed/disabled.
-          4. **Cross-platform** — no Win32-only assumptions unless Windows-only boundary.
-          5. **License/model gates** — new model references must have manifest entry + known commercial license.
+          Follow REVIEW.md. Flag P0-P3 findings against its architecture invariants:
+          1. Builds only, never signs (trust boundary with numan-registry).
+          2. Immutable upstream pins and release assets; no overwrite of existing tags/assets.
+          3. Manual publish only; PR/push must not release.
+          4. Specs omit sha256; preserve source.rev provenance.
+          5. Cross-platform — no Win32-only assumptions unless Windows-only boundary.
 
           ## Output format
           - Concise Markdown
-          - Severity tags: **blocker** / **major** / **minor** / **nit**
+          - Severity tags: **P0** / **P1** / **P2** / **P3** (per REVIEW.md)
           - File path + specific fix per finding
           - If no issues found, say so in one sentence
           CLINEPROMPT

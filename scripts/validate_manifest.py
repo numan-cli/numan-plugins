@@ -1,95 +1,189 @@
 #!/usr/bin/env python3
-"""Validate manifest.json structure and optionally verify upstream tags exist."""
+"""Validate the plugin build manifest and optional upstream tag mappings."""
+
+from __future__ import annotations
+
+import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
 
-REQUIRED_FIELDS = [
-    "repo", "name", "owner", "plugin_bin", "tag", "version",
-    "nu_version", "description", "tags"
-]
-
-def validate_structure(manifest):
-    """Check required fields and value types."""
-    errors = []
-    
-    if "active" not in manifest:
-        errors.append("Missing 'active' array")
-        return errors
-    
-    for i, entry in enumerate(manifest["active"]):
-        for field in REQUIRED_FIELDS:
-            if field not in entry:
-                errors.append(f"active[{i}] ({entry.get('name', '?')}): missing '{field}'")
-        
-        # Check nu_version format
-        nv = entry.get("nu_version", "")
-        if nv and not (nv.startswith(">=") and "<" in nv):
-            errors.append(f"active[{i}] ({entry.get('name', '?')}): nu_version should be '>=X.Y.Z <X.Y.Z' format, got '{nv}'")
-    
-    return errors
+SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+COMMAND_TIMEOUT_SECONDS = 30
+REQUIRED_FIELDS = {
+    "repo",
+    "name",
+    "owner",
+    "plugin_bin",
+    "tag",
+    "source_commit",
+    "version",
+    "nu_version",
+    "verified_with",
+    "description",
+    "tags",
+}
 
 
-def verify_upstream(manifest):
-    """Verify that each active entry's tag exists on its upstream repo."""
-    errors = []
+def load_manifest(path: Path) -> dict:
+    """Load and decode a plugin build manifest from ``path``."""
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def selected_names(value: str) -> list[str]:
+    """Parse a required comma-separated selection into unique package names."""
+    names = [item.strip() for item in value.split(",") if item.strip()]
+    if not names:
+        raise ValueError("--only must name at least one active plugin")
+    if len(names) != len(set(names)):
+        raise ValueError("--only contains duplicate plugin names")
+    return names
+
+
+def expected_targets(manifest: dict, entry: dict) -> list[str]:
+    """Validate target declarations and return the targets required for the entry.
     
-    for entry in manifest["active"]:
-        repo = entry.get("repo", "")
-        tag = entry.get("tag", "")
-        name = entry.get("name", "?")
-        
-        if not repo or not tag:
-            continue
-        
-        url = f"https://github.com/{repo}"
-        result = subprocess.run(
-            ["git", "ls-remote", "--tags", url, tag],
-            capture_output=True, text=True, timeout=30
+    Parameters:
+    	manifest (dict): Manifest containing the default target list.
+    	entry (dict): Active entry containing optional excluded targets.
+    
+    Returns:
+    	list[str]: The default targets remaining after exclusions."""
+    defaults = manifest.get("default_targets")
+    if not isinstance(defaults, list) or not defaults or len(defaults) != len(set(defaults)):
+        raise ValueError("default_targets must be a non-empty unique list")
+    excluded = entry.get("exclude_targets", [])
+    if not isinstance(excluded, list) or len(excluded) != len(set(excluded)):
+        raise ValueError(f"{entry.get('name', '<unknown>')}: exclude_targets must be unique")
+    unknown = sorted(set(excluded) - set(defaults))
+    if unknown:
+        raise ValueError(
+            f"{entry.get('name', '<unknown>')}: unknown excluded targets: {', '.join(unknown)}"
         )
-        
+    targets = [target for target in defaults if target not in set(excluded)]
+    if not targets:
+        raise ValueError(f"{entry.get('name', '<unknown>')}: all targets are excluded")
+    return targets
+
+
+def validate_manifest(manifest: dict, only: list[str] | None = None) -> list[dict]:
+    """
+    Validate active manifest entries and optionally select named plugins.
+    
+    Parameters:
+        manifest (dict): Manifest data containing the active plugin entries.
+        only (list[str] | None): Plugin names to include; when omitted, includes all
+            active entries.
+    
+    Returns:
+        list[dict]: Validated active entries, filtered to the requested names when
+            provided.
+    
+    Raises:
+        ValueError: If the active entries or their required fields are invalid, a
+            plugin name is duplicated or unknown, or a source commit is malformed.
+    """
+    active = manifest.get("active")
+    if not isinstance(active, list) or not active:
+        raise ValueError("active must be a non-empty list")
+
+    names: set[str] = set()
+    for entry in active:
+        if not isinstance(entry, dict):
+            raise ValueError("active entries must be objects")
+        missing = sorted(REQUIRED_FIELDS - set(entry))
+        if missing:
+            raise ValueError(f"active entry missing fields: {', '.join(missing)}")
+        name = entry["name"]
+        if not isinstance(name, str) or not name:
+            raise ValueError("active entry name must be non-empty")
+        if name in names:
+            raise ValueError(f"duplicate active plugin name: {name}")
+        names.add(name)
+        if not SHA_RE.fullmatch(entry["source_commit"]):
+            raise ValueError(f"{name}: source_commit must be 40 lowercase hex characters")
+        expected_targets(manifest, entry)
+
+    if only is None:
+        return active
+    missing_names = sorted(set(only) - names)
+    if missing_names:
+        raise ValueError(f"unknown active plugins: {', '.join(missing_names)}")
+    wanted = set(only)
+    return [entry for entry in active if entry["name"] in wanted]
+
+
+def resolve_tag(repo: str, tag: str) -> str:
+    """
+    Resolve an upstream tag to its commit SHA.
+    
+    Parameters:
+        repo (str): GitHub repository in `owner/name` format.
+        tag (str): Tag name to resolve.
+    
+    Returns:
+        str: The commit SHA referenced by the tag.
+    
+    Raises:
+        ValueError: If the remote lookup fails or the tag cannot be found.
+    """
+    url = f"https://github.com/{repo}.git"
+    for ref in (f"refs/tags/{tag}^{{}}", f"refs/tags/{tag}"):
+        result = subprocess.run(
+            ["git", "ls-remote", url, ref],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=COMMAND_TIMEOUT_SECONDS,
+        )
         if result.returncode != 0:
-            errors.append(f"{name}: failed to query {url}")
-        elif tag not in result.stdout:
-            errors.append(f"{name}: tag '{tag}' not found at {url}")
-        else:
-            print(f"  ✓ {name}: tag '{tag}' exists at {repo}")
-    
-    return errors
+            raise ValueError(f"failed to resolve {repo}@{tag}: {result.stderr.strip()}")
+        if result.stdout.strip():
+            return result.stdout.split()[0]
+    raise ValueError(f"upstream tag not found: {repo}@{tag}")
 
 
-def main():
-    manifest_path = Path(__file__).parent.parent / "manifest.json"
-    verify = "--verify-upstream" in sys.argv
+def verify_upstream(entries: list[dict]) -> None:
+    """Require every entry's upstream tag to match its immutable source commit."""
+    for entry in entries:
+        actual = resolve_tag(entry["repo"], entry["tag"])
+        expected = entry["source_commit"]
+        if actual != expected:
+            raise ValueError(
+                f"{entry['name']}: {entry['tag']} resolves to {actual}, expected {expected}"
+            )
+        print(f"OK: {entry['repo']}@{entry['tag']} -> {expected}")
+
+
+def main(argv: list[str] | None = None) -> int:
+    """
+    Validate a manifest and optionally verify upstream tag provenance.
     
-    with open(manifest_path) as f:
-        manifest = json.load(f)
+    Parameters:
+        argv (list[str] | None): Command-line arguments to parse, or None to use
+            the process arguments.
     
-    print(f"Validating manifest ({len(manifest.get('active', []))} active entries)...")
-    
-    errors = validate_structure(manifest)
-    if errors:
-        print("\n❌ Structure errors:")
-        for e in errors:
-            print(f"  - {e}")
-        sys.exit(1)
-    
-    print("✓ Structure valid")
-    
-    if verify:
-        print("\nVerifying upstream tags...")
-        errors = verify_upstream(manifest)
-        if errors:
-            print("\n❌ Upstream verification errors:")
-            for e in errors:
-                print(f"  - {e}")
-            sys.exit(1)
-        print("✓ All upstream tags verified")
-    
-    print(f"\n✅ Manifest valid ({len(manifest['active'])} plugins)")
-    sys.exit(0)
+    Returns:
+        int: 0 on success or 1 when validation or upstream verification fails.
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--manifest", type=Path, default=Path("manifest.json"))
+    parser.add_argument("--only", default=None)
+    parser.add_argument("--verify-upstream", action="store_true")
+    args = parser.parse_args(argv)
+    try:
+        only = selected_names(args.only) if args.only is not None else None
+        entries = validate_manifest(load_manifest(args.manifest), only)
+        if args.verify_upstream:
+            verify_upstream(entries)
+    except (OSError, ValueError, json.JSONDecodeError, subprocess.TimeoutExpired) as exc:
+        print(f"FAIL: {exc}", file=sys.stderr)
+        return 1
+    print(f"OK: validated {len(entries)} active plugin(s)")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
