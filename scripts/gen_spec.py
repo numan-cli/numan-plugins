@@ -163,6 +163,8 @@ def build_spec(
             raise ValueError(
                 f"{entry['name']}: upstream_repo requires owner 'numan-maintained'"
             )
+        if upstream_repo.lower() == str(entry.get("repo", "")).lower():
+            raise ValueError(f"{entry['name']}: upstream_repo must not be the same as repo")
         description += f" (numan-maintained fork; upstream: {upstream_repo})"
         source["upstream"] = f"https://github.com/{upstream_repo}"
 

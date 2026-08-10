@@ -120,6 +120,11 @@ class ValidateManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "requires upstream_repo"):
             self.mod.validate_manifest(self.manifest([entry]))
 
+    def test_rejects_self_referential_upstream_repo(self):
+        entry = self.entry(owner="numan-maintained", upstream_repo="Owner/Repo")
+        with self.assertRaisesRegex(ValueError, "must not be the same as repo"):
+            self.mod.validate_manifest(self.manifest([entry]))
+
     def test_rejects_malformed_upstream_repo(self):
         cases = [
             " https://github.com/original-author/plugin",

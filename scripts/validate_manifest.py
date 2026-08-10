@@ -70,7 +70,9 @@ def expected_targets(manifest: dict, entry: dict) -> list[str]:
 
 
 def validate_upstream_repo(entry: dict) -> None:
-    """Validate optional fork upstream_repo metadata on a manifest entry."""
+    """Enforce ADR 0001 fork-identity invariants: only 'numan-maintained' may
+    set upstream_repo, it must be required (not optional) for that owner, and
+    it must not equal repo (a fork can't claim to be its own upstream)."""
     name = entry["name"]
     upstream_repo = entry.get("upstream_repo")
     if upstream_repo is not None:
@@ -85,6 +87,8 @@ def validate_upstream_repo(entry: dict) -> None:
                 f"{name}: upstream_repo requires owner 'numan-maintained' "
                 "(a fork must not claim the original owner's identity)"
             )
+        if upstream_repo.lower() == str(entry.get("repo", "")).lower():
+            raise ValueError(f"{name}: upstream_repo must not be the same as repo")
     elif entry.get("owner") == "numan-maintained":
         raise ValueError(f"{name}: owner 'numan-maintained' requires upstream_repo")
 

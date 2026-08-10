@@ -98,6 +98,37 @@ class BuildSpecSourceTests(unittest.TestCase):
         )
         self.assertIn("(numan-maintained fork; upstream: FMotalleb/nu_plugin_clipboard)", out["description"])
 
+    def test_rejects_self_referential_upstream_repo(self):
+        entry = {
+            "owner": "numan-maintained",
+            "name": "nu_plugin_clipboard",
+            "plugin_bin": "nu_plugin_clipboard",
+            "repo": "numan-maintained/nu_plugin_clipboard",
+            "upstream_repo": "numan-maintained/nu_plugin_clipboard",
+            "tag": "numan/nu-0.114-v0.110.0",
+            "source_commit": "2" * 40,
+            "version": "0.110.0",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "verified_with": ["0.114.1"],
+            "description": "Clipboard access for Nushell.",
+            "tags": ["plugin", "clipboard"],
+        }
+        rows = [
+            {
+                "target": "x86_64-unknown-linux-gnu",
+                "filename": "nu_plugin_clipboard-0.110.0-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "a" * 64,
+                "exe": "nu_plugin_clipboard",
+            }
+        ]
+        with self.assertRaisesRegex(ValueError, "must not be the same as repo"):
+            self.gs.build_spec(
+                entry,
+                rows,
+                "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_clipboard-0.110.0",
+                ["x86_64-unknown-linux-gnu"],
+            )
+
     def test_non_fork_entry_omits_source_upstream(self):
         entry = {
             "owner": "cptpiepmatz",
