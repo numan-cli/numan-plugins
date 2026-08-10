@@ -171,12 +171,12 @@ def build_spec(
         version = derive_snapshot_version(entry["source_commit"], date)
         description_suffix = (
             f" CI-built from {entry['repo']}@{entry['source_commit'][:7]} "
-            "(commit snapshot, no tagged release) and signed under the official trust root."
+            "(commit snapshot, no tagged release) and pinned + hash-verified + signed downstream in numan-registry."
         )
     else:
         version = entry["version"]
         description_suffix = (
-            f" CI-built from {entry['repo']}@{entry['tag']} and signed under the official trust root."
+            f" CI-built from {entry['repo']}@{entry['tag']} and pinned + hash-verified + signed downstream in numan-registry."
         )
 
     spec = {
