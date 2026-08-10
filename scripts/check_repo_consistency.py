@@ -48,6 +48,9 @@ def read_manifest_active(path: Path) -> list[dict]:
 def expected_readme_lines(active: list[dict]) -> list[str]:
     lines: list[str] = []
     for entry in active:
+        # Entries with empty verified_with go in the "Pending" section, not "Currently active"
+        if not entry.get("verified_with"):
+            continue
         lines.append(
             f"- `{entry['repo']}` @ `{entry['tag']}` → `{entry['name']}` {entry['version']}"
         )

@@ -84,7 +84,6 @@ rest build on native runners.
 
 - `cptpiepmatz/nu-plugin-highlight` @ `v1.4.16+0.114.1` → `nu_plugin_highlight` 1.4.16
 - `fdncred/nu_plugin_regex` @ `v0.23.0` → `nu_plugin_regex` 0.23.0
-- `dead10ck/nu_plugin_dns` @ `v4.0.10` → `nu_plugin_dns` 4.0.10
 - `idanarye/nu_plugin_skim` @ `v0.29.1` → `nu_plugin_skim` 0.29.1
 - `FMotalleb/nu_plugin_desktop_notifications` @ `v0.114.1` → `nu_plugin_desktop_notifications` 0.114.1
 - `FMotalleb/nu_plugin_port_extension` @ `v0.114.1` → `nu_plugin_port_extension` 0.114.1
@@ -102,6 +101,15 @@ rest build on native runners.
 - `fdncred/nu_plugin_query_git` @ `v0.24.0` → `nu_plugin_query_git` 0.24.0
 - `lizclipse/nu_plugin_ulid` @ `v0.23.0` → `nu_plugin_ulid` 0.23.0
 - `rhino-linux/nu_plugin_nutext` @ `0.6.2` → `nu_plugin_nutext` 0.6.2
+
+## Pending first build
+
+These plugins are in `manifest.json` but have not yet been built by CI. They will
+move to "Currently active" once the build succeeds and `verified_with` is populated.
+
+- `dead10ck/nu_plugin_dns` @ `v4.0.11` → `nu_plugin_dns` 4.0.11 _(bumped from v4.0.10/Nu 0.113)_
+- `tonythethompson/nu_plugin_qr_maker` @ `v1.2.0` → `nu_plugin_qr_maker` 1.2.0 _(fork: bumped from Nu 0.94)_
+- `tonythethompson/nu_plugin_explore` @ `v0.114.1` → `nu_plugin_explore` 0.114.1 _(fork: bumped from Nu 0.102)_
 
 ## Registry-side follow-up
 
