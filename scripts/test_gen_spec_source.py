@@ -129,6 +129,81 @@ class BuildSpecSourceTests(unittest.TestCase):
                 ["x86_64-unknown-linux-gnu"],
             )
 
+    def test_rejects_blank_upstream_repo(self):
+        entry = {
+            "owner": "numan-maintained",
+            "name": "nu_plugin_clipboard",
+            "plugin_bin": "nu_plugin_clipboard",
+            "repo": "numan-maintained/nu_plugin_clipboard",
+            "upstream_repo": "",
+            "tag": "v1",
+            "source_commit": "2" * 40,
+            "version": "0.110.0",
+            "nu_version": "*",
+            "verified_with": ["0.114.1"],
+            "description": "desc",
+            "tags": [],
+        }
+        rows = [{"target": "linux", "filename": "p.tar.gz", "sha256": "a" * 64, "exe": "p"}]
+        with self.assertRaisesRegex(ValueError, "non-empty string"):
+            self.gs.build_spec(entry, rows, "https://example.invalid", ["linux"])
+
+    def test_rejects_malformed_upstream_repo(self):
+        entry = {
+            "owner": "numan-maintained",
+            "name": "nu_plugin_clipboard",
+            "plugin_bin": "nu_plugin_clipboard",
+            "repo": "numan-maintained/nu_plugin_clipboard",
+            "upstream_repo": "https://github.com/FMotalleb/nu_plugin_clipboard",
+            "tag": "v1",
+            "source_commit": "2" * 40,
+            "version": "0.110.0",
+            "nu_version": "*",
+            "verified_with": ["0.114.1"],
+            "description": "desc",
+            "tags": [],
+        }
+        rows = [{"target": "linux", "filename": "p.tar.gz", "sha256": "a" * 64, "exe": "p"}]
+        with self.assertRaisesRegex(ValueError, "must be 'owner/name'"):
+            self.gs.build_spec(entry, rows, "https://example.invalid", ["linux"])
+
+    def test_rejects_numan_maintained_without_upstream_repo(self):
+        entry = {
+            "owner": "numan-maintained",
+            "name": "nu_plugin_clipboard",
+            "plugin_bin": "nu_plugin_clipboard",
+            "repo": "numan-maintained/nu_plugin_clipboard",
+            "tag": "v1",
+            "source_commit": "2" * 40,
+            "version": "0.110.0",
+            "nu_version": "*",
+            "verified_with": ["0.114.1"],
+            "description": "desc",
+            "tags": [],
+        }
+        rows = [{"target": "linux", "filename": "p.tar.gz", "sha256": "a" * 64, "exe": "p"}]
+        with self.assertRaisesRegex(ValueError, "requires upstream_repo"):
+            self.gs.build_spec(entry, rows, "https://example.invalid", ["linux"])
+
+    def test_rejects_upstream_repo_without_numan_maintained_owner(self):
+        entry = {
+            "owner": "cptpiepmatz",
+            "name": "nu_plugin_highlight",
+            "plugin_bin": "nu_plugin_highlight",
+            "repo": "cptpiepmatz/nu-plugin-highlight",
+            "upstream_repo": "other/nu-plugin-highlight",
+            "tag": "v1",
+            "source_commit": "3" * 40,
+            "version": "1.0.0",
+            "nu_version": "*",
+            "verified_with": ["0.113.1"],
+            "description": "desc",
+            "tags": [],
+        }
+        rows = [{"target": "linux", "filename": "p.tar.gz", "sha256": "a" * 64, "exe": "p"}]
+        with self.assertRaisesRegex(ValueError, "requires owner 'numan-maintained'"):
+            self.gs.build_spec(entry, rows, "https://example.invalid", ["linux"])
+
     def test_non_fork_entry_omits_source_upstream(self):
         entry = {
             "owner": "cptpiepmatz",

@@ -32,7 +32,7 @@ import re
 import sys
 from pathlib import Path
 
-from validate_manifest import expected_targets
+from validate_manifest import expected_targets, validate_upstream_repo
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -128,7 +128,8 @@ def build_spec(
         dict: Registry specification containing plugin metadata and binary artifact targets.
     
     Raises:
-        ValueError: If packaged targets are missing or include unexpected targets.
+        ValueError: If packaged targets are missing or include unexpected targets,
+            or if ``upstream_repo`` / owner fork-identity invariants fail.
     """
     actual = {row["target"] for row in packaged_rows}
     missing = sorted(set(expected) - actual)
@@ -148,6 +149,7 @@ def build_spec(
             "executable_path": r["exe"],
         }
 
+    validate_upstream_repo(entry)
     upstream_repo = entry.get("upstream_repo")
     description = (
         entry["description"]
@@ -158,13 +160,7 @@ def build_spec(
         "rev": entry["source_commit"],
         "cargo_name": entry["plugin_bin"],
     }
-    if upstream_repo:
-        if entry.get("owner") != "numan-maintained":
-            raise ValueError(
-                f"{entry['name']}: upstream_repo requires owner 'numan-maintained'"
-            )
-        if upstream_repo.lower() == str(entry.get("repo", "")).lower():
-            raise ValueError(f"{entry['name']}: upstream_repo must not be the same as repo")
+    if upstream_repo is not None:
         description += f" (numan-maintained fork; upstream: {upstream_repo})"
         source["upstream"] = f"https://github.com/{upstream_repo}"
 
