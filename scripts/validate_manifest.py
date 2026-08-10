@@ -12,6 +12,7 @@ import tempfile
 from pathlib import Path
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+GITHUB_REPO_SLUG_RE = re.compile(r"^[^/\s]+/[^/\s]+$")
 COMMAND_TIMEOUT_SECONDS = 30
 REQUIRED_FIELDS = {
     "repo",
@@ -84,6 +85,30 @@ def validate_intake_fields(name: str, entry: dict) -> None:
         raise ValueError(f"{name}: tag must be a string or null")
 
 
+def validate_upstream_repo(entry: dict) -> None:
+    """Enforce ADR 0001 fork-identity invariants: only 'numan-maintained' may
+    set upstream_repo, it must be required (not optional) for that owner, and
+    it must not equal repo (a fork can't claim to be its own upstream)."""
+    name = entry["name"]
+    upstream_repo = entry.get("upstream_repo")
+    if upstream_repo is not None:
+        if not isinstance(upstream_repo, str) or not upstream_repo:
+            raise ValueError(f"{name}: upstream_repo must be a non-empty string when present")
+        if not GITHUB_REPO_SLUG_RE.fullmatch(upstream_repo):
+            raise ValueError(
+                f"{name}: upstream_repo must be 'owner/name', got {upstream_repo!r}"
+            )
+        if entry.get("owner") != "numan-maintained":
+            raise ValueError(
+                f"{name}: upstream_repo requires owner 'numan-maintained' "
+                "(a fork must not claim the original owner's identity)"
+            )
+        if upstream_repo.lower() == str(entry.get("repo", "")).lower():
+            raise ValueError(f"{name}: upstream_repo must not be the same as repo")
+    elif entry.get("owner") == "numan-maintained":
+        raise ValueError(f"{name}: owner 'numan-maintained' requires upstream_repo")
+
+
 def validate_active_entry(manifest: dict, entry: dict, names: set[str]) -> str:
     """Validate one active entry and record its name in ``names``.
 
@@ -105,6 +130,7 @@ def validate_active_entry(manifest: dict, entry: dict, names: set[str]) -> str:
     if not isinstance(source_commit, str) or not SHA_RE.fullmatch(source_commit):
         raise ValueError(f"{name}: source_commit must be 40 lowercase hex characters")
     validate_intake_fields(name, entry)
+    validate_upstream_repo(entry)
     expected_targets(manifest, entry)
     return name
 

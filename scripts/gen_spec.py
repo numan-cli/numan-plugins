@@ -33,7 +33,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from validate_manifest import expected_targets
+from validate_manifest import expected_targets, validate_upstream_repo
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -143,7 +143,8 @@ def build_spec(
         dict: Registry specification containing plugin metadata and binary artifact targets.
     
     Raises:
-        ValueError: If packaged targets are missing or include unexpected targets.
+        ValueError: If packaged targets are missing or include unexpected targets,
+            or if ``upstream_repo`` / owner fork-identity invariants fail.
     """
     actual = {row["target"] for row in packaged_rows}
     missing = sorted(set(expected) - actual)
@@ -163,6 +164,9 @@ def build_spec(
             "executable_path": r["exe"],
         }
 
+    validate_upstream_repo(entry)
+    upstream_repo = entry.get("upstream_repo")
+
     intake_mode = entry.get("intake_mode", "tagged")
     if intake_mode == "commit-snapshot":
         date = snapshot_date or datetime.now(timezone.utc).strftime("%Y%m%d")
@@ -179,21 +183,27 @@ def build_spec(
             f" CI-built from {entry['repo']}@{entry['tag']} and pinned + hash-verified + signed downstream in numan-registry."
         )
 
+    description = entry["description"] + description_suffix
+    source = {
+        "git": f"https://github.com/{entry['repo']}",
+        "rev": entry["source_commit"],
+        "cargo_name": entry["plugin_bin"],
+    }
+    if upstream_repo is not None:
+        description += f" (numan-maintained fork; upstream: {upstream_repo})"
+        source["upstream"] = f"https://github.com/{upstream_repo}"
+
     spec = {
         "owner": entry["owner"],
         "name": entry["name"],
-        "description": entry["description"] + description_suffix,
+        "description": description,
         "repo": f"https://github.com/{entry['repo']}",
         "type": "plugin",
         "tags": entry["tags"],
         "version": version,
         "nu_version": entry["nu_version"],
         "verified_with": entry["verified_with"],
-        "source": {
-            "git": f"https://github.com/{entry['repo']}",
-            "rev": entry["source_commit"],
-            "cargo_name": entry["plugin_bin"],
-        },
+        "source": source,
         "artifact": {
             "kind": "binary",
             "targets": {k: targets[k] for k in sorted(targets)},
