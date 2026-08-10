@@ -77,8 +77,11 @@ def validate_intake_fields(name: str, entry: dict) -> None:
     if intake_mode not in INTAKE_MODES:
         raise ValueError(f"{name}: intake_mode must be one of {sorted(INTAKE_MODES)}")
     tag = entry.get("tag")
-    if not isinstance(tag, str) or not tag:
-        raise ValueError(f"{name}: tag is required and must be non-empty")
+    if intake_mode == "tagged":
+        if not isinstance(tag, str) or not tag:
+            raise ValueError(f"{name}: tag is required and must be non-empty")
+    elif tag is not None and not isinstance(tag, str):
+        raise ValueError(f"{name}: tag must be a string or null")
 
 
 def validate_active_entry(manifest: dict, entry: dict, names: set[str]) -> str:

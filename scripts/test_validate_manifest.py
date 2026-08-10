@@ -115,17 +115,17 @@ class ValidateManifestTests(unittest.TestCase):
                     self.mod.main(["--manifest", str(manifest), "--verify-upstream"]),
                 )
 
-    def test_commit_snapshot_entry_requires_tag(self):
-        with self.assertRaisesRegex(ValueError, "tag is required"):
-            self.mod.validate_manifest(
-                self.manifest([self.entry(intake_mode="commit-snapshot", tag=None)])
-            )
+    def test_commit_snapshot_entry_allows_null_tag(self):
+        entries = self.mod.validate_manifest(
+            self.manifest([self.entry(intake_mode="commit-snapshot", tag=None)])
+        )
+        self.assertEqual([entry["name"] for entry in entries], ["plugin"])
 
-    def test_commit_snapshot_entry_rejects_absent_tag_key(self):
+    def test_commit_snapshot_entry_allows_absent_tag_key(self):
         entry = self.entry(intake_mode="commit-snapshot")
         del entry["tag"]
-        with self.assertRaisesRegex(ValueError, "tag is required"):
-            self.mod.validate_manifest(self.manifest([entry]))
+        entries = self.mod.validate_manifest(self.manifest([entry]))
+        self.assertEqual([entry["name"] for entry in entries], ["plugin"])
 
     def test_tagged_entry_still_requires_tag(self):
         entry = self.entry(tag=None)
