@@ -64,6 +64,68 @@ class BuildSpecSourceTests(unittest.TestCase):
         )
         self.assertEqual(out["repo"], "https://github.com/cptpiepmatz/nu-plugin-highlight")
 
+    def test_fork_entry_emits_source_upstream_and_description_note(self):
+        entry = {
+            "owner": "numan-maintained",
+            "name": "nu_plugin_clipboard",
+            "plugin_bin": "nu_plugin_clipboard",
+            "repo": "numan-maintained/nu_plugin_clipboard",
+            "upstream_repo": "FMotalleb/nu_plugin_clipboard",
+            "tag": "numan/nu-0.114-v0.110.0",
+            "source_commit": "2" * 40,
+            "version": "0.110.0",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "verified_with": ["0.114.1"],
+            "description": "Clipboard access for Nushell.",
+            "tags": ["plugin", "clipboard"],
+        }
+        rows = [
+            {
+                "target": "x86_64-unknown-linux-gnu",
+                "filename": "nu_plugin_clipboard-0.110.0-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "a" * 64,
+                "exe": "nu_plugin_clipboard",
+            }
+        ]
+        out = self.gs.build_spec(
+            entry,
+            rows,
+            "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_clipboard-0.110.0",
+            ["x86_64-unknown-linux-gnu"],
+        )
+        self.assertEqual(
+            out["source"]["upstream"], "https://github.com/FMotalleb/nu_plugin_clipboard"
+        )
+        self.assertIn("(numan-maintained fork; upstream: FMotalleb/nu_plugin_clipboard)", out["description"])
+
+    def test_non_fork_entry_omits_source_upstream(self):
+        entry = {
+            "owner": "cptpiepmatz",
+            "name": "nu_plugin_highlight",
+            "plugin_bin": "nu_plugin_highlight",
+            "repo": "cptpiepmatz/nu-plugin-highlight",
+            "tag": "v1.4.15",
+            "source_commit": "3" * 40,
+            "version": "1.4.15",
+            "nu_version": ">=0.113.0 <0.114.0",
+            "verified_with": ["0.113.1"],
+            "description": "Syntax highlighting.",
+            "tags": ["plugin"],
+        }
+        rows = [
+            {
+                "target": "x86_64-unknown-linux-gnu",
+                "filename": "nu_plugin_highlight-1.4.15-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "a" * 64,
+                "exe": "nu_plugin_highlight",
+            }
+        ]
+        out = self.gs.build_spec(
+            entry, rows, "https://example.invalid", ["x86_64-unknown-linux-gnu"]
+        )
+        self.assertNotIn("upstream", out["source"])
+        self.assertNotIn("numan-maintained fork", out["description"])
+
     def test_rejects_missing_expected_target(self):
         entry = {
             "owner": "o",

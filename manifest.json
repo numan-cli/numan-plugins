@@ -1,6 +1,9 @@
 {
   "schema": "numan-plugin-build-manifest-v0",
   "note": "Build matrix for the numan#30 CI build+sign pipeline. Each active plugin is cross-compiled from its immutable upstream source_commit after its human-facing tag is verified to resolve to that commit, packaged per target (.tar.gz on Unix, .zip on Windows), and published once as a GitHub release asset on THIS repo. numan-registry then pins those asset URLs via scripts/add-package.py and signs the index with the trust root. This repo never holds signing keys.",
+  "schema_notes": {
+    "upstream_repo": "Optional per-entry field, 'owner/name' of the ORIGINAL upstream repo. Only set on numan-maintained fork entries: 'repo'/'owner'/'source_commit' point at the fork (owner must be exactly 'numan-maintained'), 'upstream_repo' preserves the original author's identity. gen_spec.py emits it as source.upstream in the generated spec and appends a fork-attribution note to the description. See docs/adr/0001-ecosystem-trust-upstream-contribution-fork-stewardship.md for the full fork-eligibility and stewardship requirements that must be satisfied before an entry like this is added -- this field only records identity, it doesn't grant eligibility."
+  },
   "default_targets": [
     "x86_64-unknown-linux-gnu",
     "aarch64-unknown-linux-gnu",

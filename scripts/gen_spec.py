@@ -148,22 +148,31 @@ def build_spec(
             "executable_path": r["exe"],
         }
 
+    upstream_repo = entry.get("upstream_repo")
+    description = (
+        entry["description"]
+        + f" CI-built from {entry['repo']}@{entry['tag']} and signed under the official trust root."
+    )
+    source = {
+        "git": f"https://github.com/{entry['repo']}",
+        "rev": entry["source_commit"],
+        "cargo_name": entry["plugin_bin"],
+    }
+    if upstream_repo:
+        description += f" (numan-maintained fork; upstream: {upstream_repo})"
+        source["upstream"] = f"https://github.com/{upstream_repo}"
+
     return {
         "owner": entry["owner"],
         "name": entry["name"],
-        "description": entry["description"]
-        + f" CI-built from {entry['repo']}@{entry['tag']} and signed under the official trust root.",
+        "description": description,
         "repo": f"https://github.com/{entry['repo']}",
         "type": "plugin",
         "tags": entry["tags"],
         "version": entry["version"],
         "nu_version": entry["nu_version"],
         "verified_with": entry["verified_with"],
-        "source": {
-            "git": f"https://github.com/{entry['repo']}",
-            "rev": entry["source_commit"],
-            "cargo_name": entry["plugin_bin"],
-        },
+        "source": source,
         "artifact": {
             "kind": "binary",
             "targets": {k: targets[k] for k in sorted(targets)},

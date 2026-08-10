@@ -104,6 +104,15 @@ def validate_manifest(manifest: dict, only: list[str] | None = None) -> list[dic
         names.add(name)
         if not SHA_RE.fullmatch(entry["source_commit"]):
             raise ValueError(f"{name}: source_commit must be 40 lowercase hex characters")
+        upstream_repo = entry.get("upstream_repo")
+        if upstream_repo is not None:
+            if not isinstance(upstream_repo, str) or not upstream_repo:
+                raise ValueError(f"{name}: upstream_repo must be a non-empty string when present")
+            if entry.get("owner") != "numan-maintained":
+                raise ValueError(
+                    f"{name}: upstream_repo requires owner 'numan-maintained' "
+                    "(a fork must not claim the original owner's identity)"
+                )
         expected_targets(manifest, entry)
 
     if only is None:
