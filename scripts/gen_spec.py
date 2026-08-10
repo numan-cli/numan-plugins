@@ -32,7 +32,7 @@ import re
 import sys
 from pathlib import Path
 
-from validate_manifest import expected_targets
+from validate_manifest import expected_targets, validate_upstream_repo
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -179,22 +179,32 @@ def build_spec(
             "executable_path": r["exe"],
         }
 
+    validate_upstream_repo(entry)
+    upstream_repo = entry.get("upstream_repo")
+    description = (
+        entry["description"]
+        + f" CI-built from {entry['repo']}@{entry['tag']} and signed under the official trust root."
+    )
+    source = {
+        "git": f"https://github.com/{entry['repo']}",
+        "rev": entry["source_commit"],
+        "cargo_name": entry["plugin_bin"],
+    }
+    if upstream_repo is not None:
+        description += f" (numan-maintained fork; upstream: {upstream_repo})"
+        source["upstream"] = f"https://github.com/{upstream_repo}"
+
     return {
         "owner": entry["owner"],
         "name": entry["name"],
-        "description": entry["description"]
-        + f" CI-built from {entry['repo']}@{entry['tag']} and signed under the official trust root.",
+        "description": description,
         "repo": f"https://github.com/{entry['repo']}",
         "type": "plugin",
         "tags": entry["tags"],
         "version": entry["version"],
         "nu_version": entry["nu_version"],
         "verified_with": entry["verified_with"],
-        "source": {
-            "git": f"https://github.com/{entry['repo']}",
-            "rev": entry["source_commit"],
-            "cargo_name": entry["plugin_bin"],
-        },
+        "source": source,
         "artifact": {
             "kind": "binary",
             "targets": {k: targets[k] for k in sorted(targets)},
