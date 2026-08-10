@@ -115,6 +115,25 @@ class ValidateManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "upstream_repo must be a non-empty string"):
             self.mod.validate_manifest(self.manifest([entry]))
 
+    def test_numan_maintained_requires_upstream_repo(self):
+        entry = self.entry(owner="numan-maintained")
+        with self.assertRaisesRegex(ValueError, "requires upstream_repo"):
+            self.mod.validate_manifest(self.manifest([entry]))
+
+    def test_rejects_malformed_upstream_repo(self):
+        cases = [
+            " https://github.com/original-author/plugin",
+            "https://github.com/original-author/plugin",
+            "original-author/",
+            "/plugin",
+            "original-author/plugin/extra",
+        ]
+        for upstream_repo in cases:
+            with self.subTest(upstream_repo=upstream_repo):
+                entry = self.entry(owner="numan-maintained", upstream_repo=upstream_repo)
+                with self.assertRaisesRegex(ValueError, "owner/name"):
+                    self.mod.validate_manifest(self.manifest([entry]))
+
     def test_upstream_timeout_fails_cleanly(self):
         """Return a normal validation failure when an upstream lookup times out."""
         with tempfile.TemporaryDirectory() as tmp:

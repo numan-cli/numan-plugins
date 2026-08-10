@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+GITHUB_REPO_SLUG_RE = re.compile(r"^[^/\s]+/[^/\s]+$")
 COMMAND_TIMEOUT_SECONDS = 30
 REQUIRED_FIELDS = {
     "repo",
@@ -108,11 +109,17 @@ def validate_manifest(manifest: dict, only: list[str] | None = None) -> list[dic
         if upstream_repo is not None:
             if not isinstance(upstream_repo, str) or not upstream_repo:
                 raise ValueError(f"{name}: upstream_repo must be a non-empty string when present")
+            if not GITHUB_REPO_SLUG_RE.fullmatch(upstream_repo):
+                raise ValueError(
+                    f"{name}: upstream_repo must be 'owner/name', got {upstream_repo!r}"
+                )
             if entry.get("owner") != "numan-maintained":
                 raise ValueError(
                     f"{name}: upstream_repo requires owner 'numan-maintained' "
                     "(a fork must not claim the original owner's identity)"
                 )
+        elif entry.get("owner") == "numan-maintained":
+            raise ValueError(f"{name}: owner 'numan-maintained' requires upstream_repo")
         expected_targets(manifest, entry)
 
     if only is None:
