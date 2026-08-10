@@ -136,11 +136,28 @@ class ValidateManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "intake_mode must be one of"):
             self.mod.validate_manifest(self.manifest([self.entry(intake_mode="bogus")]))
 
-    def test_verify_upstream_skips_commit_snapshot(self):
+    def test_verify_upstream_skips_tag_check_for_commit_snapshot(self):
         entry = self.entry(intake_mode="commit-snapshot", tag=None)
         with mock.patch.object(self.mod, "resolve_tag") as resolve_tag:
+            with mock.patch.object(self.mod, "verify_commit_exists"):
+                self.mod.verify_upstream([entry])
+                resolve_tag.assert_not_called()
+
+    def test_verify_upstream_checks_commit_exists_for_commit_snapshot(self):
+        entry = self.entry(intake_mode="commit-snapshot", tag=None)
+        with mock.patch.object(self.mod, "verify_commit_exists") as verify_commit_exists:
             self.mod.verify_upstream([entry])
-            resolve_tag.assert_not_called()
+            verify_commit_exists.assert_called_once_with(entry["repo"], entry["source_commit"])
+
+    def test_verify_upstream_fails_when_snapshot_commit_missing_upstream(self):
+        entry = self.entry(intake_mode="commit-snapshot", tag=None)
+        with mock.patch.object(
+            self.mod,
+            "verify_commit_exists",
+            side_effect=ValueError("source_commit not found upstream: owner/repo@" + "a" * 40),
+        ):
+            with self.assertRaisesRegex(ValueError, "source_commit not found upstream"):
+                self.mod.verify_upstream([entry])
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -154,14 +155,42 @@ def resolve_tag(repo: str, tag: str) -> str:
     raise ValueError(f"upstream tag not found: {repo}@{tag}")
 
 
+def verify_commit_exists(repo: str, sha: str) -> None:
+    """Confirm a commit-snapshot's source_commit is fetchable from repo.
+
+    ls-remote can't confirm an arbitrary unadvertised commit, so this does a
+    scoped shallow fetch instead -- a bad SHA fails fast here rather than
+    after a full cross-platform build.
+    """
+    url = f"https://github.com/{repo}.git"
+    with tempfile.TemporaryDirectory() as tmp:
+        subprocess.run(
+            ["git", "init", "--quiet", tmp],
+            check=True,
+            capture_output=True,
+            timeout=COMMAND_TIMEOUT_SECONDS,
+        )
+        result = subprocess.run(
+            ["git", "-C", tmp, "fetch", "--quiet", "--depth", "1", url, sha],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=COMMAND_TIMEOUT_SECONDS,
+        )
+        if result.returncode != 0:
+            raise ValueError(f"source_commit not found upstream: {repo}@{sha}")
+
+
 def verify_upstream(entries: list[dict]) -> None:
     """Require every entry's upstream tag to match its immutable source commit.
 
     Entries with intake_mode 'commit-snapshot' have no tag to verify against;
-    source_commit is the sole provenance anchor and is trusted as pinned.
+    source_commit's existence upstream is checked instead so a bad SHA fails
+    here rather than after a full cross-platform build.
     """
     for entry in entries:
         if entry.get("intake_mode", "tagged") == "commit-snapshot":
+            verify_commit_exists(entry["repo"], entry["source_commit"])
             print(f"OK: {entry['repo']} (commit-snapshot) -> {entry['source_commit']}")
             continue
         actual = resolve_tag(entry["repo"], entry["tag"])

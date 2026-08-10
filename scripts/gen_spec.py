@@ -210,6 +210,12 @@ def main() -> int:
     ap.add_argument("--assets-dir", required=True, type=Path)
     ap.add_argument("--release-base", required=True, help="release asset download base URL (no trailing slash)")
     ap.add_argument("--out", required=True, type=Path)
+    ap.add_argument(
+        "--snapshot-date",
+        help="YYYYMMDD override for commit-snapshot versions; must match the "
+        "date the workflow used to derive the package/release version, or "
+        "the generated spec's version won't match the published release tag",
+    )
     args = ap.parse_args()
 
     manifest = json.loads((REPO_ROOT / "manifest.json").read_text(encoding="utf-8"))
@@ -222,6 +228,7 @@ def main() -> int:
             rows,
             args.release_base,
             expected_targets(manifest, entry),
+            snapshot_date=args.snapshot_date,
         )
     except ValueError as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
