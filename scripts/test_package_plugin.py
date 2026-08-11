@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import sys
 import tempfile
 import unittest
@@ -94,13 +96,16 @@ class PackagePluginTests(unittest.TestCase):
                 "--target", "x86_64-unknown-linux-gnu",
                 "--outdir", str(outdir),
             ]
-            with mock.patch.object(sys, "argv", argv):
+            buf = io.StringIO()
+            with mock.patch.object(sys, "argv", argv), contextlib.redirect_stdout(buf):
                 rc = self.mod.main()
             self.assertEqual(rc, 0)
             expected = outdir / "plugin-1.0.0-x86_64-unknown-linux-gnu.tar.gz"
             self.assertTrue(expected.is_file())
             digest = self.mod.hashlib.sha256(expected.read_bytes()).hexdigest()
-            self.assertTrue(digest)
+            record = buf.getvalue().strip()
+            self.assertIn(expected.name, record)
+            self.assertIn(digest, record)
 
     def test_main_writes_zip_for_windows_target(self):
         with tempfile.TemporaryDirectory() as tmp:

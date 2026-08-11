@@ -302,9 +302,11 @@ class ReleaseTransactionTests(unittest.TestCase):
     def test_record_release_id_appends_line(self):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "github-output"
-            output.write_text("", encoding="utf-8")
+            output.write_text("existing=1\n", encoding="utf-8")
             self.mod.record_release_id(output, 42)
-            self.assertEqual(output.read_text(encoding="utf-8"), "release_id=42\n")
+            self.assertEqual(
+                output.read_text(encoding="utf-8"), "existing=1\nrelease_id=42\n"
+            )
 
     def test_main_claim_requires_github_output(self):
         with mock.patch.dict(self.mod.os.environ, clear=False):
