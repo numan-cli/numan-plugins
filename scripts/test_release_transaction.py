@@ -284,6 +284,7 @@ class ReleaseTransactionTests(unittest.TestCase):
         )
         self.mod.cleanup("o/r", 7, "p-1", "a" * 40, runner)
         self.assertEqual(len(runner.commands), 2)
+        self.assertFalse(any("DELETE" in command for command in runner.commands))
 
     def test_cleanup_deletes_owned_draft_and_tag(self):
         runner = FakeRunner(
@@ -297,7 +298,9 @@ class ReleaseTransactionTests(unittest.TestCase):
         self.mod.cleanup("o/r", 7, "p-1", "a" * 40, runner)
         self.assertEqual(len(runner.commands), 4)
         self.assertIn("DELETE", runner.commands[-2])
+        self.assertIn("releases/7", " ".join(runner.commands[-2]))
         self.assertIn("DELETE", runner.commands[-1])
+        self.assertIn("git/refs/tags/p-1", " ".join(runner.commands[-1]))
 
     def test_record_release_id_appends_line(self):
         with tempfile.TemporaryDirectory() as tmp:

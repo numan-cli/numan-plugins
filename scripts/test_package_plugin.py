@@ -8,6 +8,7 @@ import io
 import sys
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 from unittest import mock
 
@@ -107,6 +108,28 @@ class PackagePluginTests(unittest.TestCase):
             self.assertIn(expected.name, record)
             self.assertIn(digest, record)
 
+    def test_main_refuses_to_overwrite_existing_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            binary = root / "plugin"
+            binary.write_bytes(b"binary")
+            outdir = root / "dist"
+            outdir.mkdir()
+            existing = outdir / "plugin-1.0.0-x86_64-unknown-linux-gnu.tar.gz"
+            existing.write_bytes(b"pre-existing content")
+            argv = [
+                "package_plugin.py",
+                "--binary", str(binary),
+                "--name", "plugin",
+                "--version", "1.0.0",
+                "--target", "x86_64-unknown-linux-gnu",
+                "--outdir", str(outdir),
+            ]
+            with mock.patch.object(sys, "argv", argv):
+                rc = self.mod.main()
+            self.assertEqual(rc, 1)
+            self.assertEqual(existing.read_bytes(), b"pre-existing content")
+
     def test_main_writes_zip_for_windows_target(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -124,9 +147,11 @@ class PackagePluginTests(unittest.TestCase):
             with mock.patch.object(sys, "argv", argv):
                 rc = self.mod.main()
             self.assertEqual(rc, 0)
-            self.assertTrue(
-                (outdir / "plugin-1.0.0-x86_64-pc-windows-msvc.zip").is_file()
-            )
+            archive = outdir / "plugin-1.0.0-x86_64-pc-windows-msvc.zip"
+            self.assertTrue(archive.is_file())
+            with zipfile.ZipFile(archive) as zf:
+                self.assertEqual(zf.namelist(), ["plugin.exe"])
+                self.assertEqual(zf.read("plugin.exe"), b"binary")
 
 
 if __name__ == "__main__":
