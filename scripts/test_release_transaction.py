@@ -312,7 +312,10 @@ class ReleaseTransactionTests(unittest.TestCase):
             )
 
     def test_main_claim_requires_github_output(self):
-        with mock.patch.dict(self.mod.os.environ, clear=False):
+        with (
+            mock.patch.dict(self.mod.os.environ, clear=False),
+            mock.patch.object(self.mod, "claim") as claim,
+        ):
             self.mod.os.environ.pop("GITHUB_OUTPUT", None)
             rc = self.mod.main(
                 [
@@ -330,6 +333,7 @@ class ReleaseTransactionTests(unittest.TestCase):
                 ]
             )
         self.assertEqual(rc, 1)
+        claim.assert_not_called()
 
     def test_main_upload_command(self):
         with tempfile.TemporaryDirectory() as tmp:
