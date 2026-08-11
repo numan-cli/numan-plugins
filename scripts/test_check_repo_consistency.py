@@ -123,6 +123,20 @@ class CheckRepoConsistencyTests(unittest.TestCase):
             found = self.mod.check_no_pr_refs(roadmap)
             self.assertTrue(found)
 
+    def test_expected_readme_lines_handles_missing_tag(self):
+        entry = {
+            "repo": "owner/repo",
+            "name": "plugin",
+            "version": "0.0.0-snapshot.20260809.5a1ca2a",
+            "source_commit": "5a1ca2a5ceba60108a4ca6d45ec18d213abb5227",
+            "verified_with": ["0.114.1"],
+        }
+        lines = self.mod.expected_readme_lines([entry])
+        self.assertEqual(
+            lines,
+            ["- `owner/repo` @ `commit 5a1ca2a` → `plugin` 0.0.0-snapshot.20260809.5a1ca2a"],
+        )
+
     def test_read_manifest_active_rejects_non_list(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "manifest.json"
