@@ -254,9 +254,13 @@ class ValidateManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "all targets are excluded"):
             self.mod.expected_targets(manifest, entry)
 
-    def test_validate_manifest_rejects_non_list_active(self):
+    def test_validate_manifest_rejects_empty_active(self):
         with self.assertRaisesRegex(ValueError, "non-empty list"):
             self.mod.validate_manifest({"default_targets": ["linux"], "active": []})
+
+    def test_validate_manifest_rejects_non_list_active(self):
+        with self.assertRaisesRegex(ValueError, "non-empty list"):
+            self.mod.validate_manifest({"default_targets": ["linux"], "active": "not-a-list"})
 
     def test_validate_manifest_rejects_non_dict_entry(self):
         manifest = {"default_targets": ["linux"], "active": ["not-a-dict"]}
