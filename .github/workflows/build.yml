@@ -104,6 +104,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout plugin source
+        id: checkout_source
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: ${{ matrix.repo }}
@@ -136,7 +137,7 @@ jobs:
           --verify-upstream
 
       - name: Record provenance failure and fail the leg
-        if: steps.verify_checkout.outcome == 'failure' || steps.recheck_provenance.outcome == 'failure'
+        if: always() && (steps.checkout_source.outcome == 'failure' || steps.verify_checkout.outcome == 'failure' || steps.recheck_provenance.outcome == 'failure')
         shell: bash
         env:
           MATRIX_NAME: ${{ matrix.name }}
@@ -145,7 +146,7 @@ jobs:
           echo "$MATRIX_NAME" > "provenance-failure/$MATRIX_NAME.txt"
 
       - name: Upload provenance failure marker
-        if: steps.verify_checkout.outcome == 'failure' || steps.recheck_provenance.outcome == 'failure'
+        if: always() && (steps.checkout_source.outcome == 'failure' || steps.verify_checkout.outcome == 'failure' || steps.recheck_provenance.outcome == 'failure')
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: provenance-failure-${{ matrix.name }}-${{ matrix.triple }}
@@ -153,7 +154,7 @@ jobs:
           if-no-files-found: error
 
       - name: Fail the leg on provenance mismatch
-        if: steps.verify_checkout.outcome == 'failure' || steps.recheck_provenance.outcome == 'failure'
+        if: always() && (steps.checkout_source.outcome == 'failure' || steps.verify_checkout.outcome == 'failure' || steps.recheck_provenance.outcome == 'failure')
         shell: bash
         env:
           MATRIX_NAME: ${{ matrix.name }}
@@ -251,7 +252,6 @@ jobs:
 
       - name: Check for upstream provenance failures
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        continue-on-error: true
         with:
           pattern: provenance-failure-${{ matrix.plugin.name }}-*
           path: provenance-failure
