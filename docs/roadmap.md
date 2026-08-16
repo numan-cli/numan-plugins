@@ -134,14 +134,14 @@ With the intake reform tooling merged into `numan-plugins` (commit-snapshot inta
 
 Build directly from an immutable 40-character lowercase `source_commit` with `intake_mode: "commit-snapshot"` and `tag: null`, producing SemVer prereleases (`0.0.0-snapshot.<YYYYMMDD>.<sha>`):
 
-- [ ] `Euphrasiologist/nu_plugin_plot` (⭐ 71) — terminal plotting
-- [ ] `Euphrasiologist/nu_plugin_bio` (⭐ 31) — bioinformatics format parsing
-- [ ] `fdncred/nu_plugin_pnet` (⭐ 9) — network interface inspection
-- [ ] `WindSoilder/nu_plugin_mongo` (⭐ 8) — MongoDB client
-- [ ] `hulthe/nu_plugin_msgpack` (⭐ 7) — MsgPack converter
-- [ ] `kik4444/nu_plugin_mime` (⭐ 6) — in-memory MIME inspection
-- [ ] `oderwat/nu_plugin_logfmt` (⭐ 5) — logfmt parser
-- [ ] `yybit/nu_plugin_x509` (⭐ 5) — X.509 certificates
+- [x] `Euphrasiologist/nu_plugin_plot` (⭐ 71) — terminal plotting
+- [x] `Euphrasiologist/nu_plugin_bio` (⭐ 31) — bioinformatics format parsing
+- [ ] `fdncred/nu_plugin_pnet` (⭐ 9) — network interface inspection (deferred to Lane 5; upstream path dependency requires maintained fork)
+- [x] `WindSoilder/nu_plugin_mongo` (⭐ 8) — MongoDB client
+- [x] `hulthe/nu_plugin_msgpack` (⭐ 7) — MsgPack converter
+- [x] `kik4444/nu_plugin_mime` (⭐ 6) — in-memory MIME inspection
+- [x] `oderwat/nu_plugin_logfmt` (⭐ 5) — logfmt parser
+- [x] `yybit/nu_plugin_x509` (⭐ 5) — X.509 certificates
 
 #### 2. Maintained Forks (P4 Lane 3)
 
@@ -151,6 +151,7 @@ Proposed forks evaluate under ADR 0001 stewardship criteria (requiring `numan-ma
 - [ ] `tonythethompson/nu_plugin_explore` — proposed fork of `nushell/nu_plugin_explore`
 - [ ] `FMotalleb/nu_plugin_clipboard` (⭐ 85) — evaluate bumping from Nu 0.110 to Nu 0.114.1
 - [ ] `yybit/nu_plugin_compress` (⭐ 42) — evaluate bumping from Nu 0.103 to Nu 0.114.1
+- [ ] `fdncred/nu_plugin_pnet` (⭐ 9) — evaluate bumping from Nu 0.97 to Nu 0.114.1
 
 #### 3. Provisional Tier (P6)
 
