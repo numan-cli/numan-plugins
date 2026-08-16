@@ -9,6 +9,7 @@ on:
 jobs:
   opencode:
     if: |
+      (github.event_name == 'pull_request_review_comment' || github.event.issue.pull_request != null) &&
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association) &&
       (contains(github.event.comment.body, ' /oc') ||
       startsWith(github.event.comment.body, '/oc') ||
@@ -36,6 +37,11 @@ jobs:
           DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         run: |
+          if [[ -z "${OPENCODE_API_KEY:-}" ]]; then
+            echo "::error::OPENCODE_API_KEY secret is required but not set"
+            exit 1
+          fi
+
           probe_zen() {
             local id="$1"
             local url="https://opencode.ai/zen/v1/chat/completions"
@@ -137,12 +143,21 @@ jobs:
       # the run step can retry. The composite action cannot wrap itself: classic
       # Actions has no step retry and the CLI commits/pushes from this checkout,
       # so on a rejected push (remote advanced mid-run) the work would be lost.
-      - name: Get opencode version
+      - name: Get opencode version and asset
         id: version
         shell: bash
         run: |
-          VERSION=$(curl -sf https://api.github.com/repos/anomalyco/opencode/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)
-          echo "version=${VERSION:-latest}" >> "$GITHUB_OUTPUT"
+          RELEASE=$(curl -sf https://api.github.com/repos/anomalyco/opencode/releases/latest)
+          VERSION=$(echo "${RELEASE}" | jq -r '.tag_name // empty')
+          URL=$(echo "${RELEASE}" | jq -r '.assets[] | select(.name=="opencode-linux-x64.tar.gz") | .browser_download_url // empty')
+          DIGEST=$(echo "${RELEASE}" | jq -r '.assets[] | select(.name=="opencode-linux-x64.tar.gz") | .digest // empty' | sed 's/^sha256://')
+          if [[ -z "${VERSION}" || -z "${URL}" || -z "${DIGEST}" ]]; then
+            echo "::error::Failed to fetch opencode release metadata"
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "url=${URL}" >> "$GITHUB_OUTPUT"
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
 
       - name: Cache opencode
         id: cache
@@ -154,7 +169,17 @@ jobs:
       - name: Install opencode
         if: steps.cache.outputs.cache-hit != 'true'
         shell: bash
-        run: curl -fsSL https://opencode.ai/install | bash
+        env:
+          OPENCODE_URL: ${{ steps.version.outputs.url }}
+          OPENCODE_DIGEST: ${{ steps.version.outputs.digest }}
+        run: |
+          mkdir -p "$HOME/.opencode/bin"
+          TAR_FILE="$(mktemp --suffix=.tar.gz)"
+          curl -fsSL -o "${TAR_FILE}" "${OPENCODE_URL}"
+          echo "${OPENCODE_DIGEST}  ${TAR_FILE}" | sha256sum -c -
+          tar -xzf "${TAR_FILE}" -C "$HOME/.opencode/bin" opencode
+          chmod 755 "$HOME/.opencode/bin/opencode"
+          rm -f "${TAR_FILE}"
 
       - name: Run opencode
         id: run_opencode
@@ -170,6 +195,9 @@ jobs:
           set -u
           echo "$HOME/.opencode/bin" >> "$GITHUB_PATH"
           export PATH="$HOME/.opencode/bin:$PATH"
+
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           run_opencode() {
             opencode github run
