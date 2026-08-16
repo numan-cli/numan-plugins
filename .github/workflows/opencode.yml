@@ -115,10 +115,9 @@ jobs:
                 exit 0
               fi
               echo "::warning::All models unavailable"
+              exit 1
             fi
           fi
-          echo "model=${MODEL}" >> "$GITHUB_OUTPUT"
-          echo "variant=${VARIANT}" >> "$GITHUB_OUTPUT"
 
       # Replicates anomalyco/opencode/github@v1.18.18 (composite action) inline so
       # the run step can retry. The composite action cannot wrap itself: classic
