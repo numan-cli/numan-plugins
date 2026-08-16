@@ -81,6 +81,13 @@ jobs:
             exit 0
           fi
           echo "::warning::Nemotron 3 Ultra free unavailable - trying free fallback (nemotron-3.5-lightning-free)"
+          MODEL="opencode/nemotron-3.5-lightning-free"
+          VARIANT=""
+          if probe_zen nemotron-3.5-lightning-free; then
+            echo "model=${MODEL}" >> "$GITHUB_OUTPUT"
+            echo "variant=${VARIANT}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           echo "::warning::Nemotron 3.5 Lightning free unavailable - trying free fallback (deepseek-v4-flash)"
           MODEL="opencode/deepseek-v4-flash"
           VARIANT=""
@@ -92,32 +99,39 @@ jobs:
           echo "::warning::DeepSeek V4 Flash unavailable - falling back to alibaba-token-plan"
           MODEL="alibaba-token-plan/qwen3.8-max"
           VARIANT=""
-          if ! curl -sf --max-time 15 \
+          if curl -sf --max-time 15 \
             -X POST "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/chat/completions" \
             -H "Authorization: Bearer ${ALIBABA_TOKEN_PLAN_API_KEY}" \
             -H "Content-Type: application/json" \
             -d '{"model":"qwen3.8-max","messages":[{"role":"user","content":"ping"}],"max_tokens":1}' \
             >/dev/null 2>&1; then
-            echo "::warning::alibaba-token-plan unavailable - trying DashScope"
-            MODEL="alibaba/qwen3.8-max"
-            if ! curl -sf --max-time 15 \
-              -X POST "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions" \
-              -H "Authorization: Bearer ${DASHSCOPE_API_KEY}" \
-              -H "Content-Type: application/json" \
-              -d '{"model":"qwen3.8-max","messages":[{"role":"user","content":"ping"}],"max_tokens":1}' \
-              >/dev/null 2>&1; then
-              echo "::warning::DashScope unavailable - trying paid Nemotron 3 Ultra"
-              MODEL="opencode/nemotron-3-ultra"
-              VARIANT=""
-              if probe_zen nemotron-3-ultra; then
-                echo "model=${MODEL}" >> "$GITHUB_OUTPUT"
-                echo "variant=${VARIANT}" >> "$GITHUB_OUTPUT"
-                exit 0
-              fi
-              echo "::warning::All models unavailable"
-              exit 1
-            fi
+            echo "model=${MODEL}" >> "$GITHUB_OUTPUT"
+            echo "variant=${VARIANT}" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+          echo "::warning::alibaba-token-plan unavailable - trying DashScope"
+          MODEL="alibaba/qwen3.8-max"
+          VARIANT=""
+          if curl -sf --max-time 15 \
+            -X POST "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions" \
+            -H "Authorization: Bearer ${DASHSCOPE_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{"model":"qwen3.8-max","messages":[{"role":"user","content":"ping"}],"max_tokens":1}' \
+            >/dev/null 2>&1; then
+            echo "model=${MODEL}" >> "$GITHUB_OUTPUT"
+            echo "variant=${VARIANT}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "::warning::DashScope unavailable - trying paid Nemotron 3 Ultra"
+          MODEL="opencode/nemotron-3-ultra"
+          VARIANT=""
+          if probe_zen nemotron-3-ultra; then
+            echo "model=${MODEL}" >> "$GITHUB_OUTPUT"
+            echo "variant=${VARIANT}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "::error::All models unavailable"
+          exit 1
 
       # Replicates anomalyco/opencode/github@v1.18.18 (composite action) inline so
       # the run step can retry. The composite action cannot wrap itself: classic
