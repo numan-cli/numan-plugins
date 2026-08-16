@@ -136,7 +136,7 @@ Build directly from an immutable 40-character lowercase `source_commit` with `in
 
 - [x] `Euphrasiologist/nu_plugin_plot` (⭐ 71) — terminal plotting
 - [x] `Euphrasiologist/nu_plugin_bio` (⭐ 31) — bioinformatics format parsing
-- [x] `fdncred/nu_plugin_pnet` (⭐ 9) — network interface inspection
+- [ ] `fdncred/nu_plugin_pnet` (⭐ 9) — network interface inspection (deferred to Lane 5; upstream path dependency requires maintained fork)
 - [x] `WindSoilder/nu_plugin_mongo` (⭐ 8) — MongoDB client
 - [x] `hulthe/nu_plugin_msgpack` (⭐ 7) — MsgPack converter
 - [x] `kik4444/nu_plugin_mime` (⭐ 6) — in-memory MIME inspection
@@ -151,6 +151,7 @@ Proposed forks evaluate under ADR 0001 stewardship criteria (requiring `numan-ma
 - [ ] `tonythethompson/nu_plugin_explore` — proposed fork of `nushell/nu_plugin_explore`
 - [ ] `FMotalleb/nu_plugin_clipboard` (⭐ 85) — evaluate bumping from Nu 0.110 to Nu 0.114.1
 - [ ] `yybit/nu_plugin_compress` (⭐ 42) — evaluate bumping from Nu 0.103 to Nu 0.114.1
+- [ ] `fdncred/nu_plugin_pnet` (⭐ 9) — evaluate bumping from Nu 0.97 to Nu 0.114.1
 
 #### 3. Provisional Tier (P6)
 

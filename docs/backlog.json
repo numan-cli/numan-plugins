@@ -78,7 +78,7 @@
       "name": "nu_plugin_plot",
       "plugin_bin": "nu_plugin_plot",
       "stars": 71,
-      "status": "ELIGIBLE",
+      "status": "PROMOTED",
       "versions": [],
       "backfill_targets": [],
       "c1_note": "2026-08-16: promoted to active[] under P1 commit-snapshot mode (commit 5a1ca2a5)."
@@ -149,7 +149,7 @@
       "name": "nu_plugin_bio",
       "plugin_bin": "nu_plugin_bio",
       "stars": 31,
-      "status": "ELIGIBLE",
+      "status": "PROMOTED",
       "versions": [],
       "backfill_targets": [],
       "c1_note": "2026-08-16: promoted to active[] under P1 commit-snapshot mode (commit 49ab3415)."
@@ -366,7 +366,7 @@
       "name": "nu_plugin_mongo",
       "plugin_bin": "nu_plugin_mongo",
       "stars": 8,
-      "status": "ELIGIBLE",
+      "status": "PROMOTED",
       "versions": [],
       "backfill_targets": [],
       "c1_note": "2026-08-16: promoted to active[] under P1 commit-snapshot mode (commit 47854d99)."
@@ -376,7 +376,7 @@
       "name": "nu_plugin_msgpack",
       "plugin_bin": "nu_plugin_msgpack",
       "stars": 7,
-      "status": "ELIGIBLE",
+      "status": "PROMOTED",
       "versions": [],
       "backfill_targets": [],
       "c1_note": "2026-08-16: promoted to active[] under P1 commit-snapshot mode (commit 38eb4924)."
@@ -386,7 +386,7 @@
       "name": "nu_plugin_mime",
       "plugin_bin": "nu_plugin_mime",
       "stars": 6,
-      "status": "ELIGIBLE",
+      "status": "PROMOTED",
       "versions": [],
       "backfill_targets": [],
       "c1_note": "2026-08-16: promoted to active[] under P1 commit-snapshot mode (commit 8e5872a5)."
@@ -414,7 +414,7 @@
       "name": "nu_plugin_logfmt",
       "plugin_bin": "nu_plugin_logfmt",
       "stars": 5,
-      "status": "ELIGIBLE",
+      "status": "PROMOTED",
       "versions": [],
       "backfill_targets": [],
       "c1_note": "2026-08-16: promoted to active[] under P1 commit-snapshot mode with Go CI build support (commit 892c4f98)."
@@ -434,7 +434,7 @@
       "name": "nu_plugin_x509",
       "plugin_bin": "nu_plugin_x509",
       "stars": 5,
-      "status": "ELIGIBLE",
+      "status": "PROMOTED",
       "versions": [],
       "backfill_targets": [],
       "c1_note": "2026-08-16: promoted to active[] under P1 commit-snapshot mode (commit 15518ddd)."
