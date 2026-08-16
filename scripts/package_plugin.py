@@ -88,6 +88,10 @@ def main() -> int:
     ext = "zip" if win else "tar.gz"
     out = args.outdir / f"{args.name}-{args.version}-{args.target}.{ext}"
 
+    if out.exists():
+        print(f"FAIL: output already exists, refusing to overwrite: {out}", file=sys.stderr)
+        return 1
+
     if win:
         build_zip(args.binary, arcname, out)
     else:
