@@ -162,6 +162,28 @@ jobs:
           echo "Upstream provenance check failed for $MATRIX_NAME; this must block release, not be treated as a missing target." >&2
           exit 1
 
+      - name: Record provenance success evidence
+        # Affirmative evidence: only a leg whose checkout, hash check, and
+        # upstream recheck all succeeded may emit a provenance-ok marker.
+        # The release job refuses to ship any target lacking this marker, so
+        # publication never depends on the mere absence of a failure marker.
+        if: steps.recheck_provenance.outcome == 'success'
+        shell: bash
+        env:
+          MATRIX_TRIPLE: ${{ matrix.triple }}
+          SOURCE_COMMIT: ${{ matrix.source_commit }}
+        run: |
+          mkdir -p provenance-ok
+          printf '%s\n' "$SOURCE_COMMIT" > "provenance-ok/$MATRIX_TRIPLE.ok"
+
+      - name: Upload provenance success marker
+        if: steps.recheck_provenance.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: provenance-ok-${{ matrix.name }}-${{ matrix.triple }}
+          path: provenance-ok/*
+          if-no-files-found: error
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
         with:
@@ -281,6 +303,37 @@ jobs:
           pattern: record-${{ matrix.plugin.name }}-*
           path: records
           merge-multiple: true
+
+      - name: Collect provenance success evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: provenance-ok-${{ matrix.plugin.name }}-*
+          path: provenance-ok
+          merge-multiple: true
+
+      - name: Require affirmative provenance evidence for every packaged target
+        shell: bash
+        env:
+          PLUGIN_NAME: ${{ matrix.plugin.name }}
+        run: |
+          set -euo pipefail
+          shipped="$(cat records/*.txt 2>/dev/null | grep '^PACKAGED' | cut -f2 | sort -u || true)"
+          if [ -z "$shipped" ]; then
+            echo "No packaged targets for $PLUGIN_NAME; refusing to publish without evidence." >&2
+            exit 1
+          fi
+          missing=""
+          for t in $shipped; do
+            if [ ! -f "provenance-ok/$t.ok" ]; then
+              missing="$missing $t"
+            fi
+          done
+          if [ -n "$missing" ]; then
+            echo "FAIL: no affirmative provenance-ok evidence for shipped target(s):$missing" >&2
+            echo "Every published target requires its provenance success marker; refusing to publish on absent evidence." >&2
+            exit 1
+          fi
+          echo "Affirmative provenance evidence present for: $shipped"
 
       - name: Refuse an existing release
         env:
