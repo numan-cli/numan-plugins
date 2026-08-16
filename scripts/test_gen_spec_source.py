@@ -338,6 +338,78 @@ class BuildSpecSourceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "missing targets"):
             self.gs.build_spec(entry, [], "https://example.invalid", ["linux"])
 
+    def test_partial_emits_spec_with_only_succeeded_targets(self):
+        entry = {
+            "owner": "o",
+            "name": "p",
+            "plugin_bin": "p",
+            "repo": "o/p",
+            "tag": "v1",
+            "source_commit": "1" * 40,
+            "version": "1.0.0",
+            "nu_version": "*",
+            "verified_with": [],
+            "description": "p",
+            "tags": ["plugin"],
+        }
+        rows = [{"target": "linux", "filename": "p.tar.gz", "sha256": "a" * 64, "exe": "p"}]
+        out = self.gs.build_spec(
+            entry, rows, "https://example.invalid", ["linux", "windows"], partial=True
+        )
+        self.assertEqual(list(out["artifact"]["targets"]), ["linux"])
+
+    def test_partial_still_rejects_zero_targets(self):
+        entry = {
+            "owner": "o",
+            "name": "p",
+            "plugin_bin": "p",
+            "repo": "o/p",
+            "tag": "v1",
+            "source_commit": "1" * 40,
+            "version": "1.0.0",
+            "nu_version": "*",
+            "verified_with": [],
+            "description": "p",
+            "tags": ["plugin"],
+        }
+        with self.assertRaisesRegex(ValueError, "at least one target must succeed"):
+            self.gs.build_spec(entry, [], "https://example.invalid", ["linux"], partial=True)
+
+    def test_partial_rejects_zero_targets_with_zero_expected(self):
+        entry = {
+            "owner": "o",
+            "name": "p",
+            "plugin_bin": "p",
+            "repo": "o/p",
+            "tag": "v1",
+            "source_commit": "1" * 40,
+            "version": "1.0.0",
+            "nu_version": "*",
+            "verified_with": [],
+            "description": "p",
+            "tags": ["plugin"],
+        }
+        with self.assertRaisesRegex(ValueError, "at least one target must succeed"):
+            self.gs.build_spec(entry, [], "https://example.invalid", [], partial=True)
+
+    def test_partial_still_rejects_unexpected_target(self):
+        entry = {
+            "owner": "o",
+            "name": "p",
+            "plugin_bin": "p",
+            "repo": "o/p",
+            "tag": "v1",
+            "source_commit": "1" * 40,
+            "version": "1.0.0",
+            "nu_version": "*",
+            "verified_with": [],
+            "description": "p",
+            "tags": ["plugin"],
+        }
+        rows = [{"target": "solaris", "filename": "p.tar.gz", "sha256": "a" * 64, "exe": "p"}]
+        with self.assertRaisesRegex(ValueError, "unexpected targets"):
+            self.gs.build_spec(entry, rows, "https://example.invalid", ["linux"], partial=True)
+
     def test_rejects_duplicate_packaged_target(self):
         with tempfile.TemporaryDirectory() as tmp:
             records = Path(tmp) / "packaged.tsv"
@@ -361,6 +433,38 @@ class BuildSpecSourceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "hash mismatch"):
                 self.gs.verify_packaged_assets(rows, root)
 
+    def test_rejects_orphan_assets_without_package_records(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            kept = root / "kept.tar.gz"
+            kept.write_bytes(b"kept")
+            orphan = root / "orphan.tar.gz"
+            orphan.write_bytes(b"orphan")
+            rows = [
+                {
+                    "filename": "kept.tar.gz",
+                    "sha256": hashlib.sha256(b"kept").hexdigest(),
+                    "target": "linux",
+                    "exe": "p",
+                }
+            ]
+            with self.assertRaisesRegex(ValueError, "orphan assets without package records"):
+                self.gs.verify_packaged_assets(rows, root)
+
+    def test_rejects_missing_assets_directory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            missing_path = root / "nonexistent"
+            rows = [
+                {
+                    "filename": "package.tar.gz",
+                    "sha256": "a" * 64,
+                    "target": "linux",
+                    "exe": "p",
+                }
+            ]
+            with self.assertRaisesRegex(ValueError, "assets dir not found"):
+                self.gs.verify_packaged_assets(rows, missing_path)
     def test_load_manifest_entry_missing_name_raises(self):
         with tempfile.TemporaryDirectory() as tmp:
             manifest_path = Path(tmp) / "manifest.json"

@@ -97,7 +97,25 @@ def parse_packaged(path: Path) -> list[dict]:
 
 
 def verify_packaged_assets(rows: list[dict], assets_dir: Path) -> None:
-    """Verify that every recorded asset exists and matches its recorded SHA-256."""
+    """Verify packaged assets match records and reject orphan archives.
+
+    Every record must resolve to a file whose SHA-256 matches. Every file in
+    ``assets_dir`` must also be named by a record — otherwise a successful
+    archive upload paired with a failed package-record upload would leave an
+    orphan that ``release_transaction upload`` would publish outside the spec.
+    """
+    if not assets_dir.is_dir():
+        raise ValueError(f"assets dir not found: {assets_dir}")
+    expected_names = {row["filename"] for row in rows}
+    unexpected = sorted(
+        path.name
+        for path in assets_dir.iterdir()
+        if path.is_file() and path.name not in expected_names
+    )
+    if unexpected:
+        raise ValueError(
+            "orphan assets without package records: " + ", ".join(unexpected)
+        )
     for row in rows:
         asset = assets_dir / row["filename"]
         if not asset.is_file():
@@ -125,6 +143,8 @@ def build_spec(
     packaged_rows: list[dict],
     release_base: str,
     expected: list[str],
+    *,
+    partial: bool = False,
     snapshot_date: str | None = None,
 ) -> dict:
     """
@@ -135,27 +155,37 @@ def build_spec(
         packaged_rows (list[dict]): Validated packaged artifacts keyed by target.
         release_base (str): Base URL for released artifact files.
         expected (list[str]): Target names required in the specification.
+        partial (bool): When True, allow the spec to ship with only the targets
+            that succeeded instead of requiring every expected target.
         snapshot_date (str | None): Override for the YYYYMMDD date used in a
             commit-snapshot version; defaults to today (UTC). Exists for
             deterministic testing.
-    
+
     Returns:
         dict: Registry specification containing plugin metadata and binary artifact targets.
     
     Raises:
-        ValueError: If packaged targets are missing or include unexpected targets,
-            or if ``upstream_repo`` / owner fork-identity invariants fail.
+        ValueError: If packaged targets include unexpected targets, if targets are
+            missing and `partial` is False, or if `partial` is True but no target
+            succeeded.
     """
     actual = {row["target"] for row in packaged_rows}
     missing = sorted(set(expected) - actual)
     extra = sorted(actual - set(expected))
-    if missing or extra:
-        details = []
+    if extra:
+        details = [f"unexpected targets: {', '.join(extra)}"]
         if missing:
             details.append(f"missing targets: {', '.join(missing)}")
-        if extra:
-            details.append(f"unexpected targets: {', '.join(extra)}")
         raise ValueError("; ".join(details))
+    if partial and not actual:
+        raise ValueError("no targets packaged; at least one target must succeed")
+    if missing:
+        if not partial:
+            raise ValueError(f"missing targets: {', '.join(missing)}")
+        print(
+            f"WARN: partial spec — missing target(s): {', '.join(missing)}",
+            file=sys.stderr,
+        )
     base = release_base.rstrip("/")
     targets = {}
     for r in packaged_rows:
@@ -223,6 +253,11 @@ def main() -> int:
     ap.add_argument("--release-base", required=True, help="release asset download base URL (no trailing slash)")
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument(
+        "--partial",
+        action="store_true",
+        help="Emit a spec with only the targets that packaged successfully instead of failing on missing targets",
+    )
+    ap.add_argument(
         "--snapshot-date",
         help="YYYYMMDD override for commit-snapshot versions; must match the "
         "date the workflow used to derive the package/release version, or "
@@ -240,6 +275,7 @@ def main() -> int:
             rows,
             args.release_base,
             expected_targets(manifest, entry),
+            partial=args.partial,
             snapshot_date=args.snapshot_date,
         )
     except ValueError as exc:
