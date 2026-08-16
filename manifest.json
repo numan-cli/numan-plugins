@@ -452,6 +452,21 @@
       "verified_with": [],
       "description": "A simple from / to logfmt plugin for nushell.",
       "tags": ["plugin", "logfmt", "logging", "ci-built"]
+    },
+    {
+      "repo": "galuszkak/nu_plugin_bigquery",
+      "name": "nu_plugin_bigquery",
+      "owner": "galuszkak",
+      "plugin_bin": "nu_plugin_bigquery",
+      "tag": "v0.3.0",
+      "source_commit": "5fff4d8d3e6e6e348a1bd999f55b0fb24bdd489e",
+      "version": "0.3.0",
+      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_reason": "Intel Mac EOL; not supported",
+      "nu_version": ">=0.114.0 <0.115.0",
+      "verified_with": [],
+      "description": "A Nushell plugin for querying Google BigQuery.",
+      "tags": ["plugin", "bigquery", "gcp", "database", "ci-built"]
     }
   ],
   "backlog_note": "Remaining demand-ranked source-only plugins live in docs/backlog.json. Wave 1 and wave 2 (jwalk, strutils, query_git, ulid, nutext) are in the official registry.",
