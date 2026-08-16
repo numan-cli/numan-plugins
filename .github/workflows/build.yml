@@ -190,6 +190,12 @@ jobs:
           toolchain: stable
           targets: ${{ matrix.triple }}
 
+      - name: Install Go
+        uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
+        with:
+          go-version: '1.23'
+          cache: false
+
       - name: Set up cross linker (Linux aarch64)
         if: ${{ matrix.cross }}
         uses: taiki-e/setup-cross-toolchain-action@12b7ad4acfa95a1476779d6c06699b96ec1691f8 # v1
@@ -201,18 +207,39 @@ jobs:
         shell: bash
         env:
           MATRIX_TRIPLE: ${{ matrix.triple }}
+          MATRIX_BIN: ${{ matrix.bin }}
         run: |
           set -euo pipefail
 
-          errfile="$(mktemp)"
-          if ! cargo build --release --locked --target "$MATRIX_TRIPLE" 2>"$errfile"; then
-            if grep -q -- "--locked" "$errfile"; then
-              echo "Locked build failed due to lockfile update; retrying without --locked" >&2
-              cat "$errfile" >&2
-              cargo build --release --target "$MATRIX_TRIPLE"
-            else
-              cat "$errfile" >&2
-              exit 1
+          if [ -f "go.mod" ]; then
+            echo "Building Go plugin for target $MATRIX_TRIPLE"
+            case "$MATRIX_TRIPLE" in
+              x86_64-unknown-linux-gnu) export GOOS=linux GOARCH=amd64 ;;
+              aarch64-unknown-linux-gnu) export GOOS=linux GOARCH=arm64 ;;
+              x86_64-apple-darwin) export GOOS=darwin GOARCH=amd64 ;;
+              aarch64-apple-darwin) export GOOS=darwin GOARCH=arm64 ;;
+              x86_64-pc-windows-msvc) export GOOS=windows GOARCH=amd64 ;;
+              *) echo "Unknown target triple for Go build: $MATRIX_TRIPLE" >&2; exit 1 ;;
+            esac
+            export CGO_ENABLED=0
+            outdir="target/$MATRIX_TRIPLE/release"
+            mkdir -p "$outdir"
+            binexe="$MATRIX_BIN"
+            if [ "$GOOS" = "windows" ]; then
+              binexe="${MATRIX_BIN}.exe"
+            fi
+            go build -ldflags="-s -w" -o "$outdir/$binexe" .
+          else
+            errfile="$(mktemp)"
+            if ! cargo build --release --locked --target "$MATRIX_TRIPLE" 2>"$errfile"; then
+              if grep -q -- "--locked" "$errfile"; then
+                echo "Locked build failed due to lockfile update; retrying without --locked" >&2
+                cat "$errfile" >&2
+                cargo build --release --target "$MATRIX_TRIPLE"
+              else
+                cat "$errfile" >&2
+                exit 1
+              fi
             fi
           fi
 

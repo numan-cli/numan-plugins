@@ -414,10 +414,10 @@
       "name": "nu_plugin_logfmt",
       "plugin_bin": "nu_plugin_logfmt",
       "stars": 5,
-      "status": "SOURCE_ONLY",
+      "status": "ELIGIBLE",
       "versions": [],
       "backfill_targets": [],
-      "c1_note": "2026-08-16: Go-based plugin (ainvaltin/nu-plugin); requires Go toolchain in build pipeline."
+      "c1_note": "2026-08-16: promoted to active[] under P1 commit-snapshot mode with Go CI build support (commit 892c4f98)."
     },
     {
       "repo": "WindSoilder/nu_plugin_bin_reader",
