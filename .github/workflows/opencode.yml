@@ -190,7 +190,7 @@ jobs:
           if [[ -n "${BRANCH}" && "${BRANCH}" != "HEAD" ]]; then
             echo "==> salvaging agent commits onto updated remote (branch: ${BRANCH})"
             git config --local http.https://github.com/.extraheader \
-              "AUTHORIZATION: basic $(printf "x-access-token:${GH_TOKEN}" | base64 -w 0)" 2>/dev/null || true
+              "AUTHORIZATION: basic $(printf 'x-access-token:%s' "${GH_TOKEN}" | base64 -w 0)" 2>/dev/null || true
             git fetch --prune origin 2>/dev/null || true
             if git rev-parse --verify "origin/${BRANCH}" >/dev/null 2>&1; then
               if [[ "$(git rev-list --count "origin/${BRANCH}"..HEAD 2>/dev/null || echo 0)" -gt 0 ]]; then
