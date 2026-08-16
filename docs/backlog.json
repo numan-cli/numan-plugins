@@ -356,10 +356,10 @@
       "name": "nu_plugin_pnet",
       "plugin_bin": "nu_plugin_pnet",
       "stars": 9,
-      "status": "ELIGIBLE",
+      "status": "PRE_0_112",
       "versions": [],
       "backfill_targets": [],
-      "c1_note": "2026-08-16: promoted to active[] under P1 commit-snapshot mode (commit b3c3c783)."
+      "c1_note": "2026-08-16: Upstream Cargo.toml pins relative path '../nushell/crates/nu-plugin'; requires upstream fix or maintained fork under ADR 0001."
     },
     {
       "repo": "WindSoilder/nu_plugin_mongo",
@@ -414,10 +414,10 @@
       "name": "nu_plugin_logfmt",
       "plugin_bin": "nu_plugin_logfmt",
       "stars": 5,
-      "status": "ELIGIBLE",
+      "status": "SOURCE_ONLY",
       "versions": [],
       "backfill_targets": [],
-      "c1_note": "2026-08-16: promoted to active[] under P1 commit-snapshot mode (commit 892c4f98)."
+      "c1_note": "2026-08-16: Go-based plugin (ainvaltin/nu-plugin); requires Go toolchain in build pipeline."
     },
     {
       "repo": "WindSoilder/nu_plugin_bin_reader",

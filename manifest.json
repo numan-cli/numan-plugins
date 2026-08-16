@@ -374,22 +374,6 @@
       "tags": ["plugin", "bio", "bioinformatics", "ci-built"]
     },
     {
-      "repo": "fdncred/nu_plugin_pnet",
-      "name": "nu_plugin_pnet",
-      "owner": "fdncred",
-      "plugin_bin": "nu_plugin_pnet",
-      "intake_mode": "commit-snapshot",
-      "tag": null,
-      "source_commit": "b3c3c783855ed141723f758b1eace98d4be7e3c4",
-      "version": "1.7.0",
-      "exclude_targets": ["x86_64-apple-darwin"],
-      "exclude_reason": "Intel Mac EOL; not supported",
-      "nu_version": ">=0.97.0 <0.98.0",
-      "verified_with": [],
-      "description": "A nushell plugin for enumerating network interfaces in a platform-agnostic way.",
-      "tags": ["plugin", "network", "interfaces", "ci-built"]
-    },
-    {
       "repo": "WindSoilder/nu_plugin_mongo",
       "name": "nu_plugin_mongo",
       "owner": "WindSoilder",
@@ -436,22 +420,6 @@
       "verified_with": [],
       "description": "A simple plugin for working with mime types without performing disk access.",
       "tags": ["plugin", "mime", "media", "ci-built"]
-    },
-    {
-      "repo": "oderwat/nu_plugin_logfmt",
-      "name": "nu_plugin_logfmt",
-      "owner": "oderwat",
-      "plugin_bin": "nu_plugin_logfmt",
-      "intake_mode": "commit-snapshot",
-      "tag": null,
-      "source_commit": "892c4f98a24c55d289febabf423a8cee9a8e5e1e",
-      "version": "0.1.2",
-      "exclude_targets": ["x86_64-apple-darwin"],
-      "exclude_reason": "Intel Mac EOL; not supported",
-      "nu_version": ">=0.100.0 <0.101.0",
-      "verified_with": [],
-      "description": "A simple from / to logfmt plugin for nushell.",
-      "tags": ["plugin", "logfmt", "logging", "ci-built"]
     },
     {
       "repo": "yybit/nu_plugin_x509",
