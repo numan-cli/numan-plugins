@@ -28,7 +28,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-07-22: latest release pins nu-plugin 0.110.0. No newer tags found."
+      "c1_note": "2026-07-22: latest release pins nu-plugin 0.110.0. Candidate for P4 numan-maintained fork evaluation under ADR 0001."
     },
     {
       "repo": "idanarye/nu_plugin_skim",
@@ -81,7 +81,7 @@
       "status": "NO_RELEASE",
       "versions": [],
       "backfill_targets": [],
-      "c1_note": "No tags. Needs commit-snapshot policy or upstream release."
+      "c1_note": "No tags. Eligible for CI intake under P1 commit-snapshot mode."
     },
     {
       "repo": "FMotalleb/nu_plugin_desktop_notifications",
@@ -523,7 +523,7 @@
         }
       ],
       "backfill_targets": ["0.112"],
-      "c1_note": "2026-07-31: nu-plugin 0.112.2 (eligible); needs credentialed lifecycle plan."
+      "c1_note": "2026-07-31: nu-plugin 0.112.2 (eligible); eligible for intake under P6 provisional evidence tier with GCP credential deferral reason."
     },
     {
       "repo": "jcornaz/nu_plugin_from_beancount",
