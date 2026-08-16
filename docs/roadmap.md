@@ -75,7 +75,8 @@ only after these facts are recorded:
 - [ ] Upstream repo is reachable and not archived, or the archive state is
   explicitly accepted.
 - [ ] Tag exists and resolves to the recorded 40-character lowercase
-  `source_commit`.
+  `source_commit` (or `intake_mode` is `"commit-snapshot"` with `tag: null`
+  pinning a validated 40-character lowercase `source_commit`).
 - [ ] `nu-plugin` and `nu-protocol` dependency versions are known.
 - [ ] Nu compatibility range is minor-scoped and matches the dependency version.
 - [ ] `plugin_bin` is confirmed.
@@ -123,25 +124,42 @@ are source-only plugins with tags and enough demand to justify CI-built assets:
 - [x] `devyn/nu_plugin_dbus` — researched 2026-07-30: `PRE_0_112` (nu-plugin 0.101.0; libdbus; not Windows)
 - [x] `PhotonBursted/nu_plugin_vec` — researched 2026-07-30: `PRE_0_112` (nu-plugin 0.105.1; pure Rust; Windows expected)
 - [x] `drbrain/nu_plugin_prometheus` — promoted 2026-07-31 to `active[]` as `v0.12.0` (nu-plugin/nu-protocol 0.114.1; commit `3fed1d934ba201ce1d9b78ecb727695588de7ef9`). Windows locked green; `aarch64-unknown-linux-gnu` excluded (openssl-sys cross). CI-built release published; in official registry. `v0.11.0` was `PRE_0_112` (0.110.0).
-- [ ] `galuszkak/nu_plugin_bigquery` — peeked 2026-07-31: `v0.2.0` pins nu-plugin 0.112.2 (eligible) but needs Google credentials for meaningful lifecycle proof
-- [x] `jcornaz/nu_plugin_from_beancount` — researched 2026-07-31: `PRE_0_112` (nu-plugin 0.76)
-- [x] `dam4rus/nu_plugin_nuts` — researched 2026-07-31: `PRE_0_112` (nu-plugin 0.110.0)
-- [x] `FMotalleb/nu_plugin_audio_hook` — researched 2026-07-31: `PRE_0_112` (nu-plugin 0.110.0; rodio decoders)
+- [x] `galuszkak/nu_plugin_bigquery` — researched 2026-07-31: `v0.2.0` pins nu-plugin 0.112.2; eligible for intake via P6 Provisional Tier with deferral reason.
 
-For each, record whether the current tag is compatible with a supported Nu
-minor, whether native system dependencies are required, whether Windows builds,
-and whether the package has a simple command-discovery smoke.
+### Intake Reform Wave (P1 Commit-Snapshot, P4 Maintained Forks, P6 Provisional)
+
+With the intake reform tooling merged into `numan-plugins` (commit-snapshot intake mode `#80`, fork identity `#82`):
+
+#### 1. High-Demand Tag-less Plugins (P1 Commit-Snapshot)
+
+Build directly from an immutable 40-character lowercase `source_commit` with `intake_mode: "commit-snapshot"` and `tag: null`, producing SemVer prereleases (`0.0.0-snapshot.<YYYYMMDD>.<sha>`):
+
+- [ ] `Euphrasiologist/nu_plugin_plot` (⭐ 71) — terminal plotting
+- [ ] `Euphrasiologist/nu_plugin_bio` (⭐ 31) — bioinformatics format parsing
+- [ ] `fdncred/nu_plugin_pnet` (⭐ 9) — network interface inspection
+- [ ] `WindSoilder/nu_plugin_mongo` (⭐ 8) — MongoDB client
+- [ ] `hulthe/nu_plugin_msgpack` (⭐ 7) — MsgPack converter
+- [ ] `kik4444/nu_plugin_mime` (⭐ 6) — in-memory MIME inspection
+- [ ] `oderwat/nu_plugin_logfmt` (⭐ 5) — logfmt parser
+- [ ] `yybit/nu_plugin_x509` (⭐ 5) — X.509 certificates
+
+#### 2. Maintained Forks (P4 Lane 3)
+
+Proposed forks evaluate under ADR 0001 stewardship criteria (requiring `numan-maintained` owner, `upstream_repo` attribution, and named stewardship):
+
+- [ ] `tonythethompson/nu_plugin_qr_maker` — proposed fork of `FMotalleb/nu_plugin_qr_maker`
+- [ ] `tonythethompson/nu_plugin_explore` — proposed fork of `nushell/nu_plugin_explore`
+- [ ] `FMotalleb/nu_plugin_clipboard` (⭐ 85) — evaluate bumping from Nu 0.110 to Nu 0.114.1
+- [ ] `yybit/nu_plugin_compress` (⭐ 42) — evaluate bumping from Nu 0.103 to Nu 0.114.1
+
+#### 3. Provisional Tier (P6)
+
+- [ ] `galuszkak/nu_plugin_bigquery` — build and package normally in `numan-plugins`, then intake into `numan-registry` using `scripts/add-package.py --provisional --deferral-reason "..."`
 
 ### Deferred Until Upstream Changes
 
-- [ ] Pre-0.112 plugins stay deferred unless Numan chooses to support older Nu
-  minors again.
-- [ ] Repositories with no release tag stay deferred unless a maintainer cuts a
-  tag or Numan explicitly chooses a commit snapshot policy for CI-built plugins.
-- [ ] Packages with bare binary uploads or unsupported layouts should remain in
-  backlog until the archive/package shape is made compliant.
-- [ ] Plugins needing heavy native services or credentials should wait until the
-  lifecycle proof can be meaningfully automated.
+- [ ] Pre-0.112 plugins stay deferred unless upstream bumps Nu minor or Numan elects a maintained fork under ADR 0001.
+- [ ] Repositories with bare binary uploads or unsupported archive shapes.
 
 ## Pipeline Maintenance
 
