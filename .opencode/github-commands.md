@@ -1,7 +1,8 @@
 # `/oc` GitHub PR commands
 
 These instructions apply when a user message is posted on a GitHub PR via the opencode
-GitHub Action and begins with `/oc` (or `/opencode`). The message usually carries a
+GitHub Action and starts with `/oc` (or `/opencode`) — or includes them preceded by whitespace
+(per the workflow trigger guard). The message usually carries a
 `<pull_request>` context block (title, body, changed files, comments, reviews) — read it
 carefully before answering.
 
