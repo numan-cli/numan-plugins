@@ -1,10 +1,17 @@
 import unittest
 from unittest import mock
+import urllib.request
 
 from check_upstream_updates import (
     FetchError,
+    _HttpOnlyRedirectHandler,
+    _check_has_new_tag,
+    _check_tag_moved,
+    _determine_status,
     audit_entry,
+    ensure_http_url,
     generate_markdown_report,
+    http_opener,
     manifest_nu_upper_bound,
     nu_needs_bump,
     parse_version,
@@ -24,6 +31,43 @@ def make_entry(**overrides):
 
 
 class TestCheckUpstreamUpdates(unittest.TestCase):
+    def test_ensure_http_url_valid(self):
+        ensure_http_url("https://api.github.com/repos/owner/repo")
+        ensure_http_url("http://example.com/api")
+
+    def test_ensure_http_url_invalid_schemes(self):
+        with self.assertRaises(ValueError):
+            ensure_http_url("file:///etc/passwd")
+        with self.assertRaises(ValueError):
+            ensure_http_url("ftp://example.com/file")
+        with self.assertRaises(ValueError):
+            ensure_http_url("javascript:alert(1)")
+        with self.assertRaises(ValueError):
+            ensure_http_url(None)  # type: ignore
+
+    def test_ensure_http_url_missing_host(self):
+        with self.assertRaises(ValueError):
+            ensure_http_url("https://")
+        with self.assertRaises(ValueError):
+            ensure_http_url("http://:8080")
+
+    def test_http_redirect_handler_blocks_file_redirect(self):
+        handler = _HttpOnlyRedirectHandler()
+        req = urllib.request.Request("https://api.github.com/repos/owner/repo")
+        with self.assertRaises(ValueError):
+            handler.redirect_request(req, None, 302, "Found", {}, "file:///etc/passwd")
+
+    def test_http_opener_constructs_opener(self):
+        opener = http_opener()
+        self.assertIsInstance(opener, urllib.request.OpenerDirector)
+
+    def test_determine_status(self):
+        self.assertEqual(_determine_status(True, False, False), "TAG_PROVENANCE_MISMATCH")
+        self.assertEqual(_determine_status(False, True, True), "READY_FOR_BUMP")
+        self.assertEqual(_determine_status(False, True, False), "UPSTREAM_NU_BUMP_NO_TAG")
+        self.assertEqual(_determine_status(False, False, True), "NEW_TAG_AVAILABLE")
+        self.assertEqual(_determine_status(False, False, False), "UP_TO_DATE")
+
     def test_generate_markdown_report(self):
         sample_results = [
             {

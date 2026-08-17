@@ -25,6 +25,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MANIFEST_PATH = REPO_ROOT / "manifest.json"
 USER_AGENT = "numan-plugins-checker/1.0"
+HTTP_SCHEMES = frozenset({"https", "http"})
 
 
 class FetchError(Exception):
@@ -40,6 +41,32 @@ class FetchError(Exception):
         self.status_code = status_code
 
 
+def ensure_http_url(url: str) -> None:
+    """Raise ValueError unless *url* is an http(s) URL with a host."""
+    if not isinstance(url, str):
+        raise ValueError(f"URL must use http(s), got {url!r}")
+    parsed = urllib.parse.urlparse(url)
+    try:
+        has_host = bool(parsed.hostname)
+    except ValueError:
+        has_host = False
+    if parsed.scheme.lower() not in HTTP_SCHEMES or not has_host:
+        raise ValueError(f"URL must use http(s), got {url!r}")
+
+
+class _HttpOnlyRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Reject any redirect whose target fails the http(s) scheme guard."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        ensure_http_url(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def http_opener() -> urllib.request.OpenerDirector:
+    """Return an opener whose redirects are also constrained to http(s)."""
+    return urllib.request.build_opener(_HttpOnlyRedirectHandler())
+
+
 def fetch_github_json(endpoint: str) -> dict | list:
     """Fetch JSON from GitHub API with optional auth token.
 
@@ -47,6 +74,7 @@ def fetch_github_json(endpoint: str) -> dict | list:
         FetchError: If the request fails or the response cannot be decoded.
     """
     url = f"https://api.github.com/{endpoint.lstrip('/')}"
+    ensure_http_url(url)
     req = urllib.request.Request(
         url,
         headers={
@@ -59,7 +87,7 @@ def fetch_github_json(endpoint: str) -> dict | list:
         req.add_header("Authorization", f"Bearer {token}")
 
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with http_opener().open(req, timeout=30) as resp:
             return json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         raise FetchError(f"HTTP {e.code} from {url}", status_code=e.code) from e
@@ -191,6 +219,47 @@ def _error_result(entry: dict, error: str) -> dict:
     }
 
 
+def _check_tag_moved(repo: str, current_tag: str | None, current_commit: str) -> bool:
+    """Check if current tag moved to a different commit or no longer exists."""
+    if not current_tag:
+        return False
+    resolved = resolve_tag_commit(repo, current_tag)
+    return resolved is None or bool(current_commit and resolved.lower() != current_commit.lower())
+
+
+def _check_has_new_tag(
+    repo: str,
+    current_tag: str | None,
+    current_commit: str,
+    newest_tag: str | None,
+) -> bool:
+    """Check if upstream has a newer tag than the current entry."""
+    if not newest_tag:
+        return False
+    if not current_tag:
+        # commit-snapshot entries pin no tag; any upstream tag that does not
+        # already point at the snapshot commit is a re-intake candidate.
+        resolved_newest = resolve_tag_commit(repo, newest_tag)
+        snapshot_matches = bool(
+            resolved_newest and current_commit and resolved_newest.lower() == current_commit.lower()
+        )
+        return not snapshot_matches
+    return newest_tag != current_tag
+
+
+def _determine_status(tag_moved: bool, nu_bump: bool, has_new_tag: bool) -> str:
+    """Determine audit status from tag movement, Nu bump requirement, and new tag availability."""
+    if tag_moved:
+        return "TAG_PROVENANCE_MISMATCH"
+    if nu_bump and has_new_tag:
+        return "READY_FOR_BUMP"
+    if nu_bump:
+        return "UPSTREAM_NU_BUMP_NO_TAG"
+    if has_new_tag:
+        return "NEW_TAG_AVAILABLE"
+    return "UP_TO_DATE"
+
+
 def audit_entry(entry: dict) -> dict:
     """Audit single manifest entry against upstream repository."""
     repo = entry["repo"]
@@ -202,48 +271,14 @@ def audit_entry(entry: dict) -> dict:
     try:
         tags = fetch_latest_tags(repo)
         cargo_nu = fetch_cargo_toml_nu_dep(repo)
+        newest_tag = tags[0]["name"] if tags else None
+        tag_moved = _check_tag_moved(repo, current_tag, current_commit)
+        has_new_tag = _check_has_new_tag(repo, current_tag, current_commit, newest_tag)
     except FetchError as e:
         return _error_result(entry, str(e))
 
-    newest_tag = tags[0]["name"] if tags else None
-
-    tag_moved = False
-    if current_tag:
-        try:
-            resolved = resolve_tag_commit(repo, current_tag)
-        except FetchError as e:
-            return _error_result(entry, str(e))
-        if resolved is None or (current_commit and resolved.lower() != current_commit.lower()):
-            tag_moved = True
-
-    has_new_tag = False
-    if newest_tag:
-        if not current_tag:
-            # commit-snapshot entries pin no tag; any upstream tag that does not
-            # already point at the snapshot commit is a re-intake candidate.
-            try:
-                resolved_newest = resolve_tag_commit(repo, newest_tag)
-            except FetchError as e:
-                return _error_result(entry, str(e))
-            snapshot_matches = bool(
-                resolved_newest and current_commit and resolved_newest.lower() == current_commit.lower()
-            )
-            has_new_tag = not snapshot_matches
-        elif newest_tag != current_tag:
-            has_new_tag = True
-
     nu_bump = bool(cargo_nu) and nu_needs_bump(current_nu, cargo_nu)
-
-    if tag_moved:
-        status = "TAG_PROVENANCE_MISMATCH"
-    elif nu_bump and has_new_tag:
-        status = "READY_FOR_BUMP"
-    elif nu_bump:
-        status = "UPSTREAM_NU_BUMP_NO_TAG"
-    elif has_new_tag:
-        status = "NEW_TAG_AVAILABLE"
-    else:
-        status = "UP_TO_DATE"
+    status = _determine_status(tag_moved, nu_bump, has_new_tag)
 
     return {
         "repo": repo,
