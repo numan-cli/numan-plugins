@@ -1,8 +1,8 @@
 # numan-plugins
 
-CI build pipeline feeder for the [numan](https://github.com/tonythethompson/numan)
+CI build pipeline feeder for the [numan](https://github.com/numan-cli/numan)
 official registry — implements the binary-delivery half of
-[numan #30](https://github.com/tonythethompson/numan/issues/30).
+[numan #30](https://github.com/numan-cli/numan/issues/30).
 
 **Default branch:** `main` (aligned with `numan-registry`; client stays on `master`).
 
@@ -16,13 +16,13 @@ toolchain to install them.
 This repo closes that gap for selected plugins: it cross-compiles from immutable
 upstream commits (with tags retained for human-facing provenance), packages one
 archive per target, and publishes them as GitHub release assets.
-[`numan-registry`](https://github.com/tonythethompson/numan-registry)
+[`numan-registry`](https://github.com/numan-cli/numan-registry)
 then pins those URLs and signs the index with the official trust root.
 
 Plugins that already publish compliant upstream release assets can be ingested
 directly into `numan-registry` without a stop here. For the live catalog × Nu
 matrix, see
-[`docs/catalog-compat.md`](https://github.com/tonythethompson/numan-registry/blob/main/docs/catalog-compat.md)
+[`docs/catalog-compat.md`](https://github.com/numan-cli/numan-registry/blob/main/docs/catalog-compat.md)
 in the registry. For demand-ranked candidates **not yet** built, see
 [`docs/backlog.json`](docs/backlog.json) here.
 
@@ -48,7 +48,7 @@ Vulnerability reporting and scope: [SECURITY.md](SECURITY.md).
 | `manifest.json` | `active[]` = plugins built now; build matrix + target→runner map |
 | `docs/backlog.json` | Demand-ranked plugin candidates (statuses, Nu deps per tag) |
 | `docs/roadmap.md` | Repo-local build/handoff plan (points at consolidated 1.0 roadmap) |
-| Registry [`catalog-compat.md`](https://github.com/tonythethompson/numan-registry/blob/main/docs/catalog-compat.md) | Master list of **live** official packages × Nu constraints |
+| Registry [`catalog-compat.md`](https://github.com/numan-cli/numan-registry/blob/main/docs/catalog-compat.md) | Master list of **live** official packages × Nu constraints |
 | `.github/workflows/build.yml` | manual matrix build → package → release → emit spec |
 | `.github/workflows/repo-safety.yml` | required manifest, test, archive, spec, and workflow checks |
 | `.pre-commit-config.yaml` | local JSON format + README/backlog consistency hooks |
@@ -140,5 +140,5 @@ invariants, and the review checklist.
 
 See [SECURITY.md](SECURITY.md) for how to report issues in this build pipeline.
 Signed-index and client issues go to
-[numan-registry](https://github.com/tonythethompson/numan-registry/blob/main/SECURITY.md)
-and [numan](https://github.com/tonythethompson/numan/blob/main/SECURITY.md).
+[numan-registry](https://github.com/numan-cli/numan-registry/blob/main/SECURITY.md)
+and [numan](https://github.com/numan-cli/numan/blob/main/SECURITY.md).

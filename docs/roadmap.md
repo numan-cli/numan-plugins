@@ -8,10 +8,10 @@ catalog intake, signing, plugin backfills, client compat, lifecycle
 evidence, and the active-plugin gate — lives in the consolidated
 cross-repo plan:
 
-[**`numan/docs/plans/consolidated-multi-repo-roadmap.md`**](https://github.com/tonythethompson/numan/blob/master/docs/plans/consolidated-multi-repo-roadmap.md)
+[**`numan/docs/plans/consolidated-multi-repo-roadmap.md`**](https://github.com/numan-cli/numan/blob/master/docs/plans/consolidated-multi-repo-roadmap.md)
 
 Repo-local roadmaps keep operational detail. The cross-repo drill is enforced by
-[`scripts/check-roadmap-drift.py`](https://github.com/tonythethompson/numan/blob/master/scripts/check-roadmap-drift.py),
+[`scripts/check-roadmap-drift.py`](https://github.com/numan-cli/numan/blob/master/scripts/check-roadmap-drift.py),
 which CI runs at `.github/workflows/roadmap-drift.yml` and which fails the
 workflow run if this page drifts from the consolidated truth.
 
@@ -44,7 +44,7 @@ contract pins in this repo alone.
 - `docs/backlog.json` (schema v1) is the comprehensive **plugin candidate** list
   (not the live catalog). It tracks release versions per plugin with Nu minor
   compatibility via `versions[]` / `backfill_targets`. Live catalog × Nu overview:
-  [`numan-registry/docs/catalog-compat.md`](https://github.com/tonythethompson/numan-registry/blob/main/docs/catalog-compat.md).
+  [`numan-registry/docs/catalog-compat.md`](https://github.com/numan-cli/numan-registry/blob/main/docs/catalog-compat.md).
   Source: awesome-nu + manual discovery.
 - Wave 1 and Wave 2 CI-built plugins are on **`main`**, published, and intaken
   into the official registry. Wave 2 targets Nu 0.114; Wave 1 includes Nu
@@ -111,9 +111,9 @@ occurred during the Wave 1 Nu 0.114 intake).
 - [x] `lizclipse/nu_plugin_ulid@0.23.0`
 - [x] `rhino-linux/nu_plugin_nutext@0.6.2`
 
-Assets published ([build 30985049217](https://github.com/tonythethompson/numan-plugins/actions/runs/30985049217));
+Assets published ([build 30985049217](https://github.com/numan-cli/numan-plugins/actions/runs/30985049217));
 registry intake complete;
-production [30996546918](https://github.com/tonythethompson/numan-registry/actions/runs/30996546918);
+production [30996546918](https://github.com/numan-cli/numan-registry/actions/runs/30996546918);
 lifecycle-prove OK Linux x86_64 and Windows x64 / Nu 0.114.1.
 
 ### Wave 2 Research

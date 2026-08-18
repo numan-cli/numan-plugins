@@ -117,7 +117,7 @@ class CheckRepoConsistencyTests(unittest.TestCase):
             roadmap = root / "docs" / "roadmap.md"
             roadmap.parent.mkdir()
             roadmap.write_text(
-                "See [intake](https://github.com/tonythethompson/numan-registry/pull/45).\n",
+                "See [intake](https://github.com/numan-cli/numan-registry/pull/45).\n",
                 encoding="utf-8",
             )
             found = self.mod.check_no_pr_refs(roadmap)
