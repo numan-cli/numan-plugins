@@ -23,7 +23,7 @@ jobs:
       # Roadmap contract v1 pin. CONTRACT_TAG is the human-readable handle;
       # CONTRACT_SHA is the immutable fetch target. The verify step fails
       # closed if the tag moves away from this SHA. See scripts/bump-contract.sh
-      # in tonythethompson/numan — never edit this in isolation.
+      # in numan-cli/numan — never edit this in isolation.
       CONTRACT_TAG: numan-roadmap-contract/v1
       CONTRACT_SHA: 2cd6f5a4d5e831d1248d3fe3fd924944823510a1
     steps:
@@ -39,7 +39,7 @@ jobs:
             -H "Authorization: Bearer ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             -H "User-Agent: numan-plugins-ci" \
-            "https://api.github.com/repos/tonythethompson/numan/git/refs/tags/${CONTRACT_TAG}")
+            "https://api.github.com/repos/numan-cli/numan/git/refs/tags/${CONTRACT_TAG}")
           if [ "$status" = "404" ]; then
             echo "::warning::Tag $CONTRACT_TAG does not exist yet; skipping SHA resolution check."
             exit 0
@@ -69,7 +69,7 @@ jobs:
         run: |
           mkdir -p docs/plans
           curl --fail-with-body --silent --show-error --location \
-            "https://raw.githubusercontent.com/tonythethompson/numan/${CONTRACT_SHA}/docs/plans/consolidated-multi-repo-roadmap.md" \
+            "https://raw.githubusercontent.com/numan-cli/numan/${CONTRACT_SHA}/docs/plans/consolidated-multi-repo-roadmap.md" \
             -o docs/plans/consolidated-multi-repo-roadmap.md
           # Sanity check: the file must not be empty AND must mention this
           # repo by path so we know we didn't grab a placeholder document.
@@ -79,7 +79,7 @@ jobs:
         run: |
           mkdir -p scripts
           curl --fail-with-body --silent --show-error --location \
-            "https://raw.githubusercontent.com/tonythethompson/numan/${CONTRACT_SHA}/scripts/check-roadmap-drift.py" \
+            "https://raw.githubusercontent.com/numan-cli/numan/${CONTRACT_SHA}/scripts/check-roadmap-drift.py" \
             -o scripts/check-roadmap-drift.py
           chmod +x scripts/check-roadmap-drift.py
       - name: Run drift check

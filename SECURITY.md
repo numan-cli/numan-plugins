@@ -7,9 +7,9 @@ hosts artifacts only. It never holds registry signing keys.
 Companion policies:
 
 - Signed index, yanks, and key incidents:
-  [tonythethompson/numan-registry SECURITY.md](https://github.com/tonythethompson/numan-registry/blob/main/SECURITY.md)
+  [numan-cli/numan-registry SECURITY.md](https://github.com/numan-cli/numan-registry/blob/main/SECURITY.md)
 - Numan CLI verification and install/activate behavior:
-  [tonythethompson/numan SECURITY.md](https://github.com/tonythethompson/numan/blob/main/SECURITY.md)
+  [numan-cli/numan SECURITY.md](https://github.com/numan-cli/numan/blob/main/SECURITY.md)
 
 ## Report a vulnerability
 
@@ -17,7 +17,7 @@ Do not publish exploit details, credentials, or unverified malware samples in a
 public issue.
 
 Preferred: open a private GitHub security advisory at
-<https://github.com/tonythethompson/numan-plugins/security/advisories/new>.
+<https://github.com/numan-cli/numan-plugins/security/advisories/new>.
 
 Fallback: open a public issue titled **Security contact request** with no
 technical details. The maintainer will establish a private channel before
@@ -45,9 +45,9 @@ Helpful report contents:
 
 - A bad artifact that is already pinned and signed in the official index
   (including yank / user remediation):
-  [numan-registry](https://github.com/tonythethompson/numan-registry)
+  [numan-registry](https://github.com/numan-cli/numan-registry)
 - Client-side verification, path, or activation bugs:
-  [numan](https://github.com/tonythethompson/numan)
+  [numan](https://github.com/numan-cli/numan)
 - Security bugs in upstream plugin source (report upstream; open an issue here
   only if our pinned commit or rebuild process needs to change)
 - Registry private-key or signature issues (this repo does not sign indexes)
@@ -79,4 +79,4 @@ intake or yank as appropriate.
 - Trust boundary overview: [README.md](README.md#trust-boundary)
 - Reviewer trust checklist: [REVIEW.md](REVIEW.md)
 - Registry incident procedures:
-  [numan-registry incident-response](https://github.com/tonythethompson/numan-registry/blob/main/docs/incident-response.md)
+  [numan-registry incident-response](https://github.com/numan-cli/numan-registry/blob/main/docs/incident-response.md)
