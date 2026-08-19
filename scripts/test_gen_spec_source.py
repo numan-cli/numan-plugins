@@ -53,7 +53,7 @@ class BuildSpecSourceTests(unittest.TestCase):
         out = self.gs.build_spec(
             entry,
             rows,
-            "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_highlight-1.4.15",
+            "https://github.com/numan-cli/numan-plugins/releases/download/nu_plugin_highlight-1.4.15",
             ["x86_64-unknown-linux-gnu"],
         )
         self.assertEqual(
@@ -98,7 +98,7 @@ class BuildSpecSourceTests(unittest.TestCase):
         out = self.gs.build_spec(
             entry,
             rows,
-            "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_plot-snapshot",
+            "https://github.com/numan-cli/numan-plugins/releases/download/nu_plugin_plot-snapshot",
             ["x86_64-unknown-linux-gnu"],
             snapshot_date="20260809",
         )
@@ -150,7 +150,7 @@ class BuildSpecSourceTests(unittest.TestCase):
         out = self.gs.build_spec(
             entry,
             rows,
-            "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_clipboard-0.110.0",
+            "https://github.com/numan-cli/numan-plugins/releases/download/nu_plugin_clipboard-0.110.0",
             ["x86_64-unknown-linux-gnu"],
         )
         self.assertEqual(
@@ -184,7 +184,7 @@ class BuildSpecSourceTests(unittest.TestCase):
             self.gs.build_spec(
                 entry,
                 rows,
-                "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_clipboard-0.110.0",
+                "https://github.com/numan-cli/numan-plugins/releases/download/nu_plugin_clipboard-0.110.0",
                 ["x86_64-unknown-linux-gnu"],
             )
     def test_rejects_self_referential_upstream_repo(self):
@@ -214,7 +214,7 @@ class BuildSpecSourceTests(unittest.TestCase):
             self.gs.build_spec(
                 entry,
                 rows,
-                "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_clipboard-0.110.0",
+                "https://github.com/numan-cli/numan-plugins/releases/download/nu_plugin_clipboard-0.110.0",
                 ["x86_64-unknown-linux-gnu"],
             )
 
