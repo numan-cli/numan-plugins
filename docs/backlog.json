@@ -28,7 +28,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-07-22: latest release pins nu-plugin 0.110.0. Candidate for P4 numan-maintained fork evaluation under ADR 0001."
+      "c1_note": "2026-07-22: latest release pins nu-plugin 0.110.0. Superseded by Nushell 0.111+ core native `clip` command; not a numan candidate (see official/bundled policy)."
     },
     {
       "repo": "idanarye/nu_plugin_skim",
@@ -124,7 +124,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-07-31: tag 0.2.5 pins nu-plugin 0.103.0. Defer until upstream bumps."
+      "c1_note": "2026-07-31: tag 0.2.5 pins nu-plugin 0.103.0. Priority install-friction candidate; evaluate upstream bump or numan-maintained fork under ADR 0001."
     },
     {
       "repo": "devyn/nu_plugin_dbus",
@@ -142,7 +142,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-07-30: nu-plugin 0.101.0; native dep dbus (not Windows). Defer."
+      "c1_note": "2026-07-30: nu-plugin 0.101.0; native dep dbus (not Windows). Priority install-friction candidate for Linux; evaluate numan-maintained fork or upstream bump."
     },
     {
       "repo": "Euphrasiologist/nu_plugin_bio",
@@ -281,7 +281,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-07-31: nu-plugin 0.106.1. Defer."
+      "c1_note": "2026-07-31: nu-plugin 0.106.1. Priority install-friction candidate; evaluate upstream bump or numan-maintained fork under ADR 0001."
     },
     {
       "repo": "drbrain/nu_plugin_prometheus",
@@ -605,7 +605,7 @@
       "status": "NO_RELEASE",
       "versions": [],
       "backfill_targets": [],
-      "c1_note": "No tags. Superseded by nu_plugin_terminal_qr."
+      "c1_note": "No tags. Superseded by Neuron-Mr-White/nu_plugin_terminal_qr. Priority install-friction candidate; prefer terminal_qr."
     },
     {
       "repo": "adevore/nu_plugin_adevore",
@@ -635,7 +635,7 @@
       "status": "NO_RELEASE",
       "versions": [],
       "backfill_targets": [],
-      "c1_note": "No tags."
+      "c1_note": "No tags. Priority install-friction candidate; evaluate commit-snapshot intake or upstream tag request."
     },
     {
       "repo": "ayax79/nu_plugin_plist",
@@ -695,7 +695,7 @@
       "status": "NO_RELEASE",
       "versions": [],
       "backfill_targets": [],
-      "c1_note": "No tags. Maintained fork of qr_maker."
+      "c1_note": "No tags. Maintained fork of FMotalleb/nu_plugin_qr_maker. Priority install-friction candidate."
     },
     {
       "repo": "pdenapo/nu_plugin_dpkgtable",
@@ -783,34 +783,49 @@
       "c1_note": "Added from awesome-nu. Bash-style brace expansion. Needs research."
     },
     {
-      "repo": "nushell/nu_plugin_endecode",
+      "repo": "kaathewisegit/nugins",
       "name": "nu_plugin_endecode",
       "plugin_bin": "nu_plugin_endecode",
       "stars": 0,
-      "status": "NO_RELEASE",
-      "versions": [],
+      "status": "ELIGIBLE",
+      "versions": [
+        {
+          "tag": "v0.113.1",
+          "nu_plugin": "0.113.1",
+          "nu_protocol": "0.113.1",
+          "has_assets": true,
+          "note": "nugins release with endecode assets"
+        },
+        {
+          "tag": "v0.112.0",
+          "nu_plugin": "0.112.0",
+          "nu_protocol": "0.112.0",
+          "has_assets": true,
+          "note": "nugins release with endecode assets"
+        }
+      ],
       "backfill_targets": [],
-      "c1_note": "Added from awesome-nu. Various encoding schemes. Needs research."
+      "c1_note": "nugins monorepo (kaathewisegit/nugins), crate at endecode/. Trunk pins nu-plugin 0.114.1. Releases v0.113.1 and v0.112.0 have per-target assets. Priority install-friction candidate; needs a 0.114 release or commit-snapshot for current Numan."
     },
     {
       "repo": "nushell/nu_plugin_formats",
       "name": "nu_plugin_formats",
       "plugin_bin": "nu_plugin_formats",
       "stars": 0,
-      "status": "NO_RELEASE",
+      "status": "BUILTIN",
       "versions": [],
       "backfill_targets": [],
-      "c1_note": "Added from awesome-nu. Parses eml, ics, ini, vcf. Needs research."
+      "c1_note": "Official Nushell plugin. Ships with Nu releases; not a numan candidate (see official/bundled policy)."
     },
     {
-      "repo": "nushell/nu_plugin_hashes",
+      "repo": "ArmoredPony/nu_plugin_hashes",
       "name": "nu_plugin_hashes",
       "plugin_bin": "nu_plugin_hashes",
       "stars": 0,
       "status": "NO_RELEASE",
       "versions": [],
       "backfill_targets": [],
-      "c1_note": "Added from awesome-nu. Hash functions from the hashes project. Needs research."
+      "c1_note": "ArmoredPony/nu_plugin_hashes. Provides 63+ cryptographic hash functions. Maintainer has stepped back; priority install-friction candidate if a fork or new maintainer appears."
     },
     {
       "repo": "nushell/nu_plugin_input_global_listen",
@@ -853,14 +868,22 @@
       "c1_note": "Added from awesome-nu. Periodic table of elements. Needs research."
     },
     {
-      "repo": "nushell/nu_plugin_plotters",
+      "repo": "cptpiepmatz/nu-jupyter-kernel",
       "name": "nu_plugin_plotters",
       "plugin_bin": "nu_plugin_plotters",
       "stars": 0,
-      "status": "NO_RELEASE",
-      "versions": [],
+      "status": "PRE_0_112",
+      "versions": [
+        {
+          "tag": "nu_plugin_plotters/v0.2.5+0.111.0",
+          "nu_plugin": "0.111.0",
+          "nu_protocol": "0.111.0",
+          "has_assets": true,
+          "note": "latest tag; crate in crates/nu_plugin_plotters; also consider nu_plugin_plot"
+        }
+      ],
       "backfill_targets": [],
-      "c1_note": "Added from awesome-nu. Chart plotting. Needs research."
+      "c1_note": "cptpiepmatz/nu-jupyter-kernel monorepo, crate at crates/nu_plugin_plotters. Provides chart plotting. Latest release v0.2.5+0.111.0 has per-target assets. Consider Euphrasiologist/nu_plugin_plot as the better maintained plotting option. Priority install-friction candidate."
     },
     {
       "repo": "nushell/nu_plugin_termplot",
