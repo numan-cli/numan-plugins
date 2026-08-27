@@ -109,8 +109,8 @@ plugins or native commands (see "Core / bundled plugins not via numan" below).
 - `ArmoredPony/nu_plugin_hashes`: extended hash functions
 - `amtoine/nu_plugin_kdl`: KDL format support
 - `cptpiepmatz/nu-jupyter-kernel` (`crates/nu_plugin_plotters`): chart
-  plotting; or `Euphrasiologist/nu_plugin_plot` if it remains the better
-  maintained plotting option
+  plotting; `Euphrasiologist/nu_plugin_plot` is already in the registry as
+  the maintained plotting alternative
 - `devyn/nu_plugin_dbus`: Linux D-Bus interface
 
 Source of truth: `docs/backlog.json` (see also
@@ -126,8 +126,10 @@ registry.
 Core / bundled plugins: `nu_plugin_polars`, `nu_plugin_query`,
 `nu_plugin_formats`, `nu_plugin_gstat`, `nu_plugin_inc`.
 
-Native command: `clip` / `clipboard` (Nushell 0.111+), which supersedes
-`FMotalleb/nu_plugin_clipboard`.
+Native command: `clip` / `clipboard` (Nushell 0.111+, currently gated behind
+the `native-clip` experimental option). It supersedes
+`FMotalleb/nu_plugin_clipboard` once `native-clip` stabilizes to default-on;
+until then the plugin remains the practical path.
 
 ### Wave 1 Completion
 

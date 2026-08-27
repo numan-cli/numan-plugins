@@ -28,7 +28,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-07-22: latest release pins nu-plugin 0.110.0. Superseded by Nushell 0.111+ core native `clip` command; not a numan candidate (see official/bundled policy)."
+      "c1_note": "2026-07-22: latest release pins nu-plugin 0.110.0. Nushell 0.111+ native `clip`/`clipboard` is gated behind the `native-clip` experimental option; supersedes this plugin once default-on. Not a numan candidate until then (see official/bundled policy)."
     },
     {
       "repo": "idanarye/nu_plugin_skim",
@@ -142,7 +142,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-07-30: nu-plugin 0.101.0; native dep dbus (not Windows). Priority install-friction candidate for Linux; evaluate numan-maintained fork or upstream bump."
+      "c1_note": "2026-07-30: nu-plugin 0.101.0; native dep dbus (not Windows). Priority install-friction candidate for Linux; evaluate upstream bump."
     },
     {
       "repo": "Euphrasiologist/nu_plugin_bio",
