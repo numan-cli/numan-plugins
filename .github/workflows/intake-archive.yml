@@ -102,6 +102,10 @@ jobs:
           fi
           owner="${PACKAGE%%/*}"
           name="${PACKAGE##*/}"
+          if [ -z "$owner" ] || [ -z "$name" ]; then
+            echo "FAIL: package needs both halves of owner/name: $PACKAGE" >&2
+            exit 1
+          fi
           {
             echo "owner=$owner"
             echo "name=$name"
@@ -109,9 +113,17 @@ jobs:
 
           flags=()
           if [ -n "$ACTIVATION" ]; then
-            flags+=(--activation-kind "${ACTIVATION%%:*}")
-            if [[ "$ACTIVATION" == *:* ]]; then
-              flags+=(--activation-import "${ACTIVATION##*:}")
+            activation_kind="${ACTIVATION%%:*}"
+            activation_import="${ACTIVATION##*:}"
+            if [ -z "$activation_kind" ]; then
+              echo "FAIL: activation must be kind[:import]: $ACTIVATION" >&2
+              exit 1
+            fi
+            flags+=(--activation-kind "$activation_kind")
+            # A trailing colon means "no import mode": an empty
+            # --activation-import would fail argparse's choices with a usage dump.
+            if [[ "$ACTIVATION" == *:* && -n "$activation_import" ]]; then
+              flags+=(--activation-import "$activation_import")
             fi
           fi
           if [ -n "$DEFERRAL_REASON" ]; then
@@ -202,6 +214,23 @@ jobs:
         with:
           name: spec-${{ needs.archive.outputs.owner }}-${{ needs.archive.outputs.name }}
           path: spec
+
+      # The artifact round-trip between the two jobs is the only gap between the
+      # bytes that were archived and the bytes this job publishes; build.yml
+      # closes the same gap with gen_spec.py's verify_packaged_assets.
+      - name: Verify the downloaded asset is the archived asset
+        shell: bash
+        env:
+          ARCHIVE: ${{ needs.archive.outputs.archive }}
+          ARCHIVE_SHA256: ${{ needs.archive.outputs.sha256 }}
+        run: |
+          set -euo pipefail
+          mapfile -t assets < <(find dist -type f -printf '%P\n' | sort)
+          if [ "${#assets[@]}" -ne 1 ] || [ "${assets[0]}" != "$ARCHIVE" ]; then
+            echo "FAIL: dist must hold exactly one asset named $ARCHIVE, found: ${assets[*]-}" >&2
+            exit 1
+          fi
+          printf '%s  %s\n' "$ARCHIVE_SHA256" "dist/$ARCHIVE" | sha256sum --check --strict -
 
       - name: Refuse an existing release
         env:

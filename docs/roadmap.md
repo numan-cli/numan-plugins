@@ -126,7 +126,7 @@ are source-only plugins with tags and enough demand to justify CI-built assets:
 - [x] `drbrain/nu_plugin_prometheus` — promoted 2026-07-31 to `active[]` as `v0.12.0` (nu-plugin/nu-protocol 0.114.1; commit `3fed1d934ba201ce1d9b78ecb727695588de7ef9`). Windows locked green; `aarch64-unknown-linux-gnu` excluded (openssl-sys cross). CI-built release published; in official registry. `v0.11.0` was `PRE_0_112` (0.110.0).
 - [x] `galuszkak/nu_plugin_bigquery` — researched 2026-07-31: `v0.2.0` pins nu-plugin 0.112.2; eligible for intake via P6 Provisional Tier with deferral reason.
 
-### Intake Reform Wave (P1 Commit-Snapshot, P4 Maintained Forks, P6 Provisional)
+### Intake Reform Wave (P1 Commit-Snapshot, P2 Non-Binary Archive, P4 Maintained Forks, P6 Provisional)
 
 With the intake reform tooling merged into `numan-plugins` (commit-snapshot intake mode `#80`, fork identity `#82`):
 
@@ -160,6 +160,11 @@ Proposed forks evaluate under ADR 0001 stewardship criteria (requiring `numan-ma
 `scripts/gen_spec.py --provisional --deferral-reason "<why>"` emits the provisional
 evidence tier (`evidence_tier` plus `deferral_reason`, and no `verified_with`), so
 the generated spec is accepted by `add-package.py --provisional` unchanged.
+`build.yml` has no dispatch input for the flags, because one build run is a matrix
+over many plugins and the tier is per package: generate a provisional binary spec
+by running `gen_spec.py` against a completed run's `packaged.tsv` and downloaded
+assets. Either way the tier reaches the index from `add-package.py --provisional
+--deferral-reason "..."`, which is what writes `evidence_tier` on the version entry.
 
 #### 4. Non-Binary Archive Intake (P2)
 
@@ -177,9 +182,15 @@ lane instead of the cross-compile matrix: `scripts/intake_archive.py`, driven by
   claim → upload → finalize, with cleanup on a failed run). The release tag is
   `archive-<owner>-<name>-<version>` and the asset is
   `<owner>-<name>-<version>.tar.gz`.
-- Emits an `artifact.kind: archive` spec carrying an inline `sha256`. The binary
-  lane leaves hashing to `numan-registry`, which re-downloads each target; an
-  archive spec pins the single URL it is handed.
+- Emits an `artifact.kind: archive` spec carrying an inline `sha256`. That value is
+  not what the registry trusts — `add-package.py` downloads the asset and computes
+  the index hash itself — it is the digest of the archived bytes, which the publish
+  job re-hashes the collected artifact against before it claims a release, closing
+  the gap between what was archived and what gets published.
+- Stages every activatable package provisionally: `add-package.py` requires
+  lifecycle evidence for any entry with an `activation`, and that evidence can only
+  come from proving the published asset, which does not exist until the release
+  completes. `numan-registry` replaces the provisional tier once prove succeeds.
 - Records re-intake provenance (upstream URL, requested ref, resolved commit,
   entry, owner, name, type) in `manifest-archives.json`. The workflow uploads the
   updated file as an artifact instead of pushing a commit, so a maintainer commits

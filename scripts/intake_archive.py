@@ -16,12 +16,20 @@ compilation at all, so their intake is:
      expects for an `artifact.kind: archive` package, and record the intake in
      manifest-archives.json for repeatable re-intake on a version bump.
 
-The archive spec carries an inline `artifact.sha256`, unlike gen_spec.py's binary
-spec which omits it because add-package.py re-downloads and hashes every target
-itself; for an archive it pins the single URL it is handed. The spec also omits a
-top-level `source` block: the registry index's source field is Rust-shaped (it
-requires cargo_name) and non-binary entries leave it out, so re-intake provenance
-lives in manifest-archives.json instead.
+The archive spec carries an inline `artifact.sha256`. It is not what the registry
+trusts -- add-package.py downloads the asset and computes the index hash itself,
+ignoring this value -- it is the digest of the bytes archived here, carried
+through so intake-archive.yml can re-hash the artifact it is about to publish
+against it, and so a re-intake of the same commit can be compared. The spec also
+omits a top-level `source` block: the registry index's source field is
+Rust-shaped (it requires cargo_name) and non-binary entries leave it out, so
+re-intake provenance lives in manifest-archives.json instead.
+
+An intake that declares an activation is always provisional. add-package.py
+requires lifecycle evidence for every activatable entry, and that evidence can
+only come from proving the published asset, which does not exist until this
+lane's release completes; numan-registry replaces the provisional tier once prove
+succeeds. numan-registry's own scripts/intake-archive.py works the same way.
 
 This script publishes nothing. .github/workflows/intake-archive.yml publishes the
 archive through ensure_release_absent.py and release_transaction.py, so this
@@ -59,6 +67,8 @@ COMMAND_TIMEOUT_SECONDS = 120
 FIXED_MTIME = 315532800  # 1980-01-01 UTC; matches package_plugin.py
 VALID_TYPES = ("module", "script", "completion")
 VALID_GIT_URL_RE = re.compile(r"^(https?://|git://|ssh://|git@[\w.-]+:)")
+IDENT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+VERSION_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")
 MAX_ARCHIVE_FILES = 10_000
 MAX_ARCHIVE_BYTES = 100 * 1024 * 1024
 
@@ -84,6 +94,21 @@ def validate_git_url(git_url: str) -> None:
         raise ValueError(
             f"git URL must use https://, http://, git://, ssh://, or git@: {git_url!r}"
         )
+
+
+def validate_identifier(field: str, value: str, pattern: re.Pattern[str] = IDENT_RE) -> None:
+    """
+    Validate a value that is interpolated into the release tag and asset name.
+
+    Raises:
+        ValueError: If the value is empty or contains anything outside
+            ``pattern``. An empty half of an `owner/name` pair would otherwise
+            produce a malformed tag (`archive-owner--1.0.0`) that the registry's
+            presence-only checks still accept, and a path-like value would write
+            the archive outside --archive-out.
+    """
+    if not pattern.fullmatch(value):
+        raise ValueError(f"{field} must match {pattern.pattern}: {value!r}")
 
 
 def resolve_ref(git_url: str, ref: str, runner: Runner = subprocess.run) -> str:
@@ -230,21 +255,31 @@ def build_archive(src_dir: Path, out: Path) -> None:
     if total > MAX_ARCHIVE_BYTES:
         raise ValueError(f"{total} bytes exceeds the archive limit of {MAX_ARCHIVE_BYTES}")
 
-    with out.open("wb") as fh:
-        gz = gzip.GzipFile(filename="", mode="wb", fileobj=fh, mtime=0)
-        with tarfile.open(fileobj=gz, mode="w", format=tarfile.PAX_FORMAT) as tar:
-            for rel in rels:
-                full = src_dir / rel
-                stat = full.stat()
-                info = tarfile.TarInfo(name=rel.as_posix())
-                info.size = stat.st_size
-                info.mtime = FIXED_MTIME
-                info.mode = 0o755 if stat.st_mode & 0o111 else 0o644
-                info.uid = info.gid = 0
-                info.uname = info.gname = ""
-                with full.open("rb") as src:
-                    tar.addfile(info, src)
-        gz.close()
+    # Build beside the target and rename only once the archive is complete: a
+    # partial .tar.gz left behind by a failed write would trip main()'s
+    # refuse-to-overwrite guard and block the retry.
+    partial = out.with_name(out.name + ".partial")
+    try:
+        with partial.open("wb") as fh:
+            gz = gzip.GzipFile(filename="", mode="wb", fileobj=fh, mtime=0)
+            try:
+                with tarfile.open(fileobj=gz, mode="w", format=tarfile.PAX_FORMAT) as tar:
+                    for rel in rels:
+                        full = src_dir / rel
+                        stat = full.stat()
+                        info = tarfile.TarInfo(name=rel.as_posix())
+                        info.size = stat.st_size
+                        info.mtime = FIXED_MTIME
+                        info.mode = 0o755 if stat.st_mode & 0o111 else 0o644
+                        info.uid = info.gid = 0
+                        info.uname = info.gname = ""
+                        with full.open("rb") as src:
+                            tar.addfile(info, src)
+            finally:
+                gz.close()
+        partial.replace(out)
+    finally:
+        partial.unlink(missing_ok=True)
 
 
 def derive_version(ref: str, resolved_sha: str) -> str:
@@ -486,6 +521,8 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("either --git-url or --repo is required")
         git_url = normalize_git_url(args.git_url or args.repo)
         validate_git_url(git_url)
+        validate_identifier("--owner", args.owner)
+        validate_identifier("--name", args.name)
         validate_activation(
             entry=args.entry,
             activation_kind=args.activation_kind,
@@ -497,6 +534,7 @@ def main(argv: list[str] | None = None) -> int:
 
         resolved_sha = resolve_ref(git_url, args.ref)
         version = args.version or derive_version(args.ref, resolved_sha)
+        validate_identifier("--version", version, VERSION_RE)
         tag = release_tag(args.owner, args.name, version)
         archive_name = archive_filename(args.owner, args.name, version)
 

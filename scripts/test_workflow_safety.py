@@ -21,6 +21,10 @@ TARGETS_ASSIGNMENT = re.compile(
     r"^(\s*)TARGETS\s*=\s*(\[[\s\S]*?\n\1\])",
     re.MULTILINE,
 )
+UPLOAD_STEPS = (
+    ("build.yml", BUILD, "      - name: Upload assets to the owned draft\n"),
+    ("intake-archive.yml", INTAKE, "      - name: Upload the asset to the owned draft\n"),
+)
 
 
 def workflow_targets(workflow: str) -> list[dict[str, object]]:
@@ -110,12 +114,12 @@ class WorkflowSafetyTests(unittest.TestCase):
 
     def test_release_upload_uses_claimed_release_id(self):
         """Avoid softprops creating a second draft when the tag is briefly undiscoverable."""
-        self.assertNotIn("softprops/action-gh-release", BUILD)
-        upload_step = BUILD.split(
-            "      - name: Upload assets to the owned draft\n", 1
-        )[1].split("\n      - name:", 1)[0]
-        self.assertIn("release_transaction.py upload", upload_step)
-        self.assertIn("--release-id \"$CLAIMED_RELEASE_ID\"", upload_step)
+        for label, workflow, step_header in UPLOAD_STEPS:
+            with self.subTest(workflow=label):
+                self.assertNotIn("softprops/action-gh-release", workflow)
+                upload_step = workflow.split(step_header, 1)[1].split("\n      - name:", 1)[0]
+                self.assertIn("release_transaction.py upload", upload_step)
+                self.assertIn('--release-id "$CLAIMED_RELEASE_ID"', upload_step)
 
     def test_matrix_env_shell_steps_force_bash(self):
         """Steps that expand $MATRIX_* must use bash so Windows pwsh does not empty them."""
@@ -155,6 +159,20 @@ class WorkflowSafetyTests(unittest.TestCase):
         self.assertEqual(INTAKE.count("contents: write"), 1)
         publish_job = jobs.split("  publish:\n", 1)[1]
         self.assertIn("    permissions:\n      contents: write", publish_job)
+
+    def test_archive_publish_rehashes_the_downloaded_asset(self):
+        """Hash-gate the artifact round-trip, as build.yml does before publishing."""
+        publish_job = INTAKE.split("jobs:", 1)[1].split("  publish:\n", 1)[1]
+        self.assertIn("ARCHIVE_SHA256: ${{ needs.archive.outputs.sha256 }}", publish_job)
+        self.assertIn("sha256sum --check --strict", publish_job)
+        self.assertLess(
+            publish_job.index("sha256sum"),
+            publish_job.index("ensure_release_absent.py"),
+        )
+        self.assertLess(
+            publish_job.index("sha256sum"),
+            publish_job.index("release_transaction.py upload"),
+        )
 
     def test_archive_intake_publishes_through_the_release_transaction(self):
         """Reuse the audited claim/upload/finalize flow instead of `gh release create`."""

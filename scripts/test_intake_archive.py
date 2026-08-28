@@ -8,6 +8,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import os
 import subprocess
 import tarfile
 import tempfile
@@ -82,6 +83,18 @@ class IntakeArchiveTests(unittest.TestCase):
     def test_validate_git_url_accepts_supported_schemes(self):
         self.ia.validate_git_url("https://github.com/owner/repo")
         self.ia.validate_git_url("git@github.com:owner/repo.git")
+
+    def test_validate_identifier_rejects_empty_and_path_like_values(self):
+        for value in ("", " ", "..", "../escape", "owner/name", "-flag"):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(ValueError, "--name must match"):
+                    self.ia.validate_identifier("--name", value)
+
+    def test_validate_identifier_accepts_registry_and_version_shapes(self):
+        self.ia.validate_identifier("--owner", "nushell")
+        self.ia.validate_identifier("--name", "cool_module.nu-2")
+        self.ia.validate_identifier("--version", "0.1.0-abc1234", self.ia.VERSION_RE)
+        self.ia.validate_identifier("--version", "1.2.3+build.5", self.ia.VERSION_RE)
 
     def test_resolve_ref_returns_annotated_tag_sha(self):
         runner = RecordingRunner([(0, f"{SHA}\trefs/tags/v1.0.0^{{}}\n", "")])
@@ -234,6 +247,37 @@ class IntakeArchiveTests(unittest.TestCase):
                 self.assertEqual(member.mtime, self.ia.FIXED_MTIME)
                 self.assertEqual((member.uid, member.gid), (0, 0))
                 self.assertEqual((member.uname, member.gname), ("", ""))
+
+    def test_build_archive_normalizes_member_modes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            src = root / "src"
+            src.mkdir()
+            (src / "plain.nu").write_text("# plain\n", encoding="utf-8")
+            runnable = src / "run.nu"
+            runnable.write_text("# run\n", encoding="utf-8")
+            os.chmod(runnable, 0o755)
+            if not runnable.stat().st_mode & 0o111:
+                self.skipTest("host filesystem does not record the exec bit")
+            out = root / "out.tar.gz"
+            self.ia.build_archive(src, out)
+            with tarfile.open(out, "r:gz") as tar:
+                modes = {member.name: member.mode for member in tar.getmembers()}
+            self.assertEqual(modes, {"plain.nu": 0o644, "run.nu": 0o755})
+
+    def test_build_archive_leaves_no_partial_archive_on_failure(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            src = root / "src"
+            self._tree(src)
+            dist = root / "dist"
+            dist.mkdir()
+            with mock.patch.object(
+                self.ia.tarfile, "open", side_effect=OSError("no space left on device")
+            ):
+                with self.assertRaisesRegex(OSError, "no space left"):
+                    self.ia.build_archive(src, dist / "out.tar.gz")
+            self.assertEqual(list(dist.iterdir()), [])
 
     def test_build_archive_rejects_too_many_files(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -573,6 +617,40 @@ class IntakeArchiveTests(unittest.TestCase):
             self.assertFalse((root / "spec.json").exists())
             self.assertFalse((root / "manifest-archives.json").exists())
             self.assertEqual(list((root / "dist").iterdir()), [])
+
+    def test_main_accepts_a_repo_slug(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            argv = self._main_argv(root)
+            argv[argv.index("--git-url")] = "--repo"
+            argv[argv.index("--repo") + 1] = "owner/repo"
+            with self._patched_network(self._clone_stub()):
+                rc = self.ia.main(argv)
+            self.assertEqual(rc, 0)
+            spec = json.loads((root / "spec.json").read_text(encoding="utf-8"))
+            self.assertEqual(spec["repo"], "https://github.com/owner/repo")
+
+    def test_main_requires_a_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            argv = self._main_argv(root)
+            index = argv.index("--git-url")
+            del argv[index : index + 2]
+            with self._patched_network(self._clone_stub()):
+                rc = self.ia.main(argv)
+            self.assertEqual(rc, 1)
+            self.assertFalse((root / "spec.json").exists())
+
+    def test_main_rejects_a_path_like_package_name(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            argv = self._main_argv(root)
+            argv[argv.index("--name") + 1] = "../escape"
+            with self._patched_network(self._clone_stub()):
+                rc = self.ia.main(argv)
+            self.assertEqual(rc, 1)
+            self.assertFalse((root / "spec.json").exists())
+            self.assertFalse((root / "dist").exists())
 
     def test_main_refuses_to_overwrite_an_existing_archive(self):
         with tempfile.TemporaryDirectory() as tmp:
