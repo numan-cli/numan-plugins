@@ -21,7 +21,7 @@ Use this page for **operational** detail that belongs only to
 `numan-plugins`:
 
 - Workflow manifests under `.github/workflows/` (`build.yml`,
-  `repo-safety.yml`, `windows-recheck` / release paths).
+  `intake-archive.yml`, `repo-safety.yml`, `windows-recheck` / release paths).
 - Per-package target exclusions and reasons in `manifest.json`
   (`exclude_targets` / `exclude_reason`).
 - Backlog triage notes (`docs/backlog.json` schema + review log).
@@ -157,6 +157,36 @@ Proposed forks evaluate under ADR 0001 stewardship criteria (requiring `numan-ma
 
 - [ ] `galuszkak/nu_plugin_bigquery` — build and package normally in `numan-plugins`, then intake into `numan-registry` using `scripts/add-package.py --provisional --deferral-reason "..."`
 
+`scripts/gen_spec.py --provisional --deferral-reason "<why>"` emits the provisional
+evidence tier (`evidence_tier` plus `deferral_reason`, and no `verified_with`), so
+the generated spec is accepted by `add-package.py --provisional` unchanged.
+
+#### 4. Non-Binary Archive Intake (P2)
+
+Modules, scripts, and completions need no compilation, so they take the archive
+lane instead of the cross-compile matrix: `scripts/intake_archive.py`, driven by
+`.github/workflows/intake-archive.yml` (manual dispatch only).
+
+- Resolves the requested ref to a full 40-character upstream commit,
+  shallow-clones it, and verifies the declared entry file exists in the checkout.
+- Builds a deterministic `.tar.gz` with `scripts/package_plugin.py`'s parameters
+  (sorted entries, fixed mtime, gzip mtime=0), so re-archiving the same commit
+  reproduces identical bytes.
+- Publishes the archive as a release asset on this repository through the existing
+  release transaction (`ensure_release_absent.py`, then `release_transaction.py`
+  claim → upload → finalize, with cleanup on a failed run). The release tag is
+  `archive-<owner>-<name>-<version>` and the asset is
+  `<owner>-<name>-<version>.tar.gz`.
+- Emits an `artifact.kind: archive` spec carrying an inline `sha256`. The binary
+  lane leaves hashing to `numan-registry`, which re-downloads each target; an
+  archive spec pins the single URL it is handed.
+- Records re-intake provenance (upstream URL, requested ref, resolved commit,
+  entry, owner, name, type) in `manifest-archives.json`. The workflow uploads the
+  updated file as an artifact instead of pushing a commit, so a maintainer commits
+  it alongside the registry handoff.
+- Supports `--provisional` / `--deferral-reason` for a package whose
+  lifecycle-prove is deferred.
+
 ### Deferred Until Upstream Changes
 
 - [ ] Pre-0.112 plugins stay deferred unless upstream bumps Nu minor or Numan elects a maintained fork under ADR 0001.
@@ -168,6 +198,8 @@ Proposed forks evaluate under ADR 0001 stewardship criteria (requiring `numan-ma
 - [ ] Keep workflow permissions read-only except the release publication job.
 - [ ] Keep macOS runner labels current and covered by tests.
 - [ ] Keep deterministic archive tests for `.zip` and `.tar.gz`.
+- [ ] Keep the non-binary archive lane's deterministic parameters, release tag
+  shape, and emitted spec shape covered by tests.
 - [ ] Keep release absence tests proving existing tags/assets fail before
   upload.
 - [ ] Keep manifest validation strict about duplicate package names, duplicate

@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BUILD = (ROOT / ".github" / "workflows" / "build.yml").read_text(encoding="utf-8")
 SAFETY = (ROOT / ".github" / "workflows" / "repo-safety.yml").read_text(encoding="utf-8")
+INTAKE = (ROOT / ".github" / "workflows" / "intake-archive.yml").read_text(encoding="utf-8")
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
 WORKFLOW_PATHS = sorted({*WORKFLOW_DIR.glob("*.yml"), *WORKFLOW_DIR.glob("*.yaml")})
 WORKFLOWS = [path.read_text(encoding="utf-8") for path in WORKFLOW_PATHS]
@@ -48,6 +49,33 @@ def workflow_targets(workflow: str) -> list[dict[str, object]]:
     return parsed
 
 
+def shell_bodies(workflow: str) -> list[str]:
+    """
+    Collect every ``run:`` body line in a workflow, inline and block form.
+
+    Parameters:
+        workflow: Workflow text to scan.
+
+    Returns:
+        Every line that the runner executes as shell text.
+    """
+    lines = workflow.splitlines()
+    shell_lines: list[str] = []
+    for index, line in enumerate(lines):
+        match = re.match(r"^(\s*)run:\s*(.*)$", line)
+        if match is None:
+            continue
+        indent = len(match.group(1))
+        remainder = match.group(2)
+        if remainder not in ("|", ">-", ""):
+            shell_lines.append(remainder)
+        for body_line in lines[index + 1 :]:
+            if body_line.strip() and len(body_line) - len(body_line.lstrip()) <= indent:
+                break
+            shell_lines.append(body_line)
+    return shell_lines
+
+
 class WorkflowSafetyTests(unittest.TestCase):
     def test_publication_is_manual_dispatch_only(self):
         """
@@ -69,21 +97,7 @@ class WorkflowSafetyTests(unittest.TestCase):
 
     def test_publication_shell_never_interpolates_expressions(self):
         """Keep workflow expressions in env/with fields, never executable shell text."""
-        lines = BUILD.splitlines()
-        shell_lines: list[str] = []
-        for index, line in enumerate(lines):
-            match = re.match(r"^(\s*)run:\s*(.*)$", line)
-            if match is None:
-                continue
-            indent = len(match.group(1))
-            remainder = match.group(2)
-            if remainder not in ("|", ">-", ""):
-                shell_lines.append(remainder)
-            for body_line in lines[index + 1 :]:
-                if body_line.strip() and len(body_line) - len(body_line.lstrip()) <= indent:
-                    break
-                shell_lines.append(body_line)
-        self.assertNotIn("${{", "\n".join(shell_lines))
+        self.assertNotIn("${{", "\n".join(shell_bodies(BUILD)))
 
     def test_only_release_job_can_write_contents(self):
         global_permissions, jobs = BUILD.split("jobs:", 1)
@@ -123,6 +137,33 @@ class WorkflowSafetyTests(unittest.TestCase):
                 text,
                 f"step must force bash when expanding MATRIX env vars:\n{text}",
             )
+
+    def test_archive_intake_is_manual_dispatch_only(self):
+        """The non-binary lane publishes a release, so it may never run on a push or PR."""
+        trigger_block = INTAKE.split("permissions:", 1)[0]
+        self.assertIn("  workflow_dispatch:\n", trigger_block)
+        self.assertNotIn("  pull_request:\n", trigger_block)
+        self.assertNotIn("  push:\n", trigger_block)
+
+    def test_archive_intake_shell_never_interpolates_expressions(self):
+        """Dispatch inputs reach the archive lane through env, never as shell text."""
+        self.assertNotIn("${{", "\n".join(shell_bodies(INTAKE)))
+
+    def test_only_archive_publish_job_can_write_contents(self):
+        global_permissions, jobs = INTAKE.split("jobs:", 1)
+        self.assertIn("permissions:\n  contents: read", global_permissions)
+        self.assertEqual(INTAKE.count("contents: write"), 1)
+        publish_job = jobs.split("  publish:\n", 1)[1]
+        self.assertIn("    permissions:\n      contents: write", publish_job)
+
+    def test_archive_intake_publishes_through_the_release_transaction(self):
+        """Reuse the audited claim/upload/finalize flow instead of `gh release create`."""
+        self.assertIn("ensure_release_absent.py", INTAKE)
+        self.assertIn("release_transaction.py claim", INTAKE)
+        self.assertIn("release_transaction.py upload", INTAKE)
+        self.assertIn("release_transaction.py finalize", INTAKE)
+        self.assertIn("release_transaction.py cleanup", INTAKE)
+        self.assertNotIn("gh release create", INTAKE)
 
     def test_macos_uses_supported_runners(self):
         """Keep the executable matrix and manifest metadata on current macOS runners."""

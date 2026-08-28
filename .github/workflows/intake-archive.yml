@@ -1,0 +1,304 @@
+name: intake-archive
+
+# Archive a non-binary package (module, script, or completion) from an immutable
+# upstream commit, publish the archive as a GitHub release asset on THIS repo, and
+# emit a numan-registry spec. Nothing is compiled here and nothing is signed here —
+# numan-registry pins the emitted asset URL via add-package.py and signs the index
+# with the official trust root.
+#
+# workflow_dispatch accepts at most 10 inputs, so `package` carries owner/name and
+# `activation` carries kind[:import], a non-blank `deferral_reason` implies
+# provisional intake, and the version is always derived from `ref`
+# (scripts/intake_archive.py keeps --owner/--name/--version for local runs).
+
+on:
+  workflow_dispatch:
+    inputs:
+      git_url:
+        description: "Upstream clone URL or owner/name slug"
+        required: true
+        type: string
+      ref:
+        description: "Upstream tag, branch, or commit to archive"
+        required: true
+        type: string
+      entry:
+        description: "Entry file path inside the upstream repo, e.g. mod.nu"
+        required: true
+        type: string
+      package:
+        description: "Registry package as owner/name"
+        required: true
+        type: string
+      type:
+        description: "Package type"
+        required: true
+        type: choice
+        options:
+          - module
+          - script
+          - completion
+      description:
+        description: "Package description for the registry spec"
+        required: true
+        type: string
+      tags:
+        description: 'JSON array of tags, e.g. ["module"]'
+        required: true
+        type: string
+      nu_version:
+        description: "Nu compatibility range, e.g. >=0.114.0 <0.115.0"
+        required: true
+        type: string
+      activation:
+        description: "Activation as kind[:import], e.g. nu-module:all"
+        required: false
+        default: ""
+        type: string
+      deferral_reason:
+        description: "Why lifecycle-prove is deferred; non-blank means provisional intake"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    outputs:
+      owner: ${{ steps.intake.outputs.owner }}
+      name: ${{ steps.intake.outputs.name }}
+      tag: ${{ steps.record.outputs.tag }}
+      version: ${{ steps.record.outputs.version }}
+      archive: ${{ steps.record.outputs.archive }}
+      sha256: ${{ steps.record.outputs.sha256 }}
+      resolved_sha: ${{ steps.record.outputs.resolved_sha }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Resolve, archive, and emit the registry spec
+        id: intake
+        shell: bash
+        env:
+          GIT_URL: ${{ inputs.git_url }}
+          UPSTREAM_REF: ${{ inputs.ref }}
+          ENTRY: ${{ inputs.entry }}
+          PACKAGE: ${{ inputs.package }}
+          PKG_TYPE: ${{ inputs.type }}
+          DESCRIPTION: ${{ inputs.description }}
+          TAGS: ${{ inputs.tags }}
+          NU_VERSION: ${{ inputs.nu_version }}
+          ACTIVATION: ${{ inputs.activation }}
+          DEFERRAL_REASON: ${{ inputs.deferral_reason }}
+        run: |
+          set -euo pipefail
+          if [[ "$PACKAGE" != */* || "$PACKAGE" == */*/* ]]; then
+            echo "FAIL: package must be owner/name: $PACKAGE" >&2
+            exit 1
+          fi
+          owner="${PACKAGE%%/*}"
+          name="${PACKAGE##*/}"
+          {
+            echo "owner=$owner"
+            echo "name=$name"
+          } >> "$GITHUB_OUTPUT"
+
+          flags=()
+          if [ -n "$ACTIVATION" ]; then
+            flags+=(--activation-kind "${ACTIVATION%%:*}")
+            if [[ "$ACTIVATION" == *:* ]]; then
+              flags+=(--activation-import "${ACTIVATION##*:}")
+            fi
+          fi
+          if [ -n "$DEFERRAL_REASON" ]; then
+            flags+=(--provisional --deferral-reason "$DEFERRAL_REASON")
+          fi
+
+          python3 scripts/intake_archive.py \
+            --git-url "$GIT_URL" \
+            --ref "$UPSTREAM_REF" \
+            --entry "$ENTRY" \
+            --owner "$owner" \
+            --name "$name" \
+            --type "$PKG_TYPE" \
+            --description "$DESCRIPTION" \
+            --tags "$TAGS" \
+            --nu-version "$NU_VERSION" \
+            --release-root "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download" \
+            --archive-out dist \
+            --out "spec-$owner-$name.json" \
+            "${flags[@]}" | tee archive.tsv
+
+      - name: Record the archive result for the publish job
+        id: record
+        shell: bash
+        run: |
+          set -euo pipefail
+          line="$(grep '^ARCHIVED' archive.tsv)"
+          {
+            echo "resolved_sha=$(printf '%s' "$line" | cut -f2)"
+            echo "version=$(printf '%s' "$line" | cut -f3)"
+            echo "tag=$(printf '%s' "$line" | cut -f4)"
+            echo "archive=$(printf '%s' "$line" | cut -f5)"
+            echo "sha256=$(printf '%s' "$line" | cut -f6)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload archive
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: archive-asset
+          path: dist/*
+          if-no-files-found: error
+
+      - name: Upload spec for numan-registry intake
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: spec-${{ steps.intake.outputs.owner }}-${{ steps.intake.outputs.name }}
+          path: spec-${{ steps.intake.outputs.owner }}-${{ steps.intake.outputs.name }}.json
+          if-no-files-found: error
+
+      - name: Upload archive record
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: archive-record
+          path: archive.tsv
+          if-no-files-found: error
+
+      # This workflow deliberately pushes no commit, so the re-intake provenance
+      # intake_archive.py recorded leaves as an artifact for a maintainer to commit;
+      # the publish job's summary repeats that reminder.
+      - name: Upload recorded re-intake provenance
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: manifest-archives
+          path: manifest-archives.json
+          if-no-files-found: error
+
+  publish:
+    needs: archive
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required only to publish the release tag, release, and assets.
+    concurrency:
+      group: publish-archive-${{ needs.archive.outputs.tag }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Collect the archive asset
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: archive-asset
+          path: dist
+
+      - name: Collect the emitted spec
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: spec-${{ needs.archive.outputs.owner }}-${{ needs.archive.outputs.name }}
+          path: spec
+
+      - name: Refuse an existing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.archive.outputs.tag }}
+        run: >-
+          python3 scripts/ensure_release_absent.py
+          --repo "$GITHUB_REPOSITORY"
+          --tag "$TAG"
+
+      - name: Claim immutable tag and draft release
+        id: claim
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.archive.outputs.tag }}
+          RELEASE_NAME: ${{ inputs.package }} ${{ needs.archive.outputs.version }}
+          RELEASE_BODY: |
+            Non-binary archive intake for `${{ inputs.package }}`,
+            archived from `${{ inputs.git_url }}@${{ inputs.ref }}`
+            at commit `${{ needs.archive.outputs.resolved_sha }}`.
+            Deterministic `.tar.gz`; pinned + hash-verified + signed downstream in numan-registry.
+        run: >-
+          python3 scripts/release_transaction.py claim
+          --repo "$GITHUB_REPOSITORY"
+          --tag "$TAG"
+          --commit "$GITHUB_SHA"
+          --name "$RELEASE_NAME"
+          --body "$RELEASE_BODY"
+
+      - name: Upload the asset to the owned draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLAIMED_RELEASE_ID: ${{ steps.claim.outputs.release_id }}
+        run: >-
+          python3 scripts/release_transaction.py upload
+          --repo "$GITHUB_REPOSITORY"
+          --release-id "$CLAIMED_RELEASE_ID"
+          --assets-dir dist
+
+      - name: Verify and publish the complete draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLAIMED_RELEASE_ID: ${{ steps.claim.outputs.release_id }}
+          TAG: ${{ needs.archive.outputs.tag }}
+        run: >-
+          python3 scripts/release_transaction.py finalize
+          --repo "$GITHUB_REPOSITORY"
+          --release-id "$CLAIMED_RELEASE_ID"
+          --tag "$TAG"
+          --commit "$GITHUB_SHA"
+          --assets-dir dist
+
+      - name: Summarize the registry handoff
+        shell: bash
+        env:
+          OWNER: ${{ needs.archive.outputs.owner }}
+          NAME: ${{ needs.archive.outputs.name }}
+          TAG: ${{ needs.archive.outputs.tag }}
+          VERSION: ${{ needs.archive.outputs.version }}
+          RESOLVED_SHA: ${{ needs.archive.outputs.resolved_sha }}
+          ARCHIVE_SHA256: ${{ needs.archive.outputs.sha256 }}
+          DEFERRAL_REASON: ${{ inputs.deferral_reason }}
+        run: |
+          set -euo pipefail
+          spec="spec-$OWNER-$NAME.json"
+          {
+            echo "### Non-binary archive intake: $OWNER/$NAME $VERSION"
+            echo "- release tag: \`$TAG\`"
+            echo "- upstream commit: \`$RESOLVED_SHA\`"
+            echo "- archive sha256: \`$ARCHIVE_SHA256\`"
+            echo "- Commit the \`manifest-archives\` artifact over \`manifest-archives.json\` to keep re-intake provenance; this run pushes no commit."
+            if [ -n "$DEFERRAL_REASON" ]; then
+              echo "- provisional intake, deferral reason: $DEFERRAL_REASON"
+              echo "- next, in numan-registry: \`python scripts/add-package.py --spec $spec --write --provisional --deferral-reason \"$DEFERRAL_REASON\"\`"
+            else
+              echo "- provisional intake: no"
+              echo "- next, in numan-registry: \`python scripts/add-package.py --spec $spec --write\`"
+            fi
+            echo ""
+            echo "<details><summary>$spec</summary>"
+            echo ""
+            echo '```json'
+            cat "spec/$spec"
+            echo '```'
+            echo ""
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Clean up this run's failed draft
+        if: (failure() || cancelled()) && steps.claim.outputs.release_id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLAIMED_RELEASE_ID: ${{ steps.claim.outputs.release_id }}
+          TAG: ${{ needs.archive.outputs.tag }}
+        run: >-
+          python3 scripts/release_transaction.py cleanup
+          --repo "$GITHUB_REPOSITORY"
+          --release-id "$CLAIMED_RELEASE_ID"
+          --tag "$TAG"
+          --commit "$GITHUB_SHA"

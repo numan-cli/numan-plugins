@@ -11,6 +11,7 @@ SCRIPTS = Path(__file__).resolve().parent
 SAFETY_MODULES = (
     "ensure_release_absent.py",
     "gen_spec.py",
+    "intake_archive.py",
     "release_transaction.py",
     "validate_manifest.py",
 )
