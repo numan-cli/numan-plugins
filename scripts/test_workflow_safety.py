@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BUILD = (ROOT / ".github" / "workflows" / "build.yml").read_text(encoding="utf-8")
 SAFETY = (ROOT / ".github" / "workflows" / "repo-safety.yml").read_text(encoding="utf-8")
+INTAKE = (ROOT / ".github" / "workflows" / "intake-archive.yml").read_text(encoding="utf-8")
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
 WORKFLOW_PATHS = sorted({*WORKFLOW_DIR.glob("*.yml"), *WORKFLOW_DIR.glob("*.yaml")})
 WORKFLOWS = [path.read_text(encoding="utf-8") for path in WORKFLOW_PATHS]
@@ -19,6 +20,10 @@ PINNED_SHA = re.compile(r"^[0-9a-f]{40}$")
 TARGETS_ASSIGNMENT = re.compile(
     r"^(\s*)TARGETS\s*=\s*(\[[\s\S]*?\n\1\])",
     re.MULTILINE,
+)
+UPLOAD_STEPS = (
+    ("build.yml", BUILD, "      - name: Upload assets to the owned draft\n"),
+    ("intake-archive.yml", INTAKE, "      - name: Upload the asset to the owned draft\n"),
 )
 
 
@@ -48,6 +53,33 @@ def workflow_targets(workflow: str) -> list[dict[str, object]]:
     return parsed
 
 
+def shell_bodies(workflow: str) -> list[str]:
+    """
+    Collect every ``run:`` body line in a workflow, inline and block form.
+
+    Parameters:
+        workflow: Workflow text to scan.
+
+    Returns:
+        Every line that the runner executes as shell text.
+    """
+    lines = workflow.splitlines()
+    shell_lines: list[str] = []
+    for index, line in enumerate(lines):
+        match = re.match(r"^(\s*)run:\s*(.*)$", line)
+        if match is None:
+            continue
+        indent = len(match.group(1))
+        remainder = match.group(2)
+        if remainder not in ("|", ">-", ""):
+            shell_lines.append(remainder)
+        for body_line in lines[index + 1 :]:
+            if body_line.strip() and len(body_line) - len(body_line.lstrip()) <= indent:
+                break
+            shell_lines.append(body_line)
+    return shell_lines
+
+
 class WorkflowSafetyTests(unittest.TestCase):
     def test_publication_is_manual_dispatch_only(self):
         """
@@ -69,21 +101,7 @@ class WorkflowSafetyTests(unittest.TestCase):
 
     def test_publication_shell_never_interpolates_expressions(self):
         """Keep workflow expressions in env/with fields, never executable shell text."""
-        lines = BUILD.splitlines()
-        shell_lines: list[str] = []
-        for index, line in enumerate(lines):
-            match = re.match(r"^(\s*)run:\s*(.*)$", line)
-            if match is None:
-                continue
-            indent = len(match.group(1))
-            remainder = match.group(2)
-            if remainder not in ("|", ">-", ""):
-                shell_lines.append(remainder)
-            for body_line in lines[index + 1 :]:
-                if body_line.strip() and len(body_line) - len(body_line.lstrip()) <= indent:
-                    break
-                shell_lines.append(body_line)
-        self.assertNotIn("${{", "\n".join(shell_lines))
+        self.assertNotIn("${{", "\n".join(shell_bodies(BUILD)))
 
     def test_only_release_job_can_write_contents(self):
         global_permissions, jobs = BUILD.split("jobs:", 1)
@@ -96,12 +114,12 @@ class WorkflowSafetyTests(unittest.TestCase):
 
     def test_release_upload_uses_claimed_release_id(self):
         """Avoid softprops creating a second draft when the tag is briefly undiscoverable."""
-        self.assertNotIn("softprops/action-gh-release", BUILD)
-        upload_step = BUILD.split(
-            "      - name: Upload assets to the owned draft\n", 1
-        )[1].split("\n      - name:", 1)[0]
-        self.assertIn("release_transaction.py upload", upload_step)
-        self.assertIn("--release-id \"$CLAIMED_RELEASE_ID\"", upload_step)
+        for label, workflow, step_header in UPLOAD_STEPS:
+            with self.subTest(workflow=label):
+                self.assertNotIn("softprops/action-gh-release", workflow)
+                upload_step = workflow.split(step_header, 1)[1].split("\n      - name:", 1)[0]
+                self.assertIn("release_transaction.py upload", upload_step)
+                self.assertIn('--release-id "$CLAIMED_RELEASE_ID"', upload_step)
 
     def test_matrix_env_shell_steps_force_bash(self):
         """Steps that expand $MATRIX_* must use bash so Windows pwsh does not empty them."""
@@ -123,6 +141,57 @@ class WorkflowSafetyTests(unittest.TestCase):
                 text,
                 f"step must force bash when expanding MATRIX env vars:\n{text}",
             )
+
+    def test_archive_intake_is_manual_dispatch_only(self):
+        """The non-binary lane publishes a release, so it may never run on a push or PR."""
+        trigger_block = INTAKE.split("permissions:", 1)[0]
+        self.assertIn("  workflow_dispatch:\n", trigger_block)
+        self.assertNotIn("  pull_request:\n", trigger_block)
+        self.assertNotIn("  push:\n", trigger_block)
+
+    def test_archive_intake_shell_never_interpolates_expressions(self):
+        """Dispatch inputs reach the archive lane through env, never as shell text."""
+        self.assertNotIn("${{", "\n".join(shell_bodies(INTAKE)))
+
+    def test_only_archive_publish_job_can_write_contents(self):
+        global_permissions, jobs = INTAKE.split("jobs:", 1)
+        self.assertIn("permissions:\n  contents: read", global_permissions)
+        self.assertEqual(INTAKE.count("contents: write"), 1)
+        publish_job = jobs.split("  publish:\n", 1)[1]
+        self.assertIn("    permissions:\n      contents: write", publish_job)
+
+    def test_archive_publish_rehashes_the_downloaded_asset(self):
+        """Hash-gate the artifact round-trip, as build.yml does before publishing."""
+        publish_job = INTAKE.split("jobs:", 1)[1].split("  publish:\n", 1)[1]
+        gate = publish_job.split(
+            "      - name: Verify the downloaded asset is the archived asset\n", 1
+        )[1].split("\n      - name:", 1)[0]
+        self.assertIn("ARCHIVE: ${{ needs.archive.outputs.archive }}", gate)
+        self.assertIn("ARCHIVE_SHA256: ${{ needs.archive.outputs.sha256 }}", gate)
+        self.assertIn("sha256sum --check --strict", gate)
+        # release_transaction.py upload publishes whatever dist holds, so the
+        # digest check alone would pass while an extra file rode along.
+        self.assertIn(r"mapfile -t assets < <(find dist -type f -printf '%P\n' | sort)", gate)
+        self.assertIn('[ "${#assets[@]}" -ne 1 ]', gate)
+        self.assertIn('[ "${assets[0]}" != "$ARCHIVE" ]', gate)
+        self.assertLess(gate.index("-ne 1"), gate.index("sha256sum"))
+        self.assertLess(
+            publish_job.index("sha256sum"),
+            publish_job.index("ensure_release_absent.py"),
+        )
+        self.assertLess(
+            publish_job.index("sha256sum"),
+            publish_job.index("release_transaction.py upload"),
+        )
+
+    def test_archive_intake_publishes_through_the_release_transaction(self):
+        """Reuse the audited claim/upload/finalize flow instead of `gh release create`."""
+        self.assertIn("ensure_release_absent.py", INTAKE)
+        self.assertIn("release_transaction.py claim", INTAKE)
+        self.assertIn("release_transaction.py upload", INTAKE)
+        self.assertIn("release_transaction.py finalize", INTAKE)
+        self.assertIn("release_transaction.py cleanup", INTAKE)
+        self.assertNotIn("gh release create", INTAKE)
 
     def test_macos_uses_supported_runners(self):
         """Keep the executable matrix and manifest metadata on current macOS runners."""
