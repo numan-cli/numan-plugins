@@ -163,8 +163,18 @@ class WorkflowSafetyTests(unittest.TestCase):
     def test_archive_publish_rehashes_the_downloaded_asset(self):
         """Hash-gate the artifact round-trip, as build.yml does before publishing."""
         publish_job = INTAKE.split("jobs:", 1)[1].split("  publish:\n", 1)[1]
-        self.assertIn("ARCHIVE_SHA256: ${{ needs.archive.outputs.sha256 }}", publish_job)
-        self.assertIn("sha256sum --check --strict", publish_job)
+        gate = publish_job.split(
+            "      - name: Verify the downloaded asset is the archived asset\n", 1
+        )[1].split("\n      - name:", 1)[0]
+        self.assertIn("ARCHIVE: ${{ needs.archive.outputs.archive }}", gate)
+        self.assertIn("ARCHIVE_SHA256: ${{ needs.archive.outputs.sha256 }}", gate)
+        self.assertIn("sha256sum --check --strict", gate)
+        # release_transaction.py upload publishes whatever dist holds, so the
+        # digest check alone would pass while an extra file rode along.
+        self.assertIn(r"mapfile -t assets < <(find dist -type f -printf '%P\n' | sort)", gate)
+        self.assertIn('[ "${#assets[@]}" -ne 1 ]', gate)
+        self.assertIn('[ "${assets[0]}" != "$ARCHIVE" ]', gate)
+        self.assertLess(gate.index("-ne 1"), gate.index("sha256sum"))
         self.assertLess(
             publish_job.index("sha256sum"),
             publish_job.index("ensure_release_absent.py"),
