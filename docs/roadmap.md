@@ -94,6 +94,43 @@ only after these facts are recorded:
 Do not promote a whole batch blindly. Pick one or two candidates, prove them,
 then hand them to `numan-registry`.
 
+### Priority: install-friction third-party plugins
+
+These are the current highest-friction plugins for users. Treat them as the
+default queue for the next research / CI cycle, but do not include Nu core
+plugins or native commands (see "Core / bundled plugins not via numan" below).
+
+- `yybit/nu_plugin_compress`: archive compression (zstd/gzip/bzip2/xz)
+- `Neuron-Mr-White/nu_plugin_terminal_qr` (or `FMotalleb/nu_plugin_qr_maker`):
+  terminal QR codes
+- `kaathewisegit/nugins` (`nu_plugin_endecode`): extra `encode`/`decode`
+  schemes (nugins monorepo, crate at `endecode/`)
+- `JosephTLyons/nu_plugin_units`: common unit conversions
+- `ArmoredPony/nu_plugin_hashes`: extended hash functions
+- `amtoine/nu_plugin_kdl`: KDL format support
+- `cptpiepmatz/nu-jupyter-kernel` (`crates/nu_plugin_plotters`): chart
+  plotting; `Euphrasiologist/nu_plugin_plot` is already in the registry as
+  the maintained plotting alternative
+- `devyn/nu_plugin_dbus`: Linux D-Bus interface
+
+Source of truth: `docs/backlog.json` (see also
+`numan/docs/plans/2026-07-19-six-month-strategy-audit.md`).
+
+### Core / bundled plugins not via numan
+
+Do not CI-build, release, or distribute through numan the plugins that ship
+with Nu or the `clip` / `clipboard` native command. These come from the Nu
+channel, package manager, or `cargo install nushell`, not from the Numan
+registry.
+
+Core / bundled plugins: `nu_plugin_polars`, `nu_plugin_query`,
+`nu_plugin_formats`, `nu_plugin_gstat`, `nu_plugin_inc`.
+
+Native command: `clip` / `clipboard` (Nushell 0.111+, currently gated behind
+the `native-clip` experimental option). It supersedes
+`FMotalleb/nu_plugin_clipboard` once `native-clip` stabilizes to default-on;
+until then the plugin remains the practical path.
+
 ### Wave 1 Completion
 
 - [x] `FMotalleb/nu_plugin_port_extension@0.114.1` (earlier `0.113.1` retained in registry history)
@@ -147,10 +184,10 @@ Build directly from an immutable 40-character lowercase `source_commit` with `in
 
 Proposed forks evaluate under ADR 0001 stewardship criteria (requiring `numan-maintained` owner, `upstream_repo` attribution, and named stewardship):
 
-- [ ] `tonythethompson/nu_plugin_qr_maker` — proposed fork of `FMotalleb/nu_plugin_qr_maker`
+- [ ] `tonythethompson/nu_plugin_qr_maker` — proposed fork of `FMotalleb/nu_plugin_qr_maker` (prefer `Neuron-Mr-White/nu_plugin_terminal_qr` if it is current)
 - [ ] `tonythethompson/nu_plugin_explore` — proposed fork of `nushell/nu_plugin_explore`
-- [ ] `FMotalleb/nu_plugin_clipboard` (⭐ 85) — evaluate bumping from Nu 0.110 to Nu 0.114.1
 - [ ] `yybit/nu_plugin_compress` (⭐ 42) — evaluate bumping from Nu 0.103 to Nu 0.114.1
+- [ ] `JosephTLyons/nu_plugin_units` (⭐ 18) — evaluate bumping from Nu 0.106 to Nu 0.114.1
 - [ ] `fdncred/nu_plugin_pnet` (⭐ 9) — evaluate bumping from Nu 0.97 to Nu 0.114.1
 
 #### 3. Provisional Tier (P6)
