@@ -804,7 +804,7 @@
           "note": "nugins release with endecode assets"
         }
       ],
-      "backfill_targets": [],
+      "backfill_targets": ["0.113", "0.112"],
       "c1_note": "nugins monorepo (kaathewisegit/nugins), crate at endecode/. Trunk pins nu-plugin 0.114.1. Releases v0.113.1 and v0.112.0 have per-target assets. Priority install-friction candidate; needs a 0.114 release or commit-snapshot for current Numan."
     },
     {
