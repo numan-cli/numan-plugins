@@ -28,7 +28,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-07-22: latest release pins nu-plugin 0.110.0. Nushell 0.111+ native `clip`/`clipboard` is gated behind the `native-clip` experimental option; supersedes this plugin once default-on. Not a numan candidate until then (see official/bundled policy)."
+      "c1_note": "2026-07-22: latest release pins nu-plugin 0.110.0. Nushell 0.111+ native `clip`/`clipboard` is gated behind the `native-clip` experimental option; supersedes this plugin once default-on. Keep it out of the maintained-fork queue; until then the upstream plugin remains the practical path (see official/bundled policy)."
     },
     {
       "repo": "idanarye/nu_plugin_skim",
