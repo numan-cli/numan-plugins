@@ -303,8 +303,12 @@ jobs:
             echo "- archive sha256: \`$ARCHIVE_SHA256\`"
             echo "- Commit the \`manifest-archives\` artifact over \`manifest-archives.json\` to keep re-intake provenance; this run pushes no commit."
             if [ -n "$DEFERRAL_REASON" ]; then
-              echo "- provisional intake, deferral reason: $DEFERRAL_REASON"
-              echo "- next, in numan-registry: \`python scripts/add-package.py --spec $spec --write --provisional --deferral-reason \"$DEFERRAL_REASON\"\`"
+              # Escape DEFERRAL_REASON for markdown display (no command embedding)
+              reason_display="${DEFERRAL_REASON//\\/\\\\}"  # Escape backslashes
+              reason_display="${reason_display//\`/\\\`}"   # Escape backticks
+              echo "- provisional intake, deferral reason: $reason_display"
+              # Do not embed raw user text in the command; maintainers copy the spec, not this line
+              echo "- next, in numan-registry: \`python scripts/add-package.py --spec $spec --write --provisional --deferral-reason '...' # (copy reason from the spec or artifact)\`"
             else
               echo "- provisional intake: no"
               echo "- next, in numan-registry: \`python scripts/add-package.py --spec $spec --write\`"
