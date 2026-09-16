@@ -323,6 +323,10 @@ def validate_activation(
             reason is given without provisional intake, or if a `mod.nu` entry
             is activated with import mode 'module'.
     """
+    if activation_kind and (
+        activation_kind != "nu-module" or Path(entry).suffix != ".nu"
+    ):
+        raise ValueError("activation is only supported for .nu entries with kind 'nu-module'")
     if activation_kind and not provisional:
         raise ValueError(
             "an activation requires provisional intake (no lifecycle evidence "
