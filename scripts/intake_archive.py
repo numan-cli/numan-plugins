@@ -267,8 +267,6 @@ def build_archive(src_dir: Path, out: Path) -> None:
                     for rel in rels:
                         full = src_dir / rel
                         stat = full.stat()
-                        info = tarfile.TarInfo(name=rel.as_posix())
-                        info.size = stat.st_size
                         info.mtime = FIXED_MTIME
                         info.mode = 0o755 if stat.st_mode & 0o111 else 0o644
                         info.uid = info.gid = 0
