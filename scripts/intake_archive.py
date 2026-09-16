@@ -549,11 +549,12 @@ def main(argv: list[str] | None = None) -> int:
         with tempfile.TemporaryDirectory() as tmp:
             src_dir = Path(tmp) / "src"
         if args.version:
-            validate_semver("--version", version)
-            shallow_clone_at(git_url, resolved_sha, src_dir)
             verify_entry(src_dir, args.entry)
             build_archive(src_dir, archive_path)
 
+        
+        if args.version:
+            validate_semver("--version", version)
         digest = hashlib.sha256(archive_path.read_bytes()).hexdigest()
         spec = build_spec(
             owner=args.owner,
