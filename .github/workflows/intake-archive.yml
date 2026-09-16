@@ -114,6 +114,10 @@ jobs:
           flags=()
           if [ -n "$ACTIVATION" ]; then
             activation_kind="${ACTIVATION%%:*}"
+            if [[ "$ACTIVATION" == *:*:* ]]; then
+              echo "FAIL: activation must be kind[:import]: $ACTIVATION" >&2
+              exit 1
+            fi
             activation_import="${ACTIVATION##*:}"
             if [ -z "$activation_kind" ]; then
               echo "FAIL: activation must be kind[:import]: $ACTIVATION" >&2
