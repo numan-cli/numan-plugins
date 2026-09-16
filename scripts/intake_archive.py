@@ -544,7 +544,6 @@ def main(argv: list[str] | None = None) -> int:
         validate_nu_version(args.nu_version)
 
         args.archive_out.mkdir(parents=True, exist_ok=True)
-            pkg_type=args.pkg_type,
         archive_path = args.archive_out / archive_name
         if archive_path.exists():
             raise ValueError(f"archive already exists, refusing to overwrite: {archive_path}")
