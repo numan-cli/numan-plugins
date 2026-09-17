@@ -17,6 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PATHS = (
     REPO_ROOT / "manifest.json",
     REPO_ROOT / "docs" / "backlog.json",
+    REPO_ROOT / "manifest-archives.json",
 )
 
 

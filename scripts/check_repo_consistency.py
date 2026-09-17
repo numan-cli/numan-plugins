@@ -19,6 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = REPO_ROOT / "manifest.json"
 BACKLOG_PATH = REPO_ROOT / "docs" / "backlog.json"
 README_PATH = REPO_ROOT / "README.md"
+ARCHIVES_PATH = REPO_ROOT / "manifest-archives.json"
 
 ACTIVE_HEADING = "## Currently active"
 PR_REF_RE = re.compile(
@@ -149,6 +150,24 @@ def check_backlog_promoted(path: Path) -> list[str]:
     return errors
 
 
+def check_archives(file_path: Path) -> list[str]:
+    """Validate archive manifest schema."""
+    if not file_path.exists():
+        return [f"missing: {file_path}"]
+    raw = file_path.read_text(encoding="utf-8")
+    parsed = json.loads(raw)
+    if type(parsed) is not list:
+        return [f"{file_path}: must be list"]
+    result = []
+    fields = ["upstream_url", "ref", "resolved_commit", "entry", "owner", "name", "type"]
+    for n, el in enumerate(parsed):
+        if type(el) is dict:
+            for fld in fields:
+                if fld not in el:
+                    result.append(f"{file_path}[{n}] missing {fld}")
+    return result
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -175,6 +194,7 @@ def main(argv: list[str] | None = None) -> int:
     errors.extend(check_readme_active(args.manifest, args.readme))
     errors.extend(check_no_pr_refs(args.manifest, args.backlog, ROADMAP_PATH))
     errors.extend(check_backlog_promoted(args.backlog))
+    errors.extend(check_archives(ARCHIVES_PATH))
 
     if errors:
         print("Repo consistency check failed:", file=sys.stderr)

@@ -224,10 +224,6 @@ lane instead of the cross-compile matrix: `scripts/intake_archive.py`, driven by
   the index hash itself — it is the digest of the archived bytes, which the publish
   job re-hashes the collected artifact against before it claims a release, closing
   the gap between what was archived and what gets published.
-- Stages every activatable package provisionally: `add-package.py` requires
-  lifecycle evidence for any entry with an `activation`, and that evidence can only
-  come from proving the published asset, which does not exist until the release
-  completes. `numan-registry` replaces the provisional tier once prove succeeds.
 - Records re-intake provenance (upstream URL, requested ref, resolved commit,
   entry, owner, name, type) in `manifest-archives.json`. The workflow uploads the
   updated file as an artifact instead of pushing a commit, so a maintainer commits
