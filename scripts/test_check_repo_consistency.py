@@ -238,6 +238,41 @@ class CheckRepoConsistencyTests(unittest.TestCase):
             errors = self.mod.check_backlog_promoted(path)
             self.assertEqual(errors, [])
 
+    def test_check_archives_accepts_producer_field_names(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "manifest-archives.json"
+            path.write_text(
+                json.dumps(
+                    [
+                        {
+                            "git": "https://github.com/owner/repo",
+                            "ref": "v1.2.3",
+                            "resolved_sha": "a" * 40,
+                            "entry": "mod.nu",
+                            "owner": "owner",
+                            "name": "cool-module",
+                            "type": "module",
+                        }
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            self.assertEqual(self.mod.check_archives(path), [])
+
+    def test_check_archives_rejects_non_object_members(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "manifest-archives.json"
+            path.write_text("[null]", encoding="utf-8")
+            errors = self.mod.check_archives(path)
+            self.assertTrue(any("must be object" in error for error in errors))
+
+    def test_check_archives_reports_missing_fields(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "manifest-archives.json"
+            path.write_text(json.dumps([{"git": "https://github.com/o/r"}]), encoding="utf-8")
+            errors = self.mod.check_archives(path)
+            self.assertTrue(any("missing resolved_sha" in error for error in errors))
+
     def test_main_success(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

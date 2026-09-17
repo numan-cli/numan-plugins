@@ -66,7 +66,6 @@ class IntakeArchiveTests(unittest.TestCase):
     def test_normalize_git_url_leaves_full_url_alone(self):
         for url in (
             "https://github.com/owner/repo",
-            "git://example.invalid/repo.git",
             "ssh://git@example.invalid/repo.git",
             "git@github.com:owner/repo.git",
         ):
@@ -80,8 +79,15 @@ class IntakeArchiveTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "must use https"):
             self.ia.validate_git_url("file:///tmp/repo")
 
+    def test_validate_git_url_rejects_unauthenticated_transports(self):
+        for url in ("http://github.com/owner/repo", "git://example.invalid/repo.git"):
+            with self.subTest(url=url):
+                with self.assertRaisesRegex(ValueError, "must use https"):
+                    self.ia.validate_git_url(url)
+
     def test_validate_git_url_accepts_supported_schemes(self):
         self.ia.validate_git_url("https://github.com/owner/repo")
+        self.ia.validate_git_url("ssh://git@example.invalid/repo.git")
         self.ia.validate_git_url("git@github.com:owner/repo.git")
 
     def test_validate_identifier_rejects_empty_and_path_like_values(self):
@@ -93,8 +99,17 @@ class IntakeArchiveTests(unittest.TestCase):
     def test_validate_identifier_accepts_registry_and_version_shapes(self):
         self.ia.validate_identifier("--owner", "nushell")
         self.ia.validate_identifier("--name", "cool_module.nu-2")
-        self.ia.validate_identifier("--version", "0.1.0-abc1234", self.ia.VERSION_RE)
-        self.ia.validate_identifier("--version", "1.2.3+build.5", self.ia.VERSION_RE)
+
+    def test_validate_version_accepts_strict_semver(self):
+        for version in ("1.2.3", "0.1.0-abc1234", "1.2.3+build.5", "1.2.3-rc.1"):
+            with self.subTest(version=version):
+                self.ia.validate_version(version)
+
+    def test_validate_version_rejects_non_semver(self):
+        for version in ("abc", "1", "1..2", "1.2.3-01", "1.2.3+foo..bar", "v1.2.3"):
+            with self.subTest(version=version):
+                with self.assertRaisesRegex(ValueError, "strict semver"):
+                    self.ia.validate_version(version)
 
     def test_resolve_ref_returns_annotated_tag_sha(self):
         runner = RecordingRunner([(0, f"{SHA}\trefs/tags/v1.0.0^{{}}\n", "")])
@@ -188,6 +203,13 @@ class IntakeArchiveTests(unittest.TestCase):
             self._tree(root)
             with self.assertRaisesRegex(ValueError, "not found in checkout"):
                 self.ia.verify_entry(root, "missing.nu")
+
+    def test_verify_entry_rejects_git_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._tree(root)
+            with self.assertRaisesRegex(ValueError, "may not live under .git"):
+                self.ia.verify_entry(root, ".git/HEAD")
 
     def test_sorted_files_skips_git_and_sorts_deterministically(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -305,6 +327,37 @@ class IntakeArchiveTests(unittest.TestCase):
     def test_derive_version_falls_back_to_short_sha(self):
         self.assertEqual(self.ia.derive_version("main", SHA), f"0.1.0-{SHA[:7]}")
 
+    def test_derive_version_falls_back_for_invalid_semver_suffixes(self):
+        for ref in ("v1.2.3-01", "v1.2.3+foo..bar"):
+            with self.subTest(ref=ref):
+                self.assertEqual(self.ia.derive_version(ref, SHA), f"0.1.0-{SHA[:7]}")
+
+    def test_validate_nu_version_accepts_the_registry_grammar(self):
+        for constraint in (
+            "*",
+            "0.114.0",
+            "=0.114.x",
+            "0.114.*",
+            ">=0.114.0",
+            ">=0.114.0 <0.115.0",
+            ">0.113.0 <=0.115.0",
+        ):
+            with self.subTest(constraint=constraint):
+                self.ia.validate_nu_version(constraint)
+
+    def test_validate_nu_version_rejects_unrecognized_tokens(self):
+        for constraint in (
+            "",
+            "   ",
+            "bad range",
+            "not-a-version-range",
+            ">=0.114",
+            "* >=0.114.0",
+        ):
+            with self.subTest(constraint=constraint):
+                with self.assertRaisesRegex(ValueError, "nu-version|nu_version"):
+                    self.ia.validate_nu_version(constraint)
+
     def test_release_tag_and_archive_filename_shapes(self):
         self.assertEqual(
             self.ia.release_tag("owner", "cool-module", "1.2.3"),
@@ -327,12 +380,12 @@ class IntakeArchiveTests(unittest.TestCase):
             "nu_version": ">=0.114.0 <0.115.0",
             "entry": "cool.nu",
             "url": "https://example.invalid/download/archive-owner-cool-module-1.2.3/owner-cool-module-1.2.3.tar.gz",
-            "sha256": "c" * 64,
+            "resolved_sha": SHA,
         }
         kwargs.update(overrides)
         return kwargs
 
-    def test_build_spec_emits_archive_artifact_with_inline_sha256(self):
+    def test_build_spec_emits_archive_artifact_and_source(self):
         spec = self.ia.build_spec(**self._spec_kwargs())
         self.assertEqual(
             spec["artifact"],
@@ -340,11 +393,13 @@ class IntakeArchiveTests(unittest.TestCase):
                 "kind": "archive",
                 "url": self._spec_kwargs()["url"],
                 "entry": "cool.nu",
-                "sha256": "c" * 64,
             },
         )
+        self.assertNotIn("sha256", spec["artifact"])
         self.assertNotIn("verified_with", spec)
-        self.assertNotIn("source", spec)
+        self.assertEqual(
+            spec["source"], {"git": "https://github.com/owner/repo", "rev": SHA}
+        )
         self.assertEqual(spec["repo"], "https://github.com/owner/repo")
 
     def test_build_spec_omits_activation_without_kind(self):
@@ -367,7 +422,7 @@ class IntakeArchiveTests(unittest.TestCase):
         keys = list(spec)
         self.assertEqual(
             keys[keys.index("nu_version") + 1 : keys.index("artifact")],
-            ["evidence_tier", "deferral_reason"],
+            ["evidence_tier", "deferral_reason", "source"],
         )
 
     def test_build_spec_non_provisional_omits_evidence_keys(self):
@@ -400,6 +455,12 @@ class IntakeArchiveTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "deferral reason"):
             self.ia.validate_activation(
                 **self._activation_kwargs(provisional=True, deferral_reason="  \t\n")
+            )
+
+    def test_validate_activation_rejects_import_without_kind(self):
+        with self.assertRaisesRegex(ValueError, "requires --activation-kind"):
+            self.ia.validate_activation(
+                **self._activation_kwargs(activation_import="all")
             )
 
     def test_validate_activation_rejects_reason_without_provisional(self):
@@ -578,8 +639,10 @@ class IntakeArchiveTests(unittest.TestCase):
                         "archive-owner-cool-module-1.2.3/owner-cool-module-1.2.3.tar.gz"
                     ),
                     "entry": "mod.nu",
-                    "sha256": digest,
                 },
+            )
+            self.assertEqual(
+                spec["source"], {"git": "https://github.com/owner/repo", "rev": SHA}
             )
             self.assertEqual(spec["version"], "1.2.3")
             records = json.loads((root / "manifest-archives.json").read_text(encoding="utf-8"))

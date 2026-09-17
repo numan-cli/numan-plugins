@@ -64,6 +64,15 @@ on:
 permissions:
   contents: read
 
+# Serialize intakes: each run uploads a full manifest-archives.json snapshot as
+# the `manifest-archives` artifact, and a maintainer hand-commits it afterward.
+# Serial runs cannot fully prevent a stale snapshot (the artifact reflects HEAD
+# at run start, not later maintainer commits), so the publish summary tells the
+# maintainer to merge the artifact's records, not overwrite the file.
+concurrency:
+  group: intake-archive
+  cancel-in-progress: false
+
 jobs:
   archive:
     runs-on: ubuntu-latest
@@ -305,7 +314,7 @@ jobs:
             echo "- release tag: \`$TAG\`"
             echo "- upstream commit: \`$RESOLVED_SHA\`"
             echo "- archive sha256: \`$ARCHIVE_SHA256\`"
-            echo "- Commit the \`manifest-archives\` artifact over \`manifest-archives.json\` to keep re-intake provenance; this run pushes no commit."
+            echo "- Merge the \`manifest-archives\` artifact's records into \`manifest-archives.json\` (keyed on owner/name); do not overwrite the file wholesale, or an intake that landed after this run started would lose its record. This run pushes no commit."
             if [ -n "$DEFERRAL_REASON" ]; then
                 # Escape DEFERRAL_REASON for markdown display (no command embedding)
                 reason_display="${DEFERRAL_REASON//\\/\\\\}"  # Escape backslashes

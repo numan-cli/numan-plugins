@@ -159,12 +159,14 @@ def check_archives(file_path: Path) -> list[str]:
     if type(parsed) is not list:
         return [f"{file_path}: must be list"]
     result = []
-    fields = ["upstream_url", "ref", "resolved_commit", "entry", "owner", "name", "type"]
+    fields = ["git", "ref", "resolved_sha", "entry", "owner", "name", "type"]
     for n, el in enumerate(parsed):
-        if type(el) is dict:
-            for fld in fields:
-                if fld not in el:
-                    result.append(f"{file_path}[{n}] missing {fld}")
+        if not isinstance(el, dict):
+            result.append(f"{file_path}[{n}] must be object")
+            continue
+        for fld in fields:
+            if fld not in el:
+                result.append(f"{file_path}[{n}] missing {fld}")
     return result
 
 

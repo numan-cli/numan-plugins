@@ -16,14 +16,14 @@ compilation at all, so their intake is:
      expects for an `artifact.kind: archive` package, and record the intake in
      manifest-archives.json for repeatable re-intake on a version bump.
 
-The archive spec carries an inline `artifact.sha256`. It is not what the registry
-trusts -- add-package.py downloads the asset and computes the index hash itself,
-ignoring this value -- it is the digest of the bytes archived here, carried
-through so intake-archive.yml can re-hash the artifact it is about to publish
-against it, and so a re-intake of the same commit can be compared. The spec also
-omits a top-level `source` block: the registry index's source field is
-Rust-shaped (it requires cargo_name) and non-binary entries leave it out, so
-re-intake provenance lives in manifest-archives.json instead.
+The archive spec omits `artifact.sha256`: this repo's handoff contract
+(REVIEW.md) is that generated specs carry no author-asserted hash --
+add-package.py downloads the asset and computes the index hash itself. The
+digest of the bytes archived here is still emitted on the ARCHIVED line so
+intake-archive.yml can re-hash the artifact it is about to publish against it.
+The spec does carry a top-level `source: {git, rev}` block recording the
+immutable upstream commit; non-binary entries omit cargo_name, which the
+registry schema requires only for cargo-built plugins.
 
 An intake that declares an activation is always provisional. add-package.py
 requires lifecycle evidence for every activatable entry, and that evidence can
@@ -66,9 +66,19 @@ SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 COMMAND_TIMEOUT_SECONDS = 120
 FIXED_MTIME = 315532800  # 1980-01-01 UTC; matches package_plugin.py
 VALID_TYPES = ("module", "script", "completion")
-VALID_GIT_URL_RE = re.compile(r"^(https?://|git://|ssh://|git@[\w.-]+:)")
+VALID_GIT_URL_RE = re.compile(r"^(https://|ssh://|git@[\w.-]+:)")
 IDENT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
-VERSION_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")
+SEMVER_RE = re.compile(
+    r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+    r"(?:-(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)"
+    r"(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?"
+    r"(?:\+[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*)?$"
+)
+NU_EXACT_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
+NU_MINOR_WILDCARD_RE = re.compile(r"^=?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(?:x|X|\*)$")
+NU_COMPARATOR_RE = re.compile(
+    r"^(?:>=|<=|>|<|=)(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$"
+)
 MAX_ARCHIVE_FILES = 10_000
 MAX_ARCHIVE_BYTES = 100 * 1024 * 1024
 
@@ -86,13 +96,15 @@ def validate_git_url(git_url: str) -> None:
 
     Raises:
         ValueError: If the URL starts with '-' (which git would read as an
-            option) or does not use https://, http://, git://, ssh://, or git@.
+            option) or does not use an authenticated transport: https://,
+            ssh://, or git@. http:// and git:// are rejected because a network
+            attacker could replace both the advertised SHA and fetched objects.
     """
     if git_url.startswith("-"):
         raise ValueError(f"git URL may not start with '-': {git_url!r}")
     if not VALID_GIT_URL_RE.match(git_url):
         raise ValueError(
-            f"git URL must use https://, http://, git://, ssh://, or git@: {git_url!r}"
+            f"git URL must use https://, ssh://, or git@: {git_url!r}"
         )
 
 
@@ -197,15 +209,18 @@ def verify_entry(src_dir: Path, entry: str) -> Path:
 
     Raises:
         ValueError: If the entry path is absolute, resolves outside the
-            checkout, or is not a regular file.
+            checkout, lives under .git (which the archive excludes), or is not
+            a regular file.
     """
     if Path(entry).is_absolute():
         raise ValueError(f"entry path must be relative to the checkout: {entry}")
     resolved = (src_dir / entry).resolve()
     try:
-        resolved.relative_to(src_dir.resolve())
+        rel = resolved.relative_to(src_dir.resolve())
     except ValueError as exc:
         raise ValueError(f"entry path escapes checkout: {entry}") from exc
+    if rel.parts and rel.parts[0] == ".git":
+        raise ValueError(f"entry path may not live under .git: {entry}")
     if not resolved.is_file():
         raise ValueError(f"entry file not found in checkout: {entry}")
     return resolved
@@ -267,6 +282,7 @@ def build_archive(src_dir: Path, out: Path) -> None:
                     for rel in rels:
                         full = src_dir / rel
                         stat = full.stat()
+                        info = tar.gettarinfo(str(full), arcname=rel.as_posix())
                         info.mtime = FIXED_MTIME
                         info.mode = 0o700 if stat.st_mode & 0o111 else 0o644
                         info.uid = info.gid = 0
@@ -286,11 +302,13 @@ def derive_version(ref: str, resolved_sha: str) -> str:
 
     A semver-shaped ref (optionally 'v'-prefixed) becomes the version itself;
     anything else falls back to the 0.1.0-<short-sha> convention the registry
-    already uses for branch-pinned script and completion entries.
+    already uses for branch-pinned script and completion entries. A ref that
+    merely resembles a version but is not strict SemVer (e.g. v1.2.3-01) falls
+    back too, so an invalid version can never reach the spec or release tag.
     """
-    match = re.fullmatch(r"v?(\d+\.\d+\.\d+(?:[-+].+)?)", ref)
-    if match:
-        return match.group(1)
+    candidate = ref[1:] if ref.startswith("v") else ref
+    if SEMVER_RE.fullmatch(candidate):
+        return candidate
     return f"0.1.0-{resolved_sha[:7]}"
 
 
@@ -304,15 +322,46 @@ def release_tag(owner: str, name: str, version: str) -> str:
     return f"archive-{owner}-{name}-{version}"
 
 
-def validate_nu_version(nu_version: str) -> None:
+def validate_version(version: str) -> None:
     """
-    Validate Nu version range syntax.
+    Validate that ``version`` is strict SemVer 2.0.0 (no 'v' prefix).
 
     Raises:
-        ValueError: If the version range is invalid.
+        ValueError: If the version is not valid SemVer. An invalid version
+            would be baked into the release tag, asset name, and spec.
+    """
+    if not SEMVER_RE.fullmatch(version):
+        raise ValueError(
+            f"version must be strict semver MAJOR.MINOR.PATCH[-prerelease][+build]: "
+            f"{version!r}"
+        )
+
+
+def validate_nu_version(nu_version: str) -> None:
+    """
+    Validate Nu version range syntax against the registry's accepted grammar.
+
+    Accepts ``*``, exact ``X.Y.Z``, minor wildcards ``=X.Y.x``/``X.Y.*``, and
+    space-separated comparators (``>=``, ``<=``, ``>``, ``<``, ``=``) applied to
+    exact versions, matching numan-registry's nu_version_constraint.py.
+
+    Raises:
+        ValueError: If the range is empty or contains an unrecognized token.
+            numan ignores unrecognized constraint tokens, so a malformed range
+            would publish as compatible with every Nu version.
     """
     if not nu_version or not nu_version.strip():
         raise ValueError("--nu-version must not be empty")
+    if nu_version.strip() == "*":
+        return
+    for token in nu_version.split():
+        if NU_MINOR_WILDCARD_RE.fullmatch(token):
+            continue
+        if NU_COMPARATOR_RE.fullmatch(token):
+            continue
+        if NU_EXACT_RE.fullmatch(token):
+            continue
+        raise ValueError(f"--nu-version has an unrecognized token: {token!r}")
 
 
 def validate_activation(
@@ -327,11 +376,14 @@ def validate_activation(
     Check activation and provisional coherence before any work is done.
 
     Raises:
-        ValueError: If an activation is declared without provisional intake, if
+        ValueError: If an import mode is given without an activation kind, if
+            an activation is declared without provisional intake, if
             provisional intake has no non-blank deferral reason, if a deferral
             reason is given without provisional intake, or if a `mod.nu` entry
             is activated with import mode 'module'.
     """
+    if activation_import and not activation_kind:
+        raise ValueError("--activation-import requires --activation-kind")
     if activation_kind and (
         activation_kind != "nu-module" or Path(entry).suffix != ".nu"
     ):
@@ -393,7 +445,7 @@ def build_spec(
     nu_version: str,
     entry: str,
     url: str,
-    sha256: str,
+    resolved_sha: str,
     activation_kind: str | None = None,
     activation_import: str | None = None,
     provisional: bool = False,
@@ -404,7 +456,11 @@ def build_spec(
 
     `verified_with` is never emitted: add-package.py aborts when --provisional is
     combined with a spec that merely contains the key, and a non-provisional
-    archive intake records its lifecycle evidence downstream after prove.
+    archive intake records its lifecycle evidence downstream after prove. The
+    artifact hash is likewise omitted: add-package.py downloads the asset and
+    computes the index hash itself. `source` carries the immutable upstream
+    commit; cargo_name is omitted because it applies only to cargo-built
+    plugins.
     """
     evidence = (
         {"evidence_tier": "provisional", "deferral_reason": (deferral_reason or "").strip()}
@@ -421,11 +477,11 @@ def build_spec(
         "version": version,
         "nu_version": nu_version,
         **evidence,
+        "source": {"git": git_url, "rev": resolved_sha},
         "artifact": {
             "kind": "archive",
             "url": url,
             "entry": entry,
-            "sha256": sha256,
         },
     }
     if activation_kind:
@@ -547,7 +603,7 @@ def main(argv: list[str] | None = None) -> int:
 
         resolved_sha = resolve_ref(git_url, args.ref)
         version = args.version or derive_version(args.ref, resolved_sha)
-        validate_identifier("--version", version, VERSION_RE)
+        validate_version(version)
         tag = release_tag(args.owner, args.name, version)
         archive_name = archive_filename(args.owner, args.name, version)
         validate_nu_version(args.nu_version)
@@ -576,7 +632,7 @@ def main(argv: list[str] | None = None) -> int:
             nu_version=args.nu_version,
             entry=args.entry,
             url=f"{args.release_root.rstrip('/')}/{tag}/{archive_name}",
-            sha256=digest,
+            resolved_sha=resolved_sha,
             activation_kind=args.activation_kind,
             activation_import=args.activation_import,
             provisional=args.provisional,
