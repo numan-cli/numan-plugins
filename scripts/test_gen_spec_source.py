@@ -511,6 +511,122 @@ class BuildSpecSourceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unexpected targets"):
             self.gs.build_spec(entry, rows, "https://example.invalid", [])
 
+    def test_provisional_emits_evidence_tier_and_omits_verified_with(self):
+        entry = {
+            "owner": "galuszkak", "name": "nu_plugin_bigquery", "plugin_bin": "nu_plugin_bigquery",
+            "repo": "galuszkak/nu_plugin_bigquery", "tag": "v0.3.0",
+            "source_commit": "4" * 40, "version": "0.3.0", "nu_version": "*",
+            "verified_with": [], "description": "BigQuery access.", "tags": ["plugin"],
+        }
+        rows = [{"target": "linux", "filename": "p.tar.gz", "sha256": "a" * 64, "exe": "p"}]
+        out = self.gs.build_spec(
+            entry,
+            rows,
+            "https://example.invalid",
+            ["linux"],
+            provisional=True,
+            deferral_reason="needs GCP credentials",
+        )
+        self.assertNotIn("verified_with", out)
+        self.assertEqual(out["evidence_tier"], "provisional")
+        self.assertEqual(out["deferral_reason"], "needs GCP credentials")
+        keys = list(out)
+        self.assertEqual(
+            keys[keys.index("nu_version") + 1 : keys.index("source")],
+            ["evidence_tier", "deferral_reason"],
+        )
+
+    def test_provisional_strips_deferral_reason_whitespace(self):
+        entry = {
+            "owner": "o", "name": "p", "plugin_bin": "p", "repo": "o/p", "tag": "v1",
+            "source_commit": "1" * 40, "version": "1.0.0", "nu_version": "*",
+            "verified_with": [], "description": "p", "tags": ["plugin"],
+        }
+        rows = [{"target": "linux", "filename": "p.tar.gz", "sha256": "a" * 64, "exe": "p"}]
+        out = self.gs.build_spec(
+            entry,
+            rows,
+            "https://example.invalid",
+            ["linux"],
+            provisional=True,
+            deferral_reason="  needs GCP credentials\n",
+        )
+        self.assertEqual(out["deferral_reason"], "needs GCP credentials")
+
+    def test_provisional_requires_deferral_reason(self):
+        entry = {
+            "owner": "o", "name": "p", "plugin_bin": "p", "repo": "o/p", "tag": "v1",
+            "source_commit": "1" * 40, "version": "1.0.0", "nu_version": "*",
+            "verified_with": [], "description": "p", "tags": ["plugin"],
+        }
+        rows = [{"target": "linux", "filename": "p.tar.gz", "sha256": "a" * 64, "exe": "p"}]
+        with self.assertRaisesRegex(ValueError, "deferral reason"):
+            self.gs.build_spec(
+                entry, rows, "https://example.invalid", ["linux"], provisional=True
+            )
+
+    def test_provisional_rejects_blank_deferral_reason(self):
+        entry = {
+            "owner": "o", "name": "p", "plugin_bin": "p", "repo": "o/p", "tag": "v1",
+            "source_commit": "1" * 40, "version": "1.0.0", "nu_version": "*",
+            "verified_with": [], "description": "p", "tags": ["plugin"],
+        }
+        rows = [{"target": "linux", "filename": "p.tar.gz", "sha256": "a" * 64, "exe": "p"}]
+        with self.assertRaisesRegex(ValueError, "deferral reason"):
+            self.gs.build_spec(
+                entry,
+                rows,
+                "https://example.invalid",
+                ["linux"],
+                provisional=True,
+                deferral_reason="   \t\n",
+            )
+
+    def test_provisional_rejects_entry_with_lifecycle_evidence(self):
+        entry = {
+            "owner": "o", "name": "p", "plugin_bin": "p", "repo": "o/p", "tag": "v1",
+            "source_commit": "1" * 40, "version": "1.0.0", "nu_version": "*",
+            "verified_with": ["0.114.1"], "description": "p", "tags": ["plugin"],
+        }
+        rows = [{"target": "linux", "filename": "p.tar.gz", "sha256": "a" * 64, "exe": "p"}]
+        with self.assertRaisesRegex(ValueError, "verified_with"):
+            self.gs.build_spec(
+                entry,
+                rows,
+                "https://example.invalid",
+                ["linux"],
+                provisional=True,
+                deferral_reason="needs GCP credentials",
+            )
+
+    def test_deferral_reason_without_provisional_is_rejected(self):
+        entry = {
+            "owner": "o", "name": "p", "plugin_bin": "p", "repo": "o/p", "tag": "v1",
+            "source_commit": "1" * 40, "version": "1.0.0", "nu_version": "*",
+            "verified_with": [], "description": "p", "tags": ["plugin"],
+        }
+        rows = [{"target": "linux", "filename": "p.tar.gz", "sha256": "a" * 64, "exe": "p"}]
+        with self.assertRaisesRegex(ValueError, "only recorded for provisional"):
+            self.gs.build_spec(
+                entry,
+                rows,
+                "https://example.invalid",
+                ["linux"],
+                deferral_reason="needs GCP credentials",
+            )
+
+    def test_non_provisional_spec_keeps_verified_with_only(self):
+        entry = {
+            "owner": "o", "name": "p", "plugin_bin": "p", "repo": "o/p", "tag": "v1",
+            "source_commit": "1" * 40, "version": "1.0.0", "nu_version": "*",
+            "verified_with": ["0.114.1"], "description": "p", "tags": ["plugin"],
+        }
+        rows = [{"target": "linux", "filename": "p.tar.gz", "sha256": "a" * 64, "exe": "p"}]
+        out = self.gs.build_spec(entry, rows, "https://example.invalid", ["linux"])
+        self.assertEqual(out["verified_with"], ["0.114.1"])
+        self.assertNotIn("evidence_tier", out)
+        self.assertNotIn("deferral_reason", out)
+
     def _manifest_entry(self):
         return {
             "owner": "o", "name": "p", "plugin_bin": "p", "repo": "o/p", "tag": "v1",
@@ -587,6 +703,90 @@ class BuildSpecSourceTests(unittest.TestCase):
                 "--assets-dir", str(assets_dir),
                 "--release-base", "https://example.invalid/release",
                 "--out", str(out),
+            ]
+            with mock.patch.object(self.gs, "REPO_ROOT", root), mock.patch.object(
+                sys, "argv", argv
+            ):
+                rc = self.gs.main()
+            self.assertEqual(rc, 1)
+            self.assertFalse(out.is_file())
+
+    def test_main_provisional_writes_evidence_tier_spec(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest_path = root / "manifest.json"
+            manifest_path.write_text(
+                json.dumps(
+                    {
+                        "default_targets": ["x86_64-unknown-linux-gnu"],
+                        "active": [self._manifest_entry()],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            assets_dir = root / "assets"
+            assets_dir.mkdir()
+            asset = assets_dir / "p-1.0.0-linux.tar.gz"
+            asset.write_bytes(b"data")
+            digest = hashlib.sha256(b"data").hexdigest()
+            packaged = root / "packaged.tsv"
+            packaged.write_text(
+                f"PACKAGED\tx86_64-unknown-linux-gnu\t{asset.name}\t{digest}\tp\n",
+                encoding="utf-8",
+            )
+            out = root / "spec.json"
+            argv = [
+                "gen_spec.py",
+                "--name", "p",
+                "--packaged", str(packaged),
+                "--assets-dir", str(assets_dir),
+                "--release-base", "https://example.invalid/release",
+                "--out", str(out),
+                "--provisional",
+                "--deferral-reason", "needs GCP credentials",
+            ]
+            with mock.patch.object(self.gs, "REPO_ROOT", root), mock.patch.object(
+                sys, "argv", argv
+            ):
+                rc = self.gs.main()
+            self.assertEqual(rc, 0)
+            spec = json.loads(out.read_text(encoding="utf-8"))
+            self.assertEqual(spec["evidence_tier"], "provisional")
+            self.assertEqual(spec["deferral_reason"], "needs GCP credentials")
+            self.assertNotIn("verified_with", spec)
+
+    def test_main_provisional_without_reason_returns_1(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest_path = root / "manifest.json"
+            manifest_path.write_text(
+                json.dumps(
+                    {
+                        "default_targets": ["x86_64-unknown-linux-gnu"],
+                        "active": [self._manifest_entry()],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            assets_dir = root / "assets"
+            assets_dir.mkdir()
+            asset = assets_dir / "p-1.0.0-linux.tar.gz"
+            asset.write_bytes(b"data")
+            digest = hashlib.sha256(b"data").hexdigest()
+            packaged = root / "packaged.tsv"
+            packaged.write_text(
+                f"PACKAGED\tx86_64-unknown-linux-gnu\t{asset.name}\t{digest}\tp\n",
+                encoding="utf-8",
+            )
+            out = root / "spec.json"
+            argv = [
+                "gen_spec.py",
+                "--name", "p",
+                "--packaged", str(packaged),
+                "--assets-dir", str(assets_dir),
+                "--release-base", "https://example.invalid/release",
+                "--out", str(out),
+                "--provisional",
             ]
             with mock.patch.object(self.gs, "REPO_ROOT", root), mock.patch.object(
                 sys, "argv", argv

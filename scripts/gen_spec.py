@@ -14,6 +14,11 @@ Provenance is emitted as a top-level `source: {git, rev, cargo_name}` block
 (from the manifest entry) so numan-registry `add-package.py` can pass it into
 the signed index.
 
+`--provisional --deferral-reason "<why>"` emits the provisional evidence tier
+(`evidence_tier` plus `deferral_reason`) and drops `verified_with`, for a plugin
+that builds but whose lifecycle-prove is deferred (e.g. it needs cloud
+credentials). numan-registry's `add-package.py --provisional` accepts that spec.
+
 Usage:
   python scripts/gen_spec.py \\
     --name nu_plugin_regex \\
@@ -146,6 +151,8 @@ def build_spec(
     *,
     partial: bool = False,
     snapshot_date: str | None = None,
+    provisional: bool = False,
+    deferral_reason: str | None = None,
 ) -> dict:
     """
     Build a registry specification from manifest metadata and packaged artifact records.
@@ -160,14 +167,21 @@ def build_spec(
         snapshot_date (str | None): Override for the YYYYMMDD date used in a
             commit-snapshot version; defaults to today (UTC). Exists for
             deterministic testing.
+        provisional (bool): When True, emit `evidence_tier` and `deferral_reason`
+            in place of `verified_with` because lifecycle-prove is deferred.
+        deferral_reason (str | None): Why lifecycle-prove is deferred. Required
+            when `provisional` is True, rejected otherwise.
 
     Returns:
         dict: Registry specification containing plugin metadata and binary artifact targets.
     
     Raises:
         ValueError: If packaged targets include unexpected targets, if targets are
-            missing and `partial` is False, or if `partial` is True but no target
-            succeeded.
+            missing and `partial` is False, if `partial` is True but no target
+            succeeded, if `provisional` is True without a non-blank
+            `deferral_reason`, if a `deferral_reason` is given without
+            `provisional`, or if `provisional` is True while `entry` already
+            records `verified_with` evidence.
     """
     actual = {row["target"] for row in packaged_rows}
     missing = sorted(set(expected) - actual)
@@ -223,6 +237,34 @@ def build_spec(
         description += f" (numan-maintained fork; upstream: {upstream_repo})"
         source["upstream"] = f"https://github.com/{upstream_repo}"
 
+    if provisional:
+        if not (deferral_reason or "").strip():
+            raise ValueError(
+                "provisional intake requires a non-blank deferral reason "
+                "(--deferral-reason)"
+            )
+        if entry["verified_with"]:
+            raise ValueError(
+                "provisional intake rejected: verified_with is non-empty "
+                f"({', '.join(entry['verified_with'])}), so the plugin already has "
+                "lifecycle evidence"
+            )
+    elif deferral_reason is not None:
+        raise ValueError(
+            "a deferral reason is only recorded for provisional intake; "
+            "pass --provisional or drop --deferral-reason"
+        )
+
+    # numan-registry's add-package.py aborts when --provisional is combined with a
+    # spec that merely CONTAINS verified_with, and its validate_spec only waives the
+    # lifecycle-evidence check when the key is absent, so a provisional spec has to
+    # omit verified_with rather than carry an empty list.
+    evidence = (
+        {"evidence_tier": "provisional", "deferral_reason": deferral_reason.strip()}
+        if provisional
+        else {"verified_with": entry["verified_with"]}
+    )
+
     spec = {
         "owner": entry["owner"],
         "name": entry["name"],
@@ -232,7 +274,7 @@ def build_spec(
         "tags": entry["tags"],
         "version": version,
         "nu_version": entry["nu_version"],
-        "verified_with": entry["verified_with"],
+        **evidence,
         "source": source,
         "artifact": {
             "kind": "binary",
@@ -263,6 +305,18 @@ def main() -> int:
         "date the workflow used to derive the package/release version, or "
         "the generated spec's version won't match the published release tag",
     )
+    ap.add_argument(
+        "--provisional",
+        action="store_true",
+        help="Emit evidence_tier + deferral_reason instead of verified_with, for a "
+        "plugin that builds but whose lifecycle-prove is deferred",
+    )
+    ap.add_argument(
+        "--deferral-reason",
+        default=None,
+        help="Why lifecycle-prove is deferred; required with --provisional and "
+        "rejected without it",
+    )
     args = ap.parse_args()
 
     manifest = json.loads((REPO_ROOT / "manifest.json").read_text(encoding="utf-8"))
@@ -277,6 +331,8 @@ def main() -> int:
             expected_targets(manifest, entry),
             partial=args.partial,
             snapshot_date=args.snapshot_date,
+            provisional=args.provisional,
+            deferral_reason=args.deferral_reason,
         )
     except ValueError as exc:
         print(f"FAIL: {exc}", file=sys.stderr)

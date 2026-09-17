@@ -17,6 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PATHS = (
     REPO_ROOT / "manifest.json",
     REPO_ROOT / "docs" / "backlog.json",
+    REPO_ROOT / "manifest-archives.json",
 )
 
 
@@ -88,7 +89,8 @@ def main(argv: list[str] | None = None) -> int:
         "paths",
         nargs="*",
         type=Path,
-        help="JSON files to format (default: manifest.json and docs/backlog.json)",
+        help="JSON files to format (default: manifest.json, docs/backlog.json, "
+        "and manifest-archives.json)",
     )
     parser.add_argument(
         "--check",
