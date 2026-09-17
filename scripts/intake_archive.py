@@ -268,7 +268,7 @@ def build_archive(src_dir: Path, out: Path) -> None:
                         full = src_dir / rel
                         stat = full.stat()
                         info.mtime = FIXED_MTIME
-                        info.mode = 0o755 if stat.st_mode & 0o111 else 0o644
+                        info.mode = 0o700 if stat.st_mode & 0o111 else 0o644
                         info.uid = info.gid = 0
                         info.uname = info.gname = ""
                         with full.open("rb") as src:

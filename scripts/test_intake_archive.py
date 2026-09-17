@@ -256,14 +256,14 @@ class IntakeArchiveTests(unittest.TestCase):
             (src / "plain.nu").write_text("# plain\n", encoding="utf-8")
             runnable = src / "run.nu"
             runnable.write_text("# run\n", encoding="utf-8")
-            os.chmod(runnable, 0o755)
+            os.chmod(runnable, 0o700)
             if not runnable.stat().st_mode & 0o111:
                 self.skipTest("host filesystem does not record the exec bit")
             out = root / "out.tar.gz"
             self.ia.build_archive(src, out)
             with tarfile.open(out, "r:gz") as tar:
                 modes = {member.name: member.mode for member in tar.getmembers()}
-            self.assertEqual(modes, {"plain.nu": 0o644, "run.nu": 0o755})
+            self.assertEqual(modes, {"plain.nu": 0o644, "run.nu": 0o700})
 
     def test_build_archive_leaves_no_partial_archive_on_failure(self):
         with tempfile.TemporaryDirectory() as tmp:
