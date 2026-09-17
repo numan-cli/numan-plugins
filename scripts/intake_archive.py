@@ -304,6 +304,17 @@ def release_tag(owner: str, name: str, version: str) -> str:
     return f"archive-{owner}-{name}-{version}"
 
 
+def validate_nu_version(nu_version: str) -> None:
+    """
+    Validate Nu version range syntax.
+
+    Raises:
+        ValueError: If the version range is invalid.
+    """
+    if not nu_version or not nu_version.strip():
+        raise ValueError("--nu-version must not be empty")
+
+
 def validate_activation(
     *,
     entry: str,
