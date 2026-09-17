@@ -64,15 +64,6 @@ on:
 permissions:
   contents: read
 
-# Serialize intakes: each run uploads a full manifest-archives.json snapshot as
-# the `manifest-archives` artifact, and a maintainer hand-commits it afterward.
-# Serial runs cannot fully prevent a stale snapshot (the artifact reflects HEAD
-# at run start, not later maintainer commits), so the publish summary tells the
-# maintainer to merge the artifact's records, not overwrite the file.
-concurrency:
-  group: intake-archive
-  cancel-in-progress: false
-
 jobs:
   archive:
     runs-on: ubuntu-latest
@@ -195,12 +186,40 @@ jobs:
 
       # This workflow deliberately pushes no commit, so the re-intake provenance
       # intake_archive.py recorded leaves as an artifact for a maintainer to commit;
-      # the publish job's summary repeats that reminder.
+      # the publish job's summary repeats that reminder. Each run exports only its
+      # own record: a shared concurrency group would discard queued dispatches, and
+      # a whole-file artifact would force an overwrite that loses other intakes.
+      - name: Export this run's manifest record
+        shell: bash
+        env:
+          RECORD_OWNER: ${{ steps.intake.outputs.owner }}
+          RECORD_NAME: ${{ steps.intake.outputs.name }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, sys
+          owner = os.environ["RECORD_OWNER"]
+          name = os.environ["RECORD_NAME"]
+          with open("manifest-archives.json", encoding="utf-8") as fh:
+              entries = json.load(fh)
+          matches = [
+              e for e in entries
+              if isinstance(e, dict) and e.get("owner") == owner and e.get("name") == name
+          ]
+          if not matches:
+              sys.exit(f"no manifest-archives.json record for {owner}/{name}")
+          frag = f"manifest-archives-{owner}-{name}.json"
+          with open(frag, "w", encoding="utf-8") as fh:
+              json.dump(matches[-1], fh, indent=2)
+              fh.write("\n")
+          print(f"wrote {frag}", file=sys.stderr)
+          PY
+
       - name: Upload recorded re-intake provenance
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: manifest-archives
-          path: manifest-archives.json
+          name: manifest-archives-${{ steps.intake.outputs.owner }}-${{ steps.intake.outputs.name }}
+          path: manifest-archives-${{ steps.intake.outputs.owner }}-${{ steps.intake.outputs.name }}.json
           if-no-files-found: error
 
   publish:
@@ -314,7 +333,7 @@ jobs:
             echo "- release tag: \`$TAG\`"
             echo "- upstream commit: \`$RESOLVED_SHA\`"
             echo "- archive sha256: \`$ARCHIVE_SHA256\`"
-            echo "- Merge the \`manifest-archives\` artifact's records into \`manifest-archives.json\` (keyed on owner/name); do not overwrite the file wholesale, or an intake that landed after this run started would lose its record. This run pushes no commit."
+            echo "- Merge the \`manifest-archives-$OWNER-$NAME\` artifact's record into \`manifest-archives.json\` (upsert keyed on owner/name); this run pushes no commit."
             if [ -n "$DEFERRAL_REASON" ]; then
                 # Escape DEFERRAL_REASON for markdown display (no command embedding)
                 reason_display="${DEFERRAL_REASON//\\/\\\\}"  # Escape backslashes

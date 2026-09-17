@@ -66,7 +66,7 @@ SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 COMMAND_TIMEOUT_SECONDS = 120
 FIXED_MTIME = 315532800  # 1980-01-01 UTC; matches package_plugin.py
 VALID_TYPES = ("module", "script", "completion")
-VALID_GIT_URL_RE = re.compile(r"^(https://|ssh://|git@[\w.-]+:)")
+VALID_GIT_URL_RE = re.compile(r"^(https://|ssh://|git@[\w.-]+:)\S+$")
 IDENT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 SEMVER_RE = re.compile(
     r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
@@ -83,11 +83,20 @@ MAX_ARCHIVE_FILES = 10_000
 MAX_ARCHIVE_BYTES = 100 * 1024 * 1024
 
 
+SLUG_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+
+
 def normalize_git_url(value: str) -> str:
-    """Return a clone URL, expanding a bare `owner/name` slug to a GitHub URL."""
-    if VALID_GIT_URL_RE.match(value):
-        return value
-    return f"https://github.com/{value}"
+    """Return a clone URL, expanding a bare `owner/name` slug to a GitHub URL.
+
+    Anything that is not exactly a slug passes through unchanged so
+    ``validate_git_url`` can reject it: rewriting `http://` or `git://` input
+    as a slug would turn an unsupported transport into a bogus github.com URL
+    that passes validation instead of failing with a clear error.
+    """
+    if SLUG_RE.fullmatch(value):
+        return f"https://github.com/{value}"
+    return value
 
 
 def validate_git_url(git_url: str) -> None:

@@ -71,6 +71,19 @@ class IntakeArchiveTests(unittest.TestCase):
         ):
             self.assertEqual(self.ia.normalize_git_url(url), url)
 
+    def test_normalize_git_url_preserves_url_like_input_for_rejection(self):
+        for value in (
+            "http://github.com/owner/repo",
+            "git://example.invalid/repo.git",
+            "-rf",
+            "https://github.com/owner/repo extra",
+        ):
+            with self.subTest(value=value):
+                normalized = self.ia.normalize_git_url(value)
+                self.assertEqual(normalized, value)
+                with self.assertRaises(ValueError):
+                    self.ia.validate_git_url(normalized)
+
     def test_validate_git_url_rejects_option_like_url(self):
         with self.assertRaisesRegex(ValueError, "may not start with"):
             self.ia.validate_git_url("--upload-pack=evil")
