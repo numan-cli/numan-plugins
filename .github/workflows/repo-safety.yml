@@ -72,13 +72,13 @@ jobs:
       - name: Validate GitHub Actions workflows
         run: |
           mapfile -t workflows < <(git ls-files '.github/workflows/*.yml' '.github/workflows/*.yaml')
-          curl -fsSL -o actionlint.tar.gz \
+          curl -fsSL -o actionlint_1.7.12_linux_amd64.tar.gz \
             https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
           curl -fsSL -o actionlint_checksums.txt \
             https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_checksums.txt
           grep 'actionlint_1.7.12_linux_amd64.tar.gz' actionlint_checksums.txt \
             | sha256sum --check --strict
-          tar -xzf actionlint.tar.gz actionlint
+          tar -xzf actionlint_1.7.12_linux_amd64.tar.gz actionlint
           chmod +x actionlint
           ./actionlint "${workflows[@]}"
-          rm -f actionlint actionlint.tar.gz actionlint_checksums.txt
+          rm -f actionlint actionlint_1.7.12_linux_amd64.tar.gz actionlint_checksums.txt
