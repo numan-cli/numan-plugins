@@ -137,6 +137,7 @@ signed index and independently download and hash every release asset.
 Local checks mirror CI:
 
 ```bash
+python3 -m pip install PyYAML==6.0.3
 python3 scripts/format_json.py --check
 python3 scripts/check_repo_consistency.py
 python3 -m unittest discover -s scripts -p "test_*.py" -v
