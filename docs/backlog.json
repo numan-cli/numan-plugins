@@ -920,7 +920,7 @@
       "name": "nu_plugin_handlebars",
       "plugin_bin": "nu_plugin_handlebars",
       "stars": 1,
-      "status": "SOURCE_ONLY",
+      "status": "INTAKE_PENDING",
       "versions": [
         {
           "tag": "v0.3.0",
@@ -931,7 +931,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-10-18: corrected owner nushell->idanarye; v0.3.0 pins nu-plugin 0.116.0; intake via CI build farm."
+      "c1_note": "2026-10-18: corrected owner nushell->idanarye; v0.3.0 pins nu-plugin 0.116.0; intake via CI build farm. Status is INTAKE_PENDING — CI build dispatch is next; will be updated to PROMOTED once registry intake and lifecycle-prove on Nu 0.116.1 complete."
     },
     {
       "repo": "nushell/nu_plugin_template",
