@@ -70,6 +70,7 @@ jobs:
       - run: python -m unittest discover -s scripts -p "test_check_workflows.py" -v
 
       - name: Validate GitHub Actions workflows
+        if: ${{ !cancelled() }}
         run: |
           mapfile -t workflows < <(git ls-files '.github/workflows/*.yml' '.github/workflows/*.yaml')
           curl -fsSL -o actionlint_1.7.12_linux_amd64.tar.gz \
@@ -82,3 +83,4 @@ jobs:
           chmod +x actionlint
           ./actionlint "${workflows[@]}"
           rm -f actionlint actionlint_1.7.12_linux_amd64.tar.gz actionlint_checksums.txt
+          go run github.com/rhysd/actionlint/cmd/actionlint@914e7df21a07ef503a81201c76d2b11c789d3fca "${workflows[@]}"
