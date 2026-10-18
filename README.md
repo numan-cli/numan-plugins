@@ -101,6 +101,21 @@ rest build on native runners.
 - `fdncred/nu_plugin_query_git` @ `v0.24.0` → `nu_plugin_query_git` 0.24.0
 - `lizclipse/nu_plugin_ulid` @ `v0.23.0` → `nu_plugin_ulid` 0.23.0
 - `rhino-linux/nu_plugin_nutext` @ `0.6.2` → `nu_plugin_nutext` 0.6.2
+- `Euphrasiologist/nu_plugin_plot` @ `commit 5a1ca2a` → `nu_plugin_plot` 0.103.0
+- `Euphrasiologist/nu_plugin_bio` @ `commit 49ab341` → `nu_plugin_bio` 0.104.0
+- `WindSoilder/nu_plugin_mongo` @ `commit 47854d9` → `nu_plugin_mongo` 0.1.14
+- `kik4444/nu_plugin_mime` @ `commit 8e5872a` → `nu_plugin_mime` 0.114.1
+- `yybit/nu_plugin_x509` @ `commit 15518dd` → `nu_plugin_x509` 0.1.8
+- `oderwat/nu_plugin_logfmt` @ `commit 892c4f9` → `nu_plugin_logfmt` 0.1.2
+
+The six commit snapshots above passed the full registry lifecycle on Windows
+x86_64 on October 18, 2026. Exact tested Nu versions are recorded in
+`manifest.json`; logs and artifact checks are in the registry's
+[`lifecycle evidence`](https://github.com/numan-cli/numan-registry/blob/main/docs/evidence/2026-10-18-lifecycle/summary.json).
+`verified_with` is recorded globally but evidence is Windows x86_64 only;
+Linux and macOS targets remain unverified. The logfmt snapshot
+requires Nu 0.101.x; its previous 0.100.x constraint was contradicted by the real
+plugin protocol handshake and corrected after a successful Nu 0.101.0 lifecycle.
 
 ## Pending first build
 

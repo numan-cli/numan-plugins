@@ -19,7 +19,7 @@ jobs:
       pull-requests: write
       id-token: write
       actions: read
-    uses: tonythethompson/opencode-review-threads/.github/workflows/opencode-review.yml@v1
+    uses: tonythethompson/opencode-review-threads/.github/workflows/opencode-review.yml@ca210394a5d109a12d1031d58e3cdc6abb9cd9fe # v1
     with:
       use-github-token: true
       timeout-minutes: 85
