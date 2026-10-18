@@ -126,7 +126,7 @@ class CheckWorkflowsTests(unittest.TestCase):
             rc = check_workflows.main()
         self.assertEqual(rc, 0)
         wf.assert_called_once_with(root)
-        vw.assert_called_once_with(root, files=fake_files)
+        vw.assert_called_once_with(root, fake_files)
         pr.assert_called_once_with("validated 1 workflow files")
 
     def test_invalid_non_first_workflow_still_found(self):
