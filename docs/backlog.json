@@ -270,18 +270,25 @@
       "name": "nu_plugin_units",
       "plugin_bin": "nu_plugin_units",
       "stars": 18,
-      "status": "PRE_0_112",
+      "status": "INTAKE_PENDING",
       "versions": [
+        {
+          "tag": "v0.1.9",
+          "nu_plugin": "0.116.0",
+          "nu_protocol": "0.116.0",
+          "has_assets": false,
+          "note": "tagged release, no upstream assets; CI-build via numan-plugins"
+        },
         {
           "tag": "v0.1.8",
           "nu_plugin": "0.106.1",
           "nu_protocol": "0.106.1",
           "has_assets": true,
-          "note": "latest tag"
+          "note": "previous tag"
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-07-31: nu-plugin 0.106.1. Priority install-friction candidate; evaluate upstream bump or numan-maintained fork under ADR 0001."
+      "c1_note": "2026-10-18: v0.1.9 pins nu-plugin 0.116.0; intake via CI build farm. Status is INTAKE_PENDING — CI build dispatch is next; will be updated to PROMOTED once registry intake and lifecycle-prove on Nu 0.116.1 complete."
     },
     {
       "repo": "drbrain/nu_plugin_prometheus",

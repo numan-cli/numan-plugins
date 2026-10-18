@@ -482,6 +482,21 @@
       "verified_with": [],
       "description": "An handlebars command for Nushell for rendering Nu values using Handlebars templates.",
       "tags": ["plugin", "handlebars", "templates", "ci-built"]
+    },
+    {
+      "repo": "JosephTLyons/nu_plugin_units",
+      "name": "nu_plugin_units",
+      "owner": "JosephTLyons",
+      "plugin_bin": "nu_plugin_units",
+      "tag": "v0.1.9",
+      "source_commit": "ecdecaf1895f25a50cd61c3d7984cfbbafcfb802",
+      "version": "0.1.9",
+      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_reason": "Intel Mac EOL; not supported",
+      "nu_version": ">=0.116.0 <0.117.0",
+      "verified_with": [],
+      "description": "A Nushell plugin for easily converting between common units.",
+      "tags": ["plugin", "units", "conversion", "ci-built"]
     }
   ],
   "backlog_note": "Remaining demand-ranked source-only plugins live in docs/backlog.json. Wave 1 and wave 2 (jwalk, strutils, query_git, ulid, nutext) are in the official registry.",
