@@ -467,6 +467,21 @@
       "verified_with": [],
       "description": "A Nushell plugin for querying Google BigQuery.",
       "tags": ["plugin", "bigquery", "gcp", "database", "ci-built"]
+    },
+    {
+      "repo": "idanarye/nu_plugin_handlebars",
+      "name": "nu_plugin_handlebars",
+      "owner": "idanarye",
+      "plugin_bin": "nu_plugin_handlebars",
+      "tag": "v0.3.0",
+      "source_commit": "3af0f8747ffb73e7eaae4b0628eb90a6ba8b8d6d",
+      "version": "0.3.0",
+      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_reason": "Intel Mac EOL; not supported",
+      "nu_version": ">=0.116.0 <0.117.0",
+      "verified_with": [],
+      "description": "An handlebars command for Nushell for rendering Nu values using Handlebars templates.",
+      "tags": ["plugin", "handlebars", "templates", "ci-built"]
     }
   ],
   "backlog_note": "Remaining demand-ranked source-only plugins live in docs/backlog.json. Wave 1 and wave 2 (jwalk, strutils, query_git, ulid, nutext) are in the official registry.",

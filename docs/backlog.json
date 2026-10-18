@@ -916,14 +916,22 @@
       "c1_note": "Added from awesome-nu. Project-scoped todos with GitHub/Jira sync. Needs research."
     },
     {
-      "repo": "nushell/nu_plugin_handlebars",
+      "repo": "idanarye/nu_plugin_handlebars",
       "name": "nu_plugin_handlebars",
       "plugin_bin": "nu_plugin_handlebars",
-      "stars": 0,
-      "status": "NO_RELEASE",
-      "versions": [],
+      "stars": 1,
+      "status": "SOURCE_ONLY",
+      "versions": [
+        {
+          "tag": "v0.3.0",
+          "nu_plugin": "0.116.0",
+          "nu_protocol": "0.116.0",
+          "has_assets": false,
+          "note": "tagged release, no upstream assets; CI-build via numan-plugins"
+        }
+      ],
       "backfill_targets": [],
-      "c1_note": "Added from awesome-nu. Handlebars template rendering. Needs research."
+      "c1_note": "2026-10-18: corrected owner nushell->idanarye; v0.3.0 pins nu-plugin 0.116.0; intake via CI build farm."
     },
     {
       "repo": "nushell/nu_plugin_template",
