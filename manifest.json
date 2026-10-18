@@ -353,7 +353,7 @@
       "exclude_targets": ["x86_64-apple-darwin", "aarch64-apple-darwin"],
       "exclude_reason": "libproc bindings incompatibility on macOS 15 runner for pre-0.110 nu-protocol; Intel Mac EOL",
       "nu_version": ">=0.105.0 <0.106.0",
-      "verified_with": [],
+      "verified_with": ["0.105.0"],
       "description": "Plot graphs in nushell using numerical lists.",
       "tags": ["plugin", "plot", "terminal", "ci-built"]
     },
@@ -369,7 +369,7 @@
       "exclude_targets": ["x86_64-apple-darwin"],
       "exclude_reason": "Intel Mac EOL; not supported",
       "nu_version": ">=0.104.0 <0.105.0",
-      "verified_with": [],
+      "verified_with": ["0.104.0"],
       "description": "Parse and manipulate common bioinformatic formats in nushell.",
       "tags": ["plugin", "bio", "bioinformatics", "ci-built"]
     },
@@ -385,7 +385,7 @@
       "exclude_targets": ["x86_64-apple-darwin"],
       "exclude_reason": "Intel Mac EOL; not supported",
       "nu_version": ">=0.114.0 <0.115.0",
-      "verified_with": [],
+      "verified_with": ["0.114.1"],
       "description": "A nushell plugin to interact with mongodb.",
       "tags": ["plugin", "mongo", "database", "ci-built"]
     },
@@ -417,7 +417,7 @@
       "exclude_targets": ["x86_64-apple-darwin"],
       "exclude_reason": "Intel Mac EOL; not supported",
       "nu_version": ">=0.114.0 <0.115.0",
-      "verified_with": [],
+      "verified_with": ["0.114.1"],
       "description": "A simple plugin for working with mime types without performing disk access.",
       "tags": ["plugin", "mime", "media", "ci-built"]
     },
@@ -433,7 +433,7 @@
       "exclude_targets": ["x86_64-apple-darwin"],
       "exclude_reason": "Intel Mac EOL; not supported",
       "nu_version": ">=0.109.0 <0.110.0",
-      "verified_with": [],
+      "verified_with": ["0.109.0"],
       "description": "A nushell plugin for working with x509 certificates.",
       "tags": ["plugin", "x509", "crypto", "certificates", "ci-built"]
     },
@@ -448,8 +448,8 @@
       "version": "0.1.2",
       "exclude_targets": ["x86_64-apple-darwin"],
       "exclude_reason": "Intel Mac EOL; not supported",
-      "nu_version": ">=0.100.0 <0.101.0",
-      "verified_with": [],
+      "nu_version": ">=0.101.0 <0.102.0",
+      "verified_with": ["0.101.0"],
       "description": "A simple from / to logfmt plugin for nushell.",
       "tags": ["plugin", "logfmt", "logging", "ci-built"]
     },
