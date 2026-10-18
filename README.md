@@ -140,6 +140,7 @@ Local checks mirror CI:
 python3 scripts/format_json.py --check
 python3 scripts/check_repo_consistency.py
 python3 -m unittest discover -s scripts -p "test_*.py" -v
+python3 scripts/check_workflows.py
 python3 scripts/validate_manifest.py --verify-upstream
 ```
 
