@@ -98,7 +98,9 @@ def sync_roadmap(roadmap_text: str, count: int) -> tuple[str, bool]:
     pattern = re.compile(r"`manifest\.json` `active\[\]` currently holds \d+ plugins\.")
     replacement = f"`manifest.json` `active[]` currently holds {count} plugins."
     new_text, n = pattern.subn(replacement, roadmap_text)
-    changed = n > 0 and new_text != roadmap_text
+    if n == 0:
+        raise ValueError("roadmap.md: expected pattern not found — cannot update active[] count")
+    changed = new_text != roadmap_text
     return new_text, changed
 
 
