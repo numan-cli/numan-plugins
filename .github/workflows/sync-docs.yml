@@ -32,7 +32,7 @@ jobs:
 
       - name: Commit changes
         run: |
-          if git diff --quiet; then
+          if git diff --quiet HEAD --; then
             echo "No doc changes needed."
             exit 0
           fi
