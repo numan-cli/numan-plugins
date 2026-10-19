@@ -4,8 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
-permissions:
-  contents: write
+permissions: {}  # No top-level write permissions; grant write only at the job level
 
 concurrency:
   group: sync-docs-${{ github.head_ref }}
