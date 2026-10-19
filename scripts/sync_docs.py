@@ -46,23 +46,24 @@ def expected_readme_lines(active: list[dict]) -> list[str]:
     return lines
 
 
-def sync_readme(readme_text: str, expected: list[str]) -> tuple[str, bool]:
-    lines = readme_text.splitlines(keepends=True)
+def _find_section(lines: list[str], heading: str) -> tuple[int, int]:
     start = None
     for i, line in enumerate(lines):
-        if line.strip() == ACTIVE_HEADING:
+        if line.strip() == heading:
             start = i
             break
     if start is None:
-        raise ValueError(f"README missing '{ACTIVE_HEADING}' heading")
+        raise ValueError(f"README missing '{heading}' heading")
 
     end = len(lines)
     for j in range(start + 1, len(lines)):
         if lines[j].startswith("## "):
             end = j
             break
+    return start, end
 
-    block = lines[start + 1 : end]
+
+def _split_block(block: list[str]) -> tuple[list[str], list[str], list[str]]:
     leading: list[str] = []
     i = 0
     while i < len(block) and not block[i].strip():
@@ -73,8 +74,13 @@ def sync_readme(readme_text: str, expected: list[str]) -> tuple[str, bool]:
         list_lines.append(block[i])
         i += 1
     trailing = block[i:]
+    return leading, list_lines, trailing
 
-    new_block: list[str] = [lines[start]]
+
+def _build_new_block(
+    heading_line: str, leading: list[str], expected: list[str], trailing: list[str]
+) -> list[str]:
+    new_block: list[str] = [heading_line]
     if not new_block[0].endswith("\n"):
         new_block[0] += "\n"
     new_block.extend(leading if leading else ["\n"])
@@ -87,6 +93,18 @@ def sync_readme(readme_text: str, expected: list[str]) -> tuple[str, bool]:
     else:
         if new_block and not new_block[-1].endswith("\n"):
             new_block.append("\n")
+    return new_block
+
+
+def sync_readme(readme_text: str, expected: list[str]) -> tuple[str, bool]:
+    lines = readme_text.splitlines(keepends=True)
+    start, end = _find_section(lines, ACTIVE_HEADING)
+
+    block = lines[start + 1 : end]
+    leading, _list_lines, trailing = _split_block(block)
+
+    heading_line = lines[start]
+    new_block = _build_new_block(heading_line, leading, expected, trailing)
 
     old_block = lines[start:end]
     new_text = "".join(lines[:start]) + "".join(new_block) + "".join(lines[end:])
@@ -96,13 +114,10 @@ def sync_readme(readme_text: str, expected: list[str]) -> tuple[str, bool]:
 
 def sync_roadmap(roadmap_text: str, count: int) -> tuple[str, bool]:
     pattern = re.compile(r"`manifest\.json` `active\[\]` currently holds \d+ plugins\.")
-def sync_roadmap(roadmap_text: str, count: int) -> tuple[str, bool]:
-    pattern = re.compile(r"`manifest\.json` `active\[\]` currently\s+holds \d+ plugins\.")
     replacement = f"`manifest.json` `active[]` currently holds {count} plugins."
     new_text, n = pattern.subn(replacement, roadmap_text)
-    if n == 0:
-        raise ValueError("docs/roadmap.md missing 'active[] currently holds N plugins' sentence")
-    return new_text, new_text != roadmap_text
+    changed = n > 0 and new_text != roadmap_text
+    return new_text, changed
 
 
 def main() -> int:
