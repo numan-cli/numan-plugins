@@ -46,9 +46,10 @@ contract pins in this repo alone.
   compatibility via `versions[]` / `backfill_targets`. Live catalog × Nu overview:
   [`numan-registry/docs/catalog-compat.md`](https://github.com/numan-cli/numan-registry/blob/main/docs/catalog-compat.md).
   Source: awesome-nu + manual discovery.
-- Wave 1 and Wave 2 CI-built plugins are on **`main`**, published, and intaken
-  into the official registry. Wave 2 targets Nu 0.114; Wave 1 includes Nu
-  0.113.1 and Nu 0.112.2. `manifest.json` `active[]` currently holds 20 plugins.
+- Wave 1, Wave 2, and Wave 3 CI-built plugins are on **`main`**, published, and intaken
+  into the official registry. Wave 3 targets Nu 0.116; Wave 2 targets Nu 0.114;
+  Wave 1 includes Nu 0.113.1 and Nu 0.112.2. `manifest.json` `active[]` currently
+  holds 32 plugins.
 - Release upload uses claim-ID upload (upload-by-id) to avoid softprops
   creating a second draft.
 
