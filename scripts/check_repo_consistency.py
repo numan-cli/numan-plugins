@@ -15,6 +15,8 @@ import re
 import sys
 from pathlib import Path
 
+from _manifest_helpers import expected_readme_lines, read_manifest_active
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = REPO_ROOT / "manifest.json"
 BACKLOG_PATH = REPO_ROOT / "docs" / "backlog.json"
@@ -36,27 +38,6 @@ PENDING_REGISTRY_RE = re.compile(r"pending\s+registry", re.IGNORECASE)
 ACTIVE_LINE_RE = re.compile(
     r"^- `(?P<repo>[^`]+)` @ `(?P<tag>[^`]+)` → `(?P<name>[^`]+)` (?P<version>\S+)\s*$"
 )
-
-
-def read_manifest_active(path: Path) -> list[dict]:
-    data = json.loads(path.read_text(encoding="utf-8"))
-    active = data.get("active")
-    if not isinstance(active, list):
-        raise ValueError(f"{path}: active must be a list")
-    return active
-
-
-def expected_readme_lines(active: list[dict]) -> list[str]:
-    lines: list[str] = []
-    for entry in active:
-        # Entries with empty verified_with go in the "Pending" section, not "Currently active"
-        if not entry.get("verified_with"):
-            continue
-        tag_display = entry.get("tag") or f"commit {entry['source_commit'][:7]}"
-        lines.append(
-            f"- `{entry['repo']}` @ `{tag_display}` → `{entry['name']}` {entry['version']}"
-        )
-    return lines
 
 
 def parse_readme_active(readme_text: str) -> list[str]:
