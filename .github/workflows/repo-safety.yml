@@ -83,4 +83,3 @@ jobs:
           chmod +x actionlint
           ./actionlint "${workflows[@]}"
           rm -f actionlint actionlint_1.7.12_linux_amd64.tar.gz actionlint_checksums.txt
-          go run github.com/rhysd/actionlint/cmd/actionlint@914e7df21a07ef503a81201c76d2b11c789d3fca "${workflows[@]}"
