@@ -49,7 +49,7 @@ contract pins in this repo alone.
 - Wave 1, Wave 2, and Wave 3 CI-built plugins are on **`main`**, published, and intaken
   into the official registry. Wave 3 targets Nu 0.116; Wave 2 targets Nu 0.114;
   Wave 1 includes Nu 0.113.1 and Nu 0.112.2. `manifest.json` `active[]` currently
-  holds 32 plugins.
+  holds 33 plugins.
 - Release upload uses claim-ID upload (upload-by-id) to avoid softprops
   creating a second draft.
 

@@ -497,6 +497,22 @@
       "verified_with": [],
       "description": "A Nushell plugin for easily converting between common units.",
       "tags": ["plugin", "units", "conversion", "ci-built"]
+    },
+    {
+      "repo": "kaathewisegit/nugins",
+      "name": "nu_plugin_endecode",
+      "owner": "kaathewisegit",
+      "plugin_bin": "nu_plugin_endecode",
+      "intake_mode": "commit-snapshot",
+      "tag": null,
+      "source_commit": "2fe5276c69cfb79d7fc994ac336dcfb098bd966b",
+      "version": "0.114.1",
+      "exclude_targets": ["x86_64-apple-darwin"],
+      "exclude_reason": "Intel Mac EOL; not supported",
+      "nu_version": ">=0.114.0 <0.115.0",
+      "verified_with": [],
+      "description": "A plugin with various encoding schemes, from Crockford's base-32 to HTML entity escaping.",
+      "tags": ["plugin", "endecode", "encoding", "ci-built"]
     }
   ],
   "backlog_note": "Remaining demand-ranked source-only plugins live in docs/backlog.json. Wave 1 and wave 2 (jwalk, strutils, query_git, ulid, nutext) are in the official registry.",

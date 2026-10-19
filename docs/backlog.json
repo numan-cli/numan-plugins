@@ -1,12 +1,12 @@
 {
   "schema": "numan-plugin-backlog-v1",
-  "note": "Comprehensive Nushell plugin candidate list. Source: awesome-nu + manual discovery. Each plugin tracks ALL known release versions and their Nu minor compatibility, enabling post-1.0 backfill targeting. Status values: PROMOTED (in official registry), ELIGIBLE (has version on supported Nu minor, not yet promoted), PRE_0_112 (all versions below 0.112), NO_RELEASE (no tags), SOURCE_ONLY (tags but no release assets), CREDENTIALS (needs special creds for lifecycle proof), BUILTIN (shipped inside Nu itself).",
+  "note": "Comprehensive Nushell plugin candidate list. Source: awesome-nu + manual discovery. Each plugin tracks ALL known release versions and their Nu minor compatibility, enabling post-1.0 backfill targeting. Status values: PROMOTED (in official registry), ELIGIBLE (has version on supported Nu minor, not yet promoted), INTAKE_PENDING (in manifest active[]; awaiting CI build dispatch and registry intake + lifecycle-prove), PRE_0_112 (all versions below 0.112), NO_RELEASE (no tags), SOURCE_ONLY (tags but no release assets), CREDENTIALS (needs special creds for lifecycle proof), BUILTIN (shipped inside Nu itself).",
   "schema_fields": {
     "repo": "GitHub owner/name",
     "name": "crate/package name",
     "plugin_bin": "binary name after build",
     "stars": "GitHub stars at last check",
-    "status": "PROMOTED | ELIGIBLE | PRE_0_112 | NO_RELEASE | SOURCE_ONLY | CREDENTIALS | BUILTIN",
+    "status": "PROMOTED | ELIGIBLE | INTAKE_PENDING | PRE_0_112 | NO_RELEASE | SOURCE_ONLY | CREDENTIALS | BUILTIN",
     "versions": "Array of {tag, nu_plugin, nu_protocol, has_assets, note} — ALL known releases with their Nu compat",
     "backfill_targets": "Nu minors (e.g. [\"0.113\", \"0.112\"]) that have at least one eligible plugin version not yet in registry",
     "c1_note": "Latest research/promotion note"
@@ -794,7 +794,7 @@
       "name": "nu_plugin_endecode",
       "plugin_bin": "nu_plugin_endecode",
       "stars": 0,
-      "status": "ELIGIBLE",
+      "status": "INTAKE_PENDING",
       "versions": [
         {
           "tag": "v0.113.1",
@@ -812,7 +812,7 @@
         }
       ],
       "backfill_targets": ["0.113", "0.112"],
-      "c1_note": "nugins monorepo (kaathewisegit/nugins), crate at endecode/. Trunk pins nu-plugin 0.114.1. Releases v0.113.1 and v0.112.0 have per-target assets. Priority install-friction candidate; needs a 0.114 release or commit-snapshot for current Numan."
+      "c1_note": "nugins monorepo (kaathewisegit/nugins), crate at endecode/. Trunk pins nu-plugin 0.114.1. Releases v0.113.1 and v0.112.0 have per-target assets. Priority install-friction candidate; added to manifest active[] as commit-snapshot (trunk 2fe5276, nu-plugin 0.114.1). CI build dispatch is next; PROMOTED after registry intake + lifecycle-prove."
     },
     {
       "repo": "nushell/nu_plugin_formats",
