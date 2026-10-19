@@ -144,6 +144,37 @@ class CheckRepoConsistencyTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "must be a list"):
                 self.mod.read_manifest_active(path)
 
+    def test_expected_readme_lines_raises_when_missing_tag_and_source_commit(self):
+        entry = {
+            "repo": "owner/repo",
+            "name": "plugin",
+            "version": "1.0.0",
+            "verified_with": ["0.114.1"],
+        }
+        with self.assertRaisesRegex(ValueError, "missing both 'tag' and 'source_commit'"):
+            self.mod.expected_readme_lines([entry])
+
+    def test_expected_readme_lines_raises_when_missing_required_fields(self):
+        entry = {
+            "tag": "v1.0.0",
+            "name": "plugin",
+            "version": "1.0.0",
+            "verified_with": ["0.114.1"],
+        }
+        with self.assertRaisesRegex(ValueError, "missing required field"):
+            self.mod.expected_readme_lines([entry])
+
+    def test_expected_readme_lines_rejects_empty_version(self):
+        entry = {
+            "repo": "owner/repo",
+            "name": "plugin",
+            "version": "",
+            "tag": "v1.0.0",
+            "verified_with": ["0.114.1"],
+        }
+        with self.assertRaisesRegex(ValueError, "missing required field"):
+            self.mod.expected_readme_lines([entry])
+
     def test_parse_readme_active_missing_heading_raises(self):
         with self.assertRaisesRegex(ValueError, "missing"):
             self.mod.parse_readme_active("# Demo\n\nno active heading here\n")

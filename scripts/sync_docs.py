@@ -29,6 +29,9 @@ SNAPSHOT_COUNT_RE = re.compile(r"The (\w+) commit snapshots above passed")
 _ORDINAL_WORDS = {
     "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
     "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+    "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14,
+    "fifteen": 15, "sixteen": 16, "seventeen": 17, "eighteen": 18,
+    "nineteen": 19, "twenty": 20,
 }
 
 
@@ -92,7 +95,10 @@ def _snapshot_count_repl(match: re.Match, count: int) -> str:
     does not flag a synced README for using 'six' instead of '6'.
     """
     token = match.group(1)
-    current = int(token) if token.isdigit() else _ORDINAL_WORDS.get(token.lower())
+    if token.isdigit():
+        current = int(token)
+    else:
+        current = _ORDINAL_WORDS.get(token.lower())
     if current == count:
         return match.group(0)
     return f"The {count} commit snapshots above passed"
@@ -105,6 +111,11 @@ def _sync_afterword(lines: list[str], count: int) -> list[str]:
     text = "".join(lines)
     new_text, n = SNAPSHOT_COUNT_RE.subn(lambda m: _snapshot_count_repl(m, count), text)
     if n == 0:
+        if count:
+            raise ValueError(
+                "README 'Currently active' afterword missing "
+                "'The N commit snapshots above passed' sentence"
+            )
         return lines
     return new_text.splitlines(keepends=True)
 

@@ -40,7 +40,7 @@ def expected_readme_lines(active: list[dict]) -> list[str]:
         repo = entry.get("repo")
         name = entry.get("name")
         version = entry.get("version")
-        if not repo or not name or version is None:
+        if not repo or not name or not version:
             raise ValueError(f"Entry missing required field(s) (repo/name/version): {entry}")
         lines.append(f"- `{repo}` @ `{tag_display}` → `{name}` {version}")
     return lines
