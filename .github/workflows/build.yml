@@ -25,7 +25,7 @@ jobs:
       matrix: ${{ steps.select.outputs.matrix }}
       snapshot_date: ${{ steps.select.outputs.snapshot_date }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Validate selection and immutable upstream revisions
@@ -98,14 +98,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout numan-plugins (build scripts)
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: numan-plugins
           persist-credentials: false
 
       - name: Checkout plugin source
         id: checkout_source
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ${{ matrix.repo }}
           ref: ${{ matrix.source_commit }}
@@ -294,7 +294,7 @@ jobs:
       group: publish-${{ matrix.plugin.name }}-${{ matrix.plugin.version }}
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: numan-plugins
           persist-credentials: false
