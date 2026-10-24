@@ -82,9 +82,23 @@ rest build on native runners.
 
 ## Currently active
 
+- `cptpiepmatz/nu-plugin-highlight` @ `v1.4.17+0.115.1` → `nu_plugin_highlight` 1.4.17
+- `fdncred/nu_plugin_regex` @ `v0.25.0` → `nu_plugin_regex` 0.25.0
+- `idanarye/nu_plugin_skim` @ `v0.31.0` → `nu_plugin_skim` 0.31.0
+- `FMotalleb/nu_plugin_desktop_notifications` @ `v0.116.0` → `nu_plugin_desktop_notifications` 0.116.0
+- `FMotalleb/nu_plugin_port_extension` @ `v0.116.0` → `nu_plugin_port_extension` 0.116.0
+- `fdncred/nu_plugin_file` @ `v0.28.0` → `nu_plugin_file` 0.28.0
 - `Yethal/nu_plugin_hcl` @ `0.114.1` → `nu_plugin_hcl` 0.114.1
+- `FMotalleb/nu_plugin_image` @ `v0.116.0` → `nu_plugin_image` 0.116.0
+- `drbrain/nu_plugin_prometheus` @ `v0.13.0` → `nu_plugin_prometheus` 0.13.0
+- `fdncred/nu_plugin_emoji` @ `v0.25.0` → `nu_plugin_emoji` 0.25.0
+- `fdncred/nu_plugin_json_path` @ `v0.26.1` → `nu_plugin_json_path` 0.26.1
+- `fdncred/nu_plugin_parquet` @ `v0.26.0` → `nu_plugin_parquet` 0.26.0
+- `Kissaki/nu_plugin_bson` @ `v26.1160.0` → `nu_plugin_bson` 26.1160.0
 - `fnuttens/nu_plugin_hmac` @ `0.27.0` → `nu_plugin_hmac` 0.27.0
 - `fdncred/nu_plugin_jwalk` @ `v0.26.0` → `nu_plugin_jwalk` 0.26.0
+- `fdncred/nu_plugin_strutils` @ `v0.25.0` → `nu_plugin_strutils` 0.25.0
+- `fdncred/nu_plugin_query_git` @ `v0.26.0` → `nu_plugin_query_git` 0.26.0
 - `lizclipse/nu_plugin_ulid` @ `v0.23.0` → `nu_plugin_ulid` 0.23.0
 - `rhino-linux/nu_plugin_nutext` @ `0.6.2` → `nu_plugin_nutext` 0.6.2
 - `Euphrasiologist/nu_plugin_plot` @ `commit 5a1ca2a` → `nu_plugin_plot` 0.103.0
