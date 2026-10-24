@@ -38,7 +38,7 @@
       "version": "0.25.0",
       "exclude_targets": ["x86_64-apple-darwin"],
       "exclude_reason": "Intel Mac EOL; not supported",
-      "nu_version": ">=0.114.0 <0.115.0",
+      "nu_version": ">=0.116.0 <0.117.0",
       "verified_with": [],
       "description": "Search text with regular expressions in Nushell pipelines.",
       "tags": ["plugin", "regex", "text", "ci-built"]
@@ -68,7 +68,7 @@
       "version": "0.31.0",
       "exclude_targets": ["x86_64-apple-darwin"],
       "exclude_reason": "x86_64 macOS was omitted from this existing immutable release after the macos-13 runner stalled; add it on the next plugin version using macos-15-intel",
-      "nu_version": ">=0.114.0 <0.115.0",
+      "nu_version": ">=0.116.0 <0.117.0",
       "verified_with": [],
       "description": "Fuzzy finder (skim) integration for Nushell.",
       "tags": ["plugin", "skim", "fuzzy", "ci-built"]
@@ -113,7 +113,7 @@
       "version": "0.28.0",
       "exclude_targets": ["x86_64-apple-darwin"],
       "exclude_reason": "Intel Mac EOL; not supported",
-      "nu_version": ">=0.114.0 <0.115.0",
+      "nu_version": ">=0.116.0 <0.117.0",
       "verified_with": [],
       "description": "Inspect a file and return information based on its magic number.",
       "tags": ["plugin", "file", "filesystem", "ci-built"]
@@ -156,7 +156,7 @@
       "version": "0.13.0",
       "exclude_targets": ["aarch64-unknown-linux-gnu"],
       "exclude_reason": "linux aarch64 cross: openssl-sys/native-tls fails to locate target OpenSSL headers/libs under taiki-e cross toolchain (pkg-config resolves host x86_64 paths); Windows and other four targets green on build run 30604641151",
-      "nu_version": ">=0.114.0 <0.115.0",
+      "nu_version": ">=0.115.0 <0.116.0",
       "verified_with": [],
       "description": "Query Prometheus from Nushell (instant/range queries, targets, labels, scrape).",
       "tags": ["plugin", "prometheus", "metrics", "ci-built"]
@@ -171,7 +171,7 @@
       "version": "0.25.0",
       "exclude_targets": ["x86_64-apple-darwin"],
       "exclude_reason": "x86_64 macOS omitted; macos-15-intel runner not yet validated for this plugin",
-      "nu_version": ">=0.114.0 <0.115.0",
+      "nu_version": ">=0.116.0 <0.117.0",
       "verified_with": [],
       "description": "Search and insert emoji characters in Nushell pipelines.",
       "tags": ["plugin", "emoji", "text", "ci-built"]
@@ -186,7 +186,7 @@
       "version": "0.26.1",
       "exclude_targets": ["x86_64-apple-darwin"],
       "exclude_reason": "x86_64 macOS omitted; macos-15-intel runner not yet validated for this plugin",
-      "nu_version": ">=0.114.0 <0.115.0",
+      "nu_version": ">=0.116.0 <0.117.0",
       "verified_with": [],
       "description": "Query JSON data with JSONPath expressions in Nushell.",
       "tags": ["plugin", "json", "jsonpath", "ci-built"]
@@ -201,7 +201,7 @@
       "version": "0.26.0",
       "exclude_targets": ["x86_64-apple-darwin"],
       "exclude_reason": "x86_64 macOS omitted; macos-15-intel runner not yet validated for this plugin",
-      "nu_version": ">=0.114.0 <0.115.0",
+      "nu_version": ">=0.116.0 <0.117.0",
       "verified_with": [],
       "description": "Read and write Apache Parquet files in Nushell.",
       "tags": ["plugin", "parquet", "data", "ci-built"]
@@ -261,7 +261,7 @@
       "version": "0.25.0",
       "exclude_targets": ["x86_64-apple-darwin"],
       "exclude_reason": "Intel Mac EOL; not supported",
-      "nu_version": ">=0.114.0 <0.115.0",
+      "nu_version": ">=0.116.0 <0.117.0",
       "verified_with": [],
       "description": "A collection of string utilities for Nushell.",
       "tags": ["plugin", "text", "string", "ci-built"]
@@ -276,7 +276,7 @@
       "version": "0.26.0",
       "exclude_targets": ["x86_64-apple-darwin"],
       "exclude_reason": "Intel Mac EOL; not supported",
-      "nu_version": ">=0.114.0 <0.115.0",
+      "nu_version": ">=0.116.0 <0.117.0",
       "verified_with": [],
       "description": "Query git repositories with GQL and return structured Nushell data.",
       "tags": ["plugin", "git", "query", "ci-built"]
