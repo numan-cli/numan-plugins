@@ -82,6 +82,7 @@ jobs:
                       "name": p["name"], "repo": p["repo"], "tag": p.get("tag"),
                       "source_commit": p["source_commit"],
                       "version": version, "bin": p["plugin_bin"],
+                      "cargo_package": p.get("cargo_package"),
                       "triple": t["triple"], "os": t["os"], "cross": t["cross"],
                   })
           print("plugins=" + json.dumps(plugins))
@@ -208,6 +209,7 @@ jobs:
         env:
           MATRIX_TRIPLE: ${{ matrix.triple }}
           MATRIX_BIN: ${{ matrix.bin }}
+          MATRIX_CARGO_PACKAGE: ${{ matrix.cargo_package }}
         run: |
           set -euo pipefail
 
@@ -231,11 +233,17 @@ jobs:
             go build -ldflags="-s -w" -o "$outdir/$binexe" .
           else
             errfile="$(mktemp)"
-            if ! cargo build --release --locked --target "$MATRIX_TRIPLE" 2>"$errfile"; then
+            build_cmd=(cargo build --release --target "$MATRIX_TRIPLE")
+            if [ -n "${MATRIX_CARGO_PACKAGE:-}" ]; then
+              # Workspace-member plugin: the repo root builds something else
+              # by default, so select the plugin crate explicitly.
+              build_cmd+=(--package "$MATRIX_CARGO_PACKAGE")
+            fi
+            if ! "${build_cmd[@]}" --locked 2>"$errfile"; then
               if grep -q -- "--locked" "$errfile"; then
                 echo "Locked build failed due to lockfile update; retrying without --locked" >&2
                 cat "$errfile" >&2
-                cargo build --release --target "$MATRIX_TRIPLE"
+                "${build_cmd[@]}"
               else
                 cat "$errfile" >&2
                 exit 1
