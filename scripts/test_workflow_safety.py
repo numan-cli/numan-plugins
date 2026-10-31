@@ -193,6 +193,18 @@ class WorkflowSafetyTests(unittest.TestCase):
         self.assertIn("release_transaction.py cleanup", INTAKE)
         self.assertNotIn("gh release create", INTAKE)
 
+    def test_build_plumbs_cargo_package_selection(self):
+        """Workspace-member plugins need their crate selected in the build.
+
+        The setup job must carry the manifest's cargo_package into the
+        matrix, the build step must receive it through env (never shell
+        interpolation), and the cargo invocation must add --package only
+        from that env value.
+        """
+        self.assertIn('"cargo_package": p.get("cargo_package")', BUILD)
+        self.assertIn("MATRIX_CARGO_PACKAGE: ${{ matrix.cargo_package }}", BUILD)
+        self.assertIn('build_cmd+=(--package "$MATRIX_CARGO_PACKAGE")', BUILD)
+
     def test_macos_uses_supported_runners(self):
         """Keep the executable matrix and manifest metadata on current macOS runners."""
         targets = workflow_targets(BUILD)
