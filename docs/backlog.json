@@ -1089,6 +1089,90 @@
       ],
       "backfill_targets": [],
       "c1_note": "2026-08-05: wave2 0.6.2 in official registry; lifecycle-prove OK Linux+Windows/Nu 0.114.1."
+    },
+    {
+      "repo": "wangjiawen2013/charton",
+      "name": "nu_plugin_charton",
+      "plugin_bin": "nu_plugin_charton",
+      "stars": 448,
+      "status": "ELIGIBLE",
+      "versions": [
+        {
+          "tag": "v0.9.0",
+          "nu_plugin": "0.116",
+          "nu_protocol": "0.116",
+          "has_assets": false,
+          "note": "GitHub release exists with no assets; CI-build from source (plugin crate in nu_plugin_charton/ workspace member)"
+        }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-10-31: found via awesome-nu audit (was untracked). Plugin crate 0.9.0 pins nu-plugin =0.116, current Nu minor. Apache-2.0. High demand signal for a plugin (448 stars): renders pipeline tables as terminal/SVG/PNG charts."
+    },
+    {
+      "repo": "kazu/seekzstdsep",
+      "name": "nu_plugin_zstdsep",
+      "plugin_bin": "nu_plugin_zstdsep",
+      "stars": 2,
+      "status": "SOURCE_ONLY",
+      "versions": [
+        {
+          "tag": "v0.9.0",
+          "nu_plugin": "0.116",
+          "nu_protocol": "0.116",
+          "has_assets": false,
+          "note": "tag only, no GitHub release object; plugin crate at tag is 0.7.16 (repo versions the parent tool separately); crate at HEAD is 0.9.1 on nu-plugin 0.116.1"
+        }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-10-31: found via awesome-nu audit (was untracked). Seekable separator-aware zstd reader plugin (jsonl/csv/logfmt). MIT. CI-build from source."
+    },
+    {
+      "repo": "gtnebel/nu_plugin_nuplot",
+      "name": "nu_plugin_nuplot",
+      "plugin_bin": "nu_plugin_nuplot",
+      "stars": 0,
+      "status": "ELIGIBLE",
+      "versions": [
+        {
+          "tag": "v0.2.8",
+          "nu_plugin": "unknown (Go)",
+          "nu_protocol": "unknown (Go)",
+          "has_assets": true,
+          "note": "8 release assets; implemented in Go on the ainvaltin/nu-plugin library (maintainer fork, Oct 2026), so there is no Cargo nu-plugin pin to read"
+        }
+      ],
+      "backfill_targets": [],
+      "c1_note": "2026-10-31: found via awesome-nu audit (was untracked). BSD-2-Clause. Caveat: Go implementation does not fit the numan-plugins Cargo CI-build path; intake would ship upstream release assets or need a Go build lane. Protocol compat needs a live check against current Nu before promotion."
+    },
+    {
+      "repo": "nushell/nu_plugin_gstat",
+      "name": "nu_plugin_gstat",
+      "plugin_bin": "nu_plugin_gstat",
+      "stars": 0,
+      "status": "BUILTIN",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Official Nushell plugin (nushell/nushell crates/nu_plugin_gstat). Ships with Nu releases; not a numan candidate (see official/bundled policy). Recorded from awesome-nu so the audit stops flagging it untracked."
+    },
+    {
+      "repo": "nushell/nu_plugin_inc",
+      "name": "nu_plugin_inc",
+      "plugin_bin": "nu_plugin_inc",
+      "stars": 0,
+      "status": "BUILTIN",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Official Nushell plugin (nushell/nushell crates/nu_plugin_inc). Ships with Nu releases; not a numan candidate (see official/bundled policy). Recorded from awesome-nu so the audit stops flagging it untracked."
+    },
+    {
+      "repo": "nushell/nu_plugin_query",
+      "name": "nu_plugin_query",
+      "plugin_bin": "nu_plugin_query",
+      "stars": 0,
+      "status": "BUILTIN",
+      "versions": [],
+      "backfill_targets": [],
+      "c1_note": "Official Nushell plugin (nushell/nushell crates/nu_plugin_query). Ships with Nu releases; not a numan candidate (see official/bundled policy). Distinct from fdncred/nu_plugin_query_git, which is in the registry. Recorded from awesome-nu so the audit stops flagging it untracked."
     }
   ]
 }
