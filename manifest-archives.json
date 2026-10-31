@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "git": "https://github.com/amasialabs/nushell-modules",
+    "ref": "v0.5.24",
+    "resolved_sha": "4c6f3ce3c1a5fea1c5327d541556f096259cb699",
+    "entry": "amasia/mod.nu",
+    "name": "nushell-modules",
+    "owner": "amasialabs",
+    "type": "module"
+  }
+]
