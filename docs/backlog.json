@@ -1095,7 +1095,7 @@
       "name": "nu_plugin_charton",
       "plugin_bin": "nu_plugin_charton",
       "stars": 448,
-      "status": "ELIGIBLE",
+      "status": "INTAKE_PENDING",
       "versions": [
         {
           "tag": "v0.9.0",
@@ -1106,7 +1106,7 @@
         }
       ],
       "backfill_targets": [],
-      "c1_note": "2026-10-31: found via awesome-nu audit (was untracked). Plugin crate 0.9.0 pins nu-plugin =0.116, current Nu minor. Apache-2.0. High demand signal for a plugin (448 stars): renders pipeline tables as terminal/SVG/PNG charts."
+      "c1_note": "2026-10-31: found via awesome-nu audit (was untracked). Plugin crate 0.9.0 pins nu-plugin =0.116, current Nu minor. Apache-2.0. High demand signal for a plugin (448 stars): renders pipeline tables as terminal/SVG/PNG charts. Promotion started 2026-10-31: manifest active[] entry added on the promote/nu_plugin_charton-0.9.0 branch with cargo_package selection (the plugin is a workspace member; the repo root is the charton library). Local locked build of the plugin crate on Linux x86_64 and a Nu 0.116.1 command smoke both pass; CI cross-platform build is the next gate."
     },
     {
       "repo": "kazu/seekzstdsep",
