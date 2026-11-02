@@ -122,6 +122,7 @@ plugin protocol handshake and corrected after a successful Nu 0.101.0 lifecycle.
 These plugins are in `manifest.json` but have not yet been built by CI. They will
 move to "Currently active" once the build succeeds and `verified_with` is populated.
 
+- `wangjiawen2013/charton` @ `v0.9.0` → `nu_plugin_charton` 0.9.0 _(workspace member crate; built via cargo_package)_
 - `dead10ck/nu_plugin_dns` @ `v4.0.11` → `nu_plugin_dns` 4.0.11 _(bumped from v4.0.10/Nu 0.113)_
 - `tonythethompson/nu_plugin_qr_maker` @ `v1.2.0` → `nu_plugin_qr_maker` 1.2.0 _(fork: bumped from Nu 0.94)_
 - `tonythethompson/nu_plugin_explore` @ `v0.114.1` → `nu_plugin_explore` 0.114.1 _(fork: bumped from Nu 0.102)_

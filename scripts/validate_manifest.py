@@ -13,6 +13,7 @@ from pathlib import Path
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 GITHUB_REPO_SLUG_RE = re.compile(r"^[^/\s]+/[^/\s]+$")
+CARGO_PACKAGE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
 COMMAND_TIMEOUT_SECONDS = 30
 REQUIRED_FIELDS = {
     "repo",
@@ -85,6 +86,25 @@ def validate_intake_fields(name: str, entry: dict) -> None:
         raise ValueError(f"{name}: tag must be a string or null")
 
 
+def validate_cargo_package(name: str, entry: dict) -> None:
+    """Validate the optional cargo_package workspace selector.
+
+    Most plugins are their repo's default Cargo package and omit the field.
+    A plugin that lives in a workspace member crate (the repo root builds a
+    library or a different binary by default) sets cargo_package to that
+    crate's package name so the build workflow compiles it with
+    ``cargo build --package``.
+    """
+    cargo_package = entry.get("cargo_package")
+    if cargo_package is None:
+        return
+    if not isinstance(cargo_package, str) or not CARGO_PACKAGE_RE.fullmatch(cargo_package):
+        raise ValueError(
+            f"{name}: cargo_package must be a Cargo package name "
+            f"(letters, digits, '-' or '_'), got {cargo_package!r}"
+        )
+
+
 def validate_upstream_repo(entry: dict) -> None:
     """Enforce ADR 0001 fork-identity invariants: only 'numan-maintained' may
     set upstream_repo, it must be required (not optional) for that owner, and
@@ -130,6 +150,7 @@ def validate_active_entry(manifest: dict, entry: dict, names: set[str]) -> str:
     if not isinstance(source_commit, str) or not SHA_RE.fullmatch(source_commit):
         raise ValueError(f"{name}: source_commit must be 40 lowercase hex characters")
     validate_intake_fields(name, entry)
+    validate_cargo_package(name, entry)
     validate_upstream_repo(entry)
     expected_targets(manifest, entry)
     return name

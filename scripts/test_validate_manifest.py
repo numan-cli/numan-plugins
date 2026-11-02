@@ -175,6 +175,17 @@ class ValidateManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "intake_mode must be one of"):
             self.mod.validate_manifest(self.manifest([self.entry(intake_mode="bogus")]))
 
+    def test_accepts_cargo_package_selector(self):
+        entries = self.mod.validate_manifest(
+            self.manifest([self.entry(cargo_package="nu_plugin_widget")])
+        )
+        self.assertEqual(entries[0]["cargo_package"], "nu_plugin_widget")
+
+    def test_rejects_invalid_cargo_package(self):
+        for bad in ("", "not a package", "foo/bar", 42):
+            with self.assertRaisesRegex(ValueError, "cargo_package must be a Cargo package name"):
+                self.mod.validate_manifest(self.manifest([self.entry(cargo_package=bad)]))
+
     def test_verify_upstream_skips_tag_check_for_commit_snapshot(self):
         entry = self.entry(intake_mode="commit-snapshot")
         with mock.patch.object(self.mod, "resolve_tag") as resolve_tag:
