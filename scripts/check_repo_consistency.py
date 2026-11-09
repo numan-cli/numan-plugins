@@ -17,6 +17,7 @@ import sys
 from pathlib import Path
 
 from _manifest_helpers import (
+    entry_tag_display,
     expected_readme_lines,
     parse_readme_entry_line,
     read_manifest_active,
@@ -158,7 +159,10 @@ def _verify_pending_entry(parsed: dict, entry: dict) -> list[str]:
             f"README Pending repo mismatch for {name}: "
             f"readme='{parsed['repo']}', manifest='{entry.get('repo')}'"
         )
-    expected_tag = entry.get("tag") or f"commit {entry.get('source_commit', '')[:7]}"
+    try:
+        expected_tag = entry_tag_display(entry)
+    except ValueError:
+        expected_tag = ""
     if parsed["tag"] != expected_tag:
         errors.append(
             f"README Pending tag mismatch for {name}: "

@@ -25,14 +25,20 @@ def read_manifest_active(path: Path) -> list[dict]:
     return active
 
 
+def entry_tag_display(entry: dict) -> str:
+    """Return the display tag for an entry (either tag or 'commit <sha7>')."""
+    tag = entry.get("tag")
+    if tag:
+        return tag
+    source_commit = entry.get("source_commit")
+    if source_commit:
+        return f"commit {source_commit[:7]}"
+    raise ValueError(f"Entry missing both 'tag' and 'source_commit': {entry}")
+
+
 def format_entry_line(entry: dict, note: str | None = None) -> str:
     """Format one README entry line: - `repo` @ `tag_display` → `name` version [note]."""
-    tag_display = entry.get("tag")
-    source_commit = entry.get("source_commit")
-    if not tag_display and not source_commit:
-        raise ValueError(f"Entry missing both 'tag' and 'source_commit': {entry}")
-    if not tag_display:
-        tag_display = f"commit {source_commit[:7]}"
+    tag_display = entry_tag_display(entry)
     repo = entry.get("repo")
     name = entry.get("name")
     version = entry.get("version")
