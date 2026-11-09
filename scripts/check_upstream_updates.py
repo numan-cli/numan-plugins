@@ -108,7 +108,7 @@ def fetch_cargo_toml_nu_dep(repo: str, ref: str = "HEAD") -> str | None:
     """
     endpoint = f"repos/{repo}/contents/Cargo.toml"
     if ref != "HEAD":
-        endpoint += f"?ref={ref}"
+        endpoint += f"?ref={urllib.parse.quote(ref, safe='')}"
     try:
         data = fetch_github_json(endpoint)
     except FetchError as e:
@@ -334,21 +334,50 @@ def generate_markdown_report(results: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Check active plugins for upstream updates.")
-    parser.add_argument("--manifest", type=Path, default=MANIFEST_PATH, help="Path to manifest.json")
-    parser.add_argument("--report", type=Path, default=None, help="Path to output markdown report")
-    parser.add_argument("--json", action="store_true", help="Output JSON results to stdout")
-    args = parser.parse_args()
+def _filter_active_entries(
+    active: list[dict], only_str: str
+) -> tuple[list[dict] | None, int]:
+    """Filter active plugins against an optional comma-separated name whitelist."""
+    only_set = {item.strip() for item in only_str.split(",") if item.strip()}
+    if not only_set:
+        return active, 0
+    known = {e.get("name") for e in active if e.get("name")}
+    unknown = sorted(only_set - known)
+    if unknown:
+        print(
+            f"Error: unknown active plugin(s) in --only: {', '.join(unknown)}",
+            file=sys.stderr,
+        )
+        return None, 2
+    return [e for e in active if e.get("name") in only_set], 0
 
-    if not args.manifest.exists():
-        print(f"Error: manifest file {args.manifest} does not exist", file=sys.stderr)
-        return 1
 
-    manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
-    active = manifest.get("active", [])
+def _write_audit_outputs(
+    report_md: str, results: list[dict], report_path: Path | None
+) -> None:
+    """Write report file and populate GitHub Actions outputs."""
+    if report_path:
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(report_md, encoding="utf-8")
+        print(f"\nReport written to {report_path}")
 
-    print(f"Auditing {len(active)} active plugins from {args.manifest.name}...")
+    gh_summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if gh_summary:
+        with open(gh_summary, "a", encoding="utf-8") as f:
+            f.write(report_md)
+
+    gh_output = os.environ.get("GITHUB_OUTPUT")
+    if gh_output:
+        updates_found = any(
+            r["status"] in ("READY_FOR_BUMP", "NEW_TAG_AVAILABLE") for r in results
+        )
+        with open(gh_output, "a", encoding="utf-8") as f:
+            f.write(f"updates_found={'true' if updates_found else 'false'}\n")
+
+
+def _run_audit_entries(active: list[dict], manifest_name: str) -> list[dict]:
+    """Run audit_entry for each active plugin and print concise progress."""
+    print(f"Auditing {len(active)} active plugins from {manifest_name}...")
     results = []
     for entry in active:
         res = audit_entry(entry)
@@ -359,24 +388,29 @@ def main() -> int:
         )
         if res["status"] == "FETCH_ERROR":
             print(f"      {res['error']}", file=sys.stderr)
+    return results
 
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Check active plugins for upstream updates.")
+    parser.add_argument("--manifest", type=Path, default=MANIFEST_PATH, help="Path to manifest.json")
+    parser.add_argument("--report", type=Path, default=None, help="Path to output markdown report")
+    parser.add_argument("--only", default="", help="Optional comma-separated plugin names to check")
+    parser.add_argument("--json", action="store_true", help="Output JSON results to stdout")
+    args = parser.parse_args(argv)
+
+    if not args.manifest.exists():
+        print(f"Error: manifest file {args.manifest} does not exist", file=sys.stderr)
+        return 1
+
+    manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
+    filtered_active, rc = _filter_active_entries(manifest.get("active", []), args.only)
+    if filtered_active is None:
+        return rc
+
+    results = _run_audit_entries(filtered_active, args.manifest.name)
     report_md = generate_markdown_report(results)
-
-    if args.report:
-        args.report.parent.mkdir(parents=True, exist_ok=True)
-        args.report.write_text(report_md, encoding="utf-8")
-        print(f"\nReport written to {args.report}")
-
-    gh_summary = os.environ.get("GITHUB_STEP_SUMMARY")
-    if gh_summary:
-        with open(gh_summary, "a", encoding="utf-8") as f:
-            f.write(report_md)
-
-    updates_found = any(r["status"] in ("READY_FOR_BUMP", "NEW_TAG_AVAILABLE") for r in results)
-    gh_output = os.environ.get("GITHUB_OUTPUT")
-    if gh_output:
-        with open(gh_output, "a", encoding="utf-8") as f:
-            f.write(f"updates_found={'true' if updates_found else 'false'}\n")
+    _write_audit_outputs(report_md, results, args.report)
 
     if args.json:
         print(json.dumps(results, indent=2))
