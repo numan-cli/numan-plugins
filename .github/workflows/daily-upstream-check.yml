@@ -120,14 +120,32 @@ jobs:
             --head "$BRANCH" --base main)
           echo "Created $PR_URL"
           gh pr merge "$PR_URL" --auto --squash --delete-branch || true
-          gh pr checks "$PR_URL" --watch --required --interval 15
+
+          # Poll until checks are reported on the PR before watching
+          echo "Waiting for checks to report on $PR_URL..."
+          for i in $(seq 1 18); do
+            CHECK_COUNT=$(gh pr checks "$PR_URL" --json name --jq 'length' 2>/dev/null || echo 0)
+            if [ -n "$CHECK_COUNT" ] && [ "$CHECK_COUNT" -gt 0 ]; then
+              echo "Detected $CHECK_COUNT checks reported."
+              break
+            fi
+            sleep 5
+          done
+
+          gh pr checks "$PR_URL" --watch --required --interval 15 || true
+
           STATE=$(gh pr view "$PR_URL" --json state --jq .state)
           if [ "$STATE" != "MERGED" ]; then
-            gh pr merge "$PR_URL" --squash --delete-branch
+            if ! gh pr merge "$PR_URL" --squash --delete-branch; then
+              echo "gh pr merge failed. Checking PR details:" >&2
+              gh pr view "$PR_URL" --json state,mergeable,reviewDecision,statusCheckRollup >&2
+              exit 1
+            fi
           fi
           STATE=$(gh pr view "$PR_URL" --json state --jq .state)
           if [ "$STATE" != "MERGED" ]; then
             echo "auto-bump PR is ${STATE}, expected MERGED" >&2
+            gh pr view "$PR_URL" --json state,mergeable,reviewDecision,statusCheckRollup >&2
             exit 1
           fi
           echo "Merged $PR_URL; dispatching build.yml for ${BUMPED_PLUGINS}"

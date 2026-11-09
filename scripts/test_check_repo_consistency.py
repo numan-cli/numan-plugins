@@ -371,5 +371,70 @@ class CheckRepoConsistencyTests(unittest.TestCase):
             self.assertEqual(rc, 1)
 
 
+
+    def test_check_readme_pending_success(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = {
+                "active": [
+                    {
+                        "repo": "acme/plug_a",
+                        "name": "nu_plugin_a",
+                        "tag": "v1.0.0",
+                        "version": "1.0.0",
+                        "verified_with": ["0.114.0"],
+                    },
+                    {
+                        "repo": "acme/plug_b",
+                        "name": "nu_plugin_b",
+                        "tag": "v2.0.0",
+                        "version": "2.0.0",
+                        "verified_with": [],
+                    },
+                ]
+            }
+            manifest_file = root / "manifest.json"
+            manifest_file.write_text(json.dumps(manifest), encoding="utf-8")
+            readme_text = (
+                "# Demo\n\n"
+                "## Currently active\n\n"
+                "- `acme/plug_a` @ `v1.0.0` → `nu_plugin_a` 1.0.0\n\n"
+                "## Pending first build\n\n"
+                "Preamble line.\n\n"
+                "- `acme/plug_b` @ `v2.0.0` → `nu_plugin_b` 2.0.0 _(note)_\n"
+            )
+            readme_file = root / "README.md"
+            readme_file.write_text(readme_text, encoding="utf-8")
+            errors = self.mod.check_readme_pending(manifest_file, readme_file)
+            self.assertEqual(errors, [])
+
+    def test_check_readme_pending_flags_tag_mismatch(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = {
+                "active": [
+                    {
+                        "repo": "acme/plug_b",
+                        "name": "nu_plugin_b",
+                        "tag": "v2.0.1",
+                        "version": "2.0.1",
+                        "verified_with": [],
+                    },
+                ]
+            }
+            manifest_file = root / "manifest.json"
+            manifest_file.write_text(json.dumps(manifest), encoding="utf-8")
+            readme_text = (
+                "# Demo\n\n"
+                "## Currently active\n\n"
+                "## Pending first build\n\n"
+                "- `acme/plug_b` @ `v2.0.0` → `nu_plugin_b` 2.0.0\n"
+            )
+            readme_file = root / "README.md"
+            readme_file.write_text(readme_text, encoding="utf-8")
+            errors = self.mod.check_readme_pending(manifest_file, readme_file)
+            self.assertTrue(any("tag mismatch" in e for e in errors))
+
+
 if __name__ == "__main__":
     unittest.main()
