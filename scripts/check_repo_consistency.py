@@ -172,6 +172,31 @@ def _verify_pending_entry(parsed: dict, entry: dict) -> list[str]:
     return errors
 
 
+def _parse_pending_entries(lines: list[str]) -> tuple[list[dict], list[str]]:
+    """Parse pending entry lines, returning valid entries and any shape errors."""
+    entries = []
+    errors = []
+    for line in lines:
+        parsed = parse_readme_entry_line(line)
+        if not parsed:
+            errors.append(f"README pending line has unexpected shape: {line}")
+        else:
+            entries.append(parsed)
+    return entries, errors
+
+
+def _verify_all_entries(
+    actual_entries: list[dict], unverified_by_name: dict[str, dict]
+) -> list[str]:
+    """Verify all parsed pending entries against the manifest."""
+    errors = []
+    for parsed in actual_entries:
+        entry = unverified_by_name.get(parsed["name"])
+        if entry:
+            errors.extend(_verify_pending_entry(parsed, entry))
+    return errors
+
+
 def check_readme_pending(manifest_path: Path, readme_path: Path) -> list[str]:
     """Verify that README 'Pending first build' matches manifest.json unverified active[]."""
     active = read_manifest_active(manifest_path)
@@ -183,25 +208,13 @@ def check_readme_pending(manifest_path: Path, readme_path: Path) -> list[str]:
     if precond_errors is not None:
         return precond_errors
 
-    errors: list[str] = []
-    actual_entries = []
-    for line in actual_lines:
-        parsed = parse_readme_entry_line(line)
-        if not parsed:
-            errors.append(f"README pending line has unexpected shape: {line}")
-        else:
-            actual_entries.append(parsed)
-
+    actual_entries, errors = _parse_pending_entries(actual_lines)
     actual_names = [e["name"] for e in actual_entries]
     expected_names = [e["name"] for e in unverified]
     errors.extend(_check_pending_membership(actual_names, expected_names))
 
     unverified_by_name = {e["name"]: e for e in unverified}
-    for parsed in actual_entries:
-        entry = unverified_by_name.get(parsed["name"])
-        if entry:
-            errors.extend(_verify_pending_entry(parsed, entry))
-
+    errors.extend(_verify_all_entries(actual_entries, unverified_by_name))
     return errors
 
 

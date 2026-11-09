@@ -93,48 +93,32 @@ def _split_pending_block(block: list[str]) -> tuple[list[str], list[str], list[s
     return preamble, bullets, trailing
 
 
+def _format_section_block(
+    heading_line: str,
+    leading_or_preamble: list[str],
+    bullets: list[str],
+    trailing: list[str],
+) -> list[str]:
+    """Assemble a markdown section from its heading, preamble, bullets, and trailing lines."""
+    heading = heading_line if heading_line.endswith("\n") else f"{heading_line}\n"
+    pre = leading_or_preamble if leading_or_preamble else ["\n"]
+    formatted_bullets = [f"{b.rstrip()}\n" for b in bullets]
+    post = trailing if trailing else ["\n"]
+    return [heading, *pre, *formatted_bullets, *post]
+
+
 def _build_new_block(
     heading_line: str, leading: list[str], expected: list[str], trailing: list[str]
 ) -> list[str]:
-    """Rebuild a section from its heading, leading blanks, bullets, and trailing lines."""
-    new_block: list[str] = [heading_line]
-    if not new_block[0].endswith("\n"):
-        new_block[0] += "\n"
-    new_block.extend(leading if leading else ["\n"])
-    for el in expected:
-        new_block.append(el + "\n")
-    if trailing:
-        if new_block and new_block[-1].strip() != "" and trailing[0].strip() != "":
-            new_block.append("\n")
-        new_block.extend(trailing)
-    else:
-        if new_block and not new_block[-1].endswith("\n"):
-            new_block.append("\n")
-    return new_block
+    """Rebuild the currently active section."""
+    return _format_section_block(heading_line, leading, expected, trailing)
 
 
 def _build_new_pending_block(
     heading_line: str, preamble: list[str], expected: list[str], trailing: list[str]
 ) -> list[str]:
     """Rebuild the pending section preserving preamble narrative and trailing blanks."""
-    new_block: list[str] = [heading_line]
-    if not new_block[0].endswith("\n"):
-        new_block[0] += "\n"
-    new_block.extend(preamble if preamble else ["\n"])
-    if not new_block[-1].endswith("\n"):
-        new_block[-1] += "\n"
-    if new_block[-1].strip() != "":
-        new_block.append("\n")
-    for el in expected:
-        new_block.append(el + "\n")
-    if trailing:
-        if new_block and new_block[-1].strip() != "" and trailing[0].strip() != "":
-            new_block.append("\n")
-        new_block.extend(trailing)
-    else:
-        if new_block and not new_block[-1].endswith("\n"):
-            new_block.append("\n")
-    return new_block
+    return _format_section_block(heading_line, preamble, expected, trailing)
 
 
 def _snapshot_count_repl(match: re.Match, count: int) -> str:
