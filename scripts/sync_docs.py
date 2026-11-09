@@ -3,11 +3,12 @@
 
 Updates:
 - README.md ``## Currently active`` block (generated from manifest active[])
+- README.md ``## Pending first build`` block (generated from manifest active[] unverified entries)
 - docs/roadmap.md ``active[] currently holds N plugins`` count
 
 Usage:
     python scripts/sync_docs.py --check   # exit non-zero if out of sync (CI)
-    python scripts/sync_docs.py --write    # apply updates in place
+    python scripts/sync_docs.py --write   # apply updates in place
 """
 
 from __future__ import annotations
@@ -17,7 +18,12 @@ import re
 import sys
 from pathlib import Path
 
-from _manifest_helpers import expected_readme_lines, read_manifest_active
+from _manifest_helpers import (
+    expected_pending_lines,
+    expected_readme_lines,
+    parse_readme_entry_line,
+    read_manifest_active,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = REPO_ROOT / "manifest.json"
@@ -25,6 +31,7 @@ README_PATH = REPO_ROOT / "README.md"
 ROADMAP_PATH = REPO_ROOT / "docs" / "roadmap.md"
 
 ACTIVE_HEADING = "## Currently active"
+PENDING_HEADING = "## Pending first build"
 SNAPSHOT_COUNT_RE = re.compile(r"The (\w+) commit snapshots above passed")
 _ORDINAL_WORDS = {
     "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
@@ -68,6 +75,27 @@ def _split_block(block: list[str]) -> tuple[list[str], list[str], list[str]]:
     return leading, list_lines, trailing
 
 
+def _split_pending_block(block: list[str]) -> tuple[list[str], list[str], list[str]]:
+    """Split pending section lines into preamble, bullet lines, and trailing lines."""
+    first_bullet = None
+    for i, line in enumerate(block):
+        if line.startswith("- "):
+            first_bullet = i
+            break
+    if first_bullet is None:
+        return block, [], []
+    preamble = block[:first_bullet]
+    last_bullet = first_bullet
+    for j in range(first_bullet, len(block)):
+        if block[j].startswith("- "):
+            last_bullet = j
+        elif block[j].strip():
+            break
+    bullets = block[first_bullet : last_bullet + 1]
+    trailing = block[last_bullet + 1 :]
+    return preamble, bullets, trailing
+
+
 def _build_new_block(
     heading_line: str, leading: list[str], expected: list[str], trailing: list[str]
 ) -> list[str]:
@@ -88,12 +116,32 @@ def _build_new_block(
     return new_block
 
 
-def _snapshot_count_repl(match: re.Match, count: int) -> str:
-    """Return the replacement for one 'N commit snapshots above passed' match.
+def _build_new_pending_block(
+    heading_line: str, preamble: list[str], expected: list[str], trailing: list[str]
+) -> list[str]:
+    """Rebuild the pending section preserving preamble narrative and trailing blanks."""
+    new_block: list[str] = [heading_line]
+    if not new_block[0].endswith("\n"):
+        new_block[0] += "\n"
+    new_block.extend(preamble if preamble else ["\n"])
+    if not new_block[-1].endswith("\n"):
+        new_block[-1] += "\n"
+    if new_block[-1].strip() != "":
+        new_block.append("\n")
+    for el in expected:
+        new_block.append(el + "\n")
+    if trailing:
+        if new_block and new_block[-1].strip() != "" and trailing[0].strip() != "":
+            new_block.append("\n")
+        new_block.extend(trailing)
+    else:
+        if new_block and not new_block[-1].endswith("\n"):
+            new_block.append("\n")
+    return new_block
 
-    Preserves the existing spelling when the number already matches so --check
-    does not flag a synced README for using 'six' instead of '6'.
-    """
+
+def _snapshot_count_repl(match: re.Match, count: int) -> str:
+    """Return the replacement for one 'N commit snapshots above passed' match."""
     token = match.group(1)
     if token.isdigit():
         current = int(token)
@@ -120,10 +168,83 @@ def _sync_afterword(lines: list[str], count: int) -> list[str]:
     return new_text.splitlines(keepends=True)
 
 
+def extract_readme_notes_and_versions(
+    readme_text: str,
+) -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
+    """Return (active_versions, pending_versions, pending_notes) by plugin name."""
+    active_versions: dict[str, str] = {}
+    pending_versions: dict[str, str] = {}
+    pending_notes: dict[str, str] = {}
+
+    lines = readme_text.splitlines(keepends=True)
+    try:
+        a_start, a_end = _find_section(lines, ACTIVE_HEADING)
+        for line in lines[a_start + 1 : a_end]:
+            if line.startswith("- "):
+                parsed = parse_readme_entry_line(line)
+                if parsed and parsed.get("name") and parsed.get("version"):
+                    active_versions[parsed["name"]] = parsed["version"]
+    except ValueError:
+        pass
+
+    try:
+        p_start, p_end = _find_section(lines, PENDING_HEADING)
+        for line in lines[p_start + 1 : p_end]:
+            if line.startswith("- "):
+                parsed = parse_readme_entry_line(line)
+                if parsed and parsed.get("name") and parsed.get("version"):
+                    name = parsed["name"]
+                    pending_versions[name] = parsed["version"]
+                    if parsed.get("note"):
+                        pending_notes[name] = parsed["note"]
+    except ValueError:
+        pass
+
+    return active_versions, pending_versions, pending_notes
+
+
+def resolve_pending_notes(
+    active: list[dict],
+    active_versions: dict[str, str],
+    pending_versions: dict[str, str],
+    pending_notes: dict[str, str],
+) -> dict[str, str]:
+    """Resolve the appropriate annotation note for each unverified plugin."""
+    resolved: dict[str, str] = {}
+    for entry in active:
+        if entry.get("verified_with"):
+            continue
+        name = entry.get("name")
+        new_version = entry.get("version")
+        if not name or not new_version:
+            continue
+
+        if name in pending_notes:
+            existing_note = pending_notes[name]
+            old_ver = pending_versions.get(name)
+            # If the note recorded an old bumped-from version and this version has bumped again
+            if existing_note.startswith("_(") and "bumped from" in existing_note:
+                if old_ver and old_ver != new_version:
+                    resolved[name] = f"_(bumped from {old_ver})_"
+                else:
+                    resolved[name] = existing_note
+            else:
+                resolved[name] = existing_note
+        elif name in active_versions:
+            # Plugin was previously in Currently active and has been bumped with verified_with cleared
+            old_ver = active_versions[name]
+            resolved[name] = f"_(bumped from {old_ver})_"
+
+    return resolved
+
+
 def sync_readme(
-    readme_text: str, expected: list[str], snapshot_count: int
+    readme_text: str,
+    expected_active: list[str],
+    expected_pending: list[str] | None = None,
+    snapshot_count: int = 0,
 ) -> tuple[str, bool]:
-    """Return README text with the 'Currently active' block rebuilt from `expected`."""
+    """Return README text with 'Currently active' and 'Pending first build' blocks rebuilt."""
     lines = readme_text.splitlines(keepends=True)
     start, end = _find_section(lines, ACTIVE_HEADING)
 
@@ -132,20 +253,30 @@ def sync_readme(
     trailing = _sync_afterword(trailing, snapshot_count)
 
     heading_line = lines[start]
-    new_block = _build_new_block(heading_line, leading, expected, trailing)
+    new_block = _build_new_block(heading_line, leading, expected_active, trailing)
 
-    old_block = lines[start:end]
-    new_text = "".join(lines[:start]) + "".join(new_block) + "".join(lines[end:])
-    changed = "".join(old_block) != "".join(new_block)
+    new_lines = lines[:start] + new_block + lines[end:]
+
+    if expected_pending is not None:
+        try:
+            p_start, p_end = _find_section(new_lines, PENDING_HEADING)
+            p_block = new_lines[p_start + 1 : p_end]
+            p_leading, _p_bullets, p_trailing = _split_pending_block(p_block)
+            p_heading_line = new_lines[p_start]
+            new_p_block = _build_new_pending_block(
+                p_heading_line, p_leading, expected_pending, p_trailing
+            )
+            new_lines = new_lines[:p_start] + new_p_block + new_lines[p_end:]
+        except ValueError:
+            pass
+
+    new_text = "".join(new_lines)
+    changed = new_text != readme_text
     return new_text, changed
 
 
 def sync_roadmap(roadmap_text: str, count: int) -> tuple[str, bool]:
-    """Return roadmap text with the ``active[]`` plugin count synced to `count`.
-
-    The count sentence may wrap across lines, so the pattern matches intervening
-    whitespace and the replacement preserves the existing line wrap.
-    """
+    """Return roadmap text with the ``active[]`` plugin count synced to `count`."""
     pattern = re.compile(r"(`manifest\.json` `active\[\]` currently\s+holds )\d+( plugins\.)")
     new_text, n = pattern.subn(
         lambda m: f"{m.group(1)}{count}{m.group(2)}", roadmap_text
@@ -167,14 +298,20 @@ def main() -> int:
     args = parser.parse_args()
 
     active = read_manifest_active(MANIFEST_PATH)
-    expected = expected_readme_lines(active)
+    expected_active = expected_readme_lines(active)
     count = len(active)
     snapshot_count = sum(1 for e in active if e.get("verified_with") and not e.get("tag"))
 
     readme_text = README_PATH.read_text(encoding="utf-8")
     roadmap_text = ROADMAP_PATH.read_text(encoding="utf-8")
 
-    new_readme, readme_changed = sync_readme(readme_text, expected, snapshot_count)
+    act_v, pend_v, pend_notes = extract_readme_notes_and_versions(readme_text)
+    resolved_notes = resolve_pending_notes(active, act_v, pend_v, pend_notes)
+    expected_pending = expected_pending_lines(active, resolved_notes)
+
+    new_readme, readme_changed = sync_readme(
+        readme_text, expected_active, expected_pending, snapshot_count
+    )
     new_roadmap, roadmap_changed = sync_roadmap(roadmap_text, count)
 
     changed = readme_changed or roadmap_changed
@@ -182,7 +319,7 @@ def main() -> int:
     if args.write:
         if readme_changed:
             README_PATH.write_text(new_readme, encoding="utf-8")
-            print("Updated README.md active section.")
+            print("Updated README.md active and pending sections.")
         if roadmap_changed:
             ROADMAP_PATH.write_text(new_roadmap, encoding="utf-8")
             print("Updated docs/roadmap.md plugin count.")
@@ -193,7 +330,7 @@ def main() -> int:
     if changed:
         print("Docs are out of sync with manifest.json.")
         if readme_changed:
-            print("  - README.md 'Currently active' section")
+            print("  - README.md 'Currently active' or 'Pending first build' section")
         if roadmap_changed:
             print("  - docs/roadmap.md active[] count")
         print("Run: python scripts/sync_docs.py --write")
