@@ -435,6 +435,32 @@ class CheckRepoConsistencyTests(unittest.TestCase):
             errors = self.mod.check_readme_pending(manifest_file, readme_file)
             self.assertTrue(any("tag mismatch" in e for e in errors))
 
+    def test_check_readme_pending_propagates_malformed_entry(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = {
+                "active": [
+                    {
+                        "repo": "acme/plug_b",
+                        "name": "nu_plugin_b",
+                        "version": "2.0.0",
+                        "verified_with": [],
+                    },
+                ]
+            }
+            manifest_file = root / "manifest.json"
+            manifest_file.write_text(json.dumps(manifest), encoding="utf-8")
+            readme_text = (
+                "# Demo\n\n"
+                "## Currently active\n\n"
+                "## Pending first build\n\n"
+                "- `acme/plug_b` @ `v2.0.0` → `nu_plugin_b` 2.0.0\n"
+            )
+            readme_file = root / "README.md"
+            readme_file.write_text(readme_text, encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "missing both 'tag' and 'source_commit'"):
+                self.mod.check_readme_pending(manifest_file, readme_file)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -80,17 +80,13 @@ def _split_pending_block(block: list[str]) -> tuple[list[str], list[str], list[s
     bullets_start = next((i for i, line in enumerate(block) if line.startswith("- ")), None)
     if bullets_start is None:
         return block, [], []
-    preamble = block[:bullets_start]
-    bullets = []
-    trailing = []
-    in_trailing = False
-    for line in block[bullets_start:]:
-        if not in_trailing and line.startswith("- "):
-            bullets.append(line)
-        else:
-            in_trailing = True
-            trailing.append(line)
-    return preamble, bullets, trailing
+    last_bullet = bullets_start
+    for i in range(bullets_start, len(block)):
+        if block[i].startswith("- "):
+            last_bullet = i
+        elif block[i].strip():
+            break
+    return block[:bullets_start], block[bullets_start : last_bullet + 1], block[last_bullet + 1 :]
 
 
 def _format_section_block(
@@ -103,7 +99,9 @@ def _format_section_block(
     heading = heading_line if heading_line.endswith("\n") else f"{heading_line}\n"
     pre = leading_or_preamble if leading_or_preamble else ["\n"]
     formatted_bullets = [f"{b.rstrip()}\n" for b in bullets]
-    post = trailing if trailing else ["\n"]
+    post = trailing if trailing else (["\n"] if formatted_bullets else [])
+    if formatted_bullets and post and post[0].strip():
+        post = ["\n", *post]
     return [heading, *pre, *formatted_bullets, *post]
 
 
@@ -192,7 +190,8 @@ def _resolve_single_note(
         note = pending_notes[name]
         old_ver = pending_versions.get(name)
         if note.startswith("_(") and "bumped from" in note and old_ver and old_ver != new_version:
-            return f"_(bumped from {old_ver})_"
+            prefix = note[2 : note.index("bumped from")]
+            return f"_({prefix}bumped from {old_ver})_"
         return note
     if name in active_versions:
         return f"_(bumped from {active_versions[name]})_"
@@ -244,6 +243,10 @@ def sync_readme(
     if expected_pending is not None:
         try:
             p_start, p_end = _find_section(new_lines, PENDING_HEADING)
+        except ValueError:
+            if expected_pending:
+                raise
+        else:
             p_block = new_lines[p_start + 1 : p_end]
             p_leading, _p_bullets, p_trailing = _split_pending_block(p_block)
             p_heading_line = new_lines[p_start]
@@ -251,8 +254,6 @@ def sync_readme(
                 p_heading_line, p_leading, expected_pending, p_trailing
             )
             new_lines = new_lines[:p_start] + new_p_block + new_lines[p_end:]
-        except ValueError:
-            pass
 
     new_text = "".join(new_lines)
     changed = new_text != readme_text

@@ -209,29 +209,40 @@ class BumpCandidate:
     new_nu_str: str
 
 
+_STALE_RUN_PATTERNS = (
+    re.compile(
+        r"(?<![\w-])(?:the\s+)?(?:remaining(?:\s+\w+)?\s+)?targets\s+are\s+green\s+on\s+"
+        r"(?:build\s+)?run\s+\d+",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"(?<![\w-])(?<!not )(?:the\s+)?(?:remaining\s+)?green\s+on\s+(?:build\s+)?run\s+\d+",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"(?<![\w-])(?<!not )(?:verified|green)\s+on\s+(?:build\s+)?run\s+\d+",
+        re.IGNORECASE,
+    ),
+)
+
+
+def _tidy_exclude_reason(text: str) -> str:
+    """Collapse separator runs left behind after removing a stale clause."""
+    previous = None
+    while previous != text:
+        previous = text
+        text = re.sub(r"([;,])[\s;,]*(?:[;,])", lambda m: m.group(1), text)
+    return text.strip().strip(";,").strip()
+
+
 def _sanitize_exclude_reason_on_bump(reason: str | None) -> str | None:
     """Strip stale build run references or green run assertions when bumping a plugin."""
     if not reason:
         return reason
-    cleaned = re.sub(
-        r";?\s*(?:the\s+)?(?:remaining\s+\w+\s+)?targets\s+are\s+green\s+on\s+build\s+run\s+\d+",
-        "",
-        reason,
-        flags=re.IGNORECASE,
-    )
-    cleaned = re.sub(
-        r";?\s*(?:the\s+)?(?:remaining\s+)?green\s+on\s+build\s+run\s+\d+",
-        "",
-        cleaned,
-        flags=re.IGNORECASE,
-    )
-    cleaned = re.sub(
-        r";?\s*(?:verified|green)\s+on\s+(?:build\s+)?run\s+\d+",
-        "",
-        cleaned,
-        flags=re.IGNORECASE,
-    )
-    return cleaned.strip().rstrip(";,")
+    cleaned = reason
+    for pattern in _STALE_RUN_PATTERNS:
+        cleaned = pattern.sub("", cleaned)
+    return _tidy_exclude_reason(cleaned)
 
 
 def _apply_bump_to_entry(entry: dict, candidate: BumpCandidate) -> dict:
@@ -256,7 +267,11 @@ def _apply_bump_to_entry(entry: dict, candidate: BumpCandidate) -> dict:
     entry["nu_version"] = candidate.new_nu_str
     entry["verified_with"] = []
     if "exclude_reason" in entry and isinstance(entry["exclude_reason"], str):
-        entry["exclude_reason"] = _sanitize_exclude_reason_on_bump(entry["exclude_reason"])
+        sanitized = _sanitize_exclude_reason_on_bump(entry["exclude_reason"])
+        if sanitized:
+            entry["exclude_reason"] = sanitized
+        else:
+            del entry["exclude_reason"]
     return summary
 
 

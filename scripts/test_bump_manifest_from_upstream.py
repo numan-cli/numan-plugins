@@ -141,6 +141,41 @@ class BumpManifestFromUpstreamTests(unittest.TestCase):
         self.assertTrue(did_bump, reason)
         self.assertEqual(entry["exclude_reason"], "linux aarch64 cross: openssl fails")
 
+    def test_sanitize_preserves_negated_verification_reasons(self):
+        for reason in (
+            "unverified on run 42",
+            "not verified on run 42",
+            "not green on run 42",
+        ):
+            self.assertEqual(bmu._sanitize_exclude_reason_on_bump(reason), reason)
+
+    def test_sanitize_removes_remaining_clause_without_count(self):
+        self.assertEqual(
+            bmu._sanitize_exclude_reason_on_bump(
+                "the remaining targets are green on build run 123"
+            ),
+            "",
+        )
+
+    def test_sanitize_collapses_separators_after_removal(self):
+        self.assertEqual(
+            bmu._sanitize_exclude_reason_on_bump(
+                "linux aarch64 cross, targets are green on build run 1, openssl fails"
+            ),
+            "linux aarch64 cross, openssl fails",
+        )
+
+    def test_apply_bump_drops_empty_exclude_reason(self):
+        entry = self._sample_entry()
+        entry["exclude_reason"] = "targets are green on build run 7"
+        candidate = bmu.BumpCandidate(
+            new_ver=(0, 3, 0),
+            newest_tag="v0.3.0",
+            new_sha="c" * 40,
+            new_nu_str=">=0.112.0 <0.113.0",
+        )
+        bmu._apply_bump_to_entry(entry, candidate)
+        self.assertNotIn("exclude_reason", entry)
 
 
 if __name__ == "__main__":

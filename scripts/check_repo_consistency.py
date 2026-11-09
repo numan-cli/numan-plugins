@@ -159,10 +159,7 @@ def _verify_pending_entry(parsed: dict, entry: dict) -> list[str]:
             f"README Pending repo mismatch for {name}: "
             f"readme='{parsed['repo']}', manifest='{entry.get('repo')}'"
         )
-    try:
-        expected_tag = entry_tag_display(entry)
-    except ValueError:
-        expected_tag = ""
+    expected_tag = entry_tag_display(entry)
     if parsed["tag"] != expected_tag:
         errors.append(
             f"README Pending tag mismatch for {name}: "
