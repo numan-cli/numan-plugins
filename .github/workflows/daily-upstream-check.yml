@@ -5,21 +5,41 @@ on:
     # Run daily at 05:00 UTC
     - cron: '0 5 * * *'
   workflow_dispatch:
+    inputs:
+      only:
+        description: 'Optional comma-separated plugin names to check/bump'
+        required: false
+        type: string
+      dry_run:
+        description: 'Audit and preview bumps without mutating git or triggering builds'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: plugins-daily-upstream-check
+  cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
   check-plugins:
-    name: Audit Upstream Plugins
+    name: Audit and Auto-Bump Upstream Plugins
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
 
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: true
+          token: ${{ secrets.WATCH_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
@@ -31,4 +51,66 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python scripts/check_upstream_updates.py --report docs/upstream-audit-report.md
+          python scripts/check_upstream_updates.py --report "${RUNNER_TEMP}/upstream-audit-report.md"
+
+      - name: Bump manifest for eligible tagged plugins
+        id: bump
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_ONLY: ${{ inputs.only }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          ARGS=(--json-out "${RUNNER_TEMP}/bump-summary.json")
+          if [ -n "${INPUT_ONLY}" ]; then
+            ARGS+=(--only "${INPUT_ONLY}")
+          fi
+          if [ "${DRY_RUN}" != "true" ]; then
+            ARGS+=(--write)
+          fi
+          python scripts/bump_manifest_from_upstream.py "${ARGS[@]}"
+
+      - name: Open PR, merge, and dispatch build for bumped plugins
+        if: steps.bump.outputs.bumped_plugins != '' && !inputs.dry_run
+        env:
+          GH_TOKEN: ${{ secrets.WATCH_PAT || secrets.GITHUB_TOKEN }}
+          BUMPED_PLUGINS: ${{ steps.bump.outputs.bumped_plugins }}
+        run: |
+          set -euo pipefail
+          python scripts/validate_manifest.py --verify-upstream --only "$BUMPED_PLUGINS"
+          PREFIX="chore/auto-bump-plugins-"
+          if [ "$(gh pr list --state open --limit 100 --json headRefName \
+              --jq "[.[].headRefName | select(startswith(\"${PREFIX}\"))] | length")" != "0" ]; then
+            echo "An open auto-bump PR already exists; skipping."
+            exit 0
+          fi
+          BRANCH="${PREFIX}$(date -u +%Y%m%d)"
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            git push origin --delete "$BRANCH" || true
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          python scripts/sync_docs.py --write
+          python scripts/check_repo_consistency.py
+          git add manifest.json README.md docs/roadmap.md
+          git commit -m "chore(manifest): auto-bump upstream plugins (${BUMPED_PLUGINS})"
+          git push origin "$BRANCH"
+          PR_URL=$(gh pr create \
+            --title "chore(manifest): auto-bump upstream plugins (${BUMPED_PLUGINS})" \
+            --body "Automated minor/patch upstream tag bump for: \`${BUMPED_PLUGINS}\`." \
+            --head "$BRANCH" --base main)
+          echo "Created $PR_URL"
+          gh pr merge "$PR_URL" --auto --squash || true
+          gh pr checks "$PR_URL" --watch --required --interval 15 || true
+          STATE=$(gh pr view "$PR_URL" --json state --jq .state)
+          if [ "$STATE" != "MERGED" ]; then
+            gh pr merge "$PR_URL" --squash || gh pr merge "$PR_URL" --squash --admin
+          fi
+          STATE=$(gh pr view "$PR_URL" --json state --jq .state)
+          if [ "$STATE" != "MERGED" ]; then
+            echo "auto-bump PR is ${STATE}, expected MERGED" >&2
+            exit 1
+          fi
+          echo "Merged $PR_URL; dispatching build.yml for ${BUMPED_PLUGINS}"
+          gh workflow run build.yml --ref main -f only="$BUMPED_PLUGINS"
