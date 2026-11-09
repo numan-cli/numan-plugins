@@ -149,37 +149,33 @@ def _sync_afterword(lines: list[str], count: int) -> list[str]:
     return new_text.splitlines(keepends=True)
 
 
+def _parse_section_entries(lines: list[str], heading: str) -> list[dict]:
+    """Extract parsed entry dicts from lines within a section."""
+    try:
+        start, end = _find_section(lines, heading)
+    except ValueError:
+        return []
+    entries = []
+    for line in lines[start + 1 : end]:
+        if not line.startswith("- "):
+            continue
+        parsed = parse_readme_entry_line(line)
+        if parsed and parsed.get("name") and parsed.get("version"):
+            entries.append(parsed)
+    return entries
+
+
 def extract_readme_notes_and_versions(
     readme_text: str,
 ) -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
     """Return (active_versions, pending_versions, pending_notes) by plugin name."""
-    active_versions: dict[str, str] = {}
-    pending_versions: dict[str, str] = {}
-    pending_notes: dict[str, str] = {}
-
     lines = readme_text.splitlines(keepends=True)
-    try:
-        a_start, a_end = _find_section(lines, ACTIVE_HEADING)
-        for line in lines[a_start + 1 : a_end]:
-            if line.startswith("- "):
-                parsed = parse_readme_entry_line(line)
-                if parsed and parsed.get("name") and parsed.get("version"):
-                    active_versions[parsed["name"]] = parsed["version"]
-    except ValueError:
-        pass
+    active_entries = _parse_section_entries(lines, ACTIVE_HEADING)
+    pending_entries = _parse_section_entries(lines, PENDING_HEADING)
 
-    try:
-        p_start, p_end = _find_section(lines, PENDING_HEADING)
-        for line in lines[p_start + 1 : p_end]:
-            if line.startswith("- "):
-                parsed = parse_readme_entry_line(line)
-                if parsed and parsed.get("name") and parsed.get("version"):
-                    name = parsed["name"]
-                    pending_versions[name] = parsed["version"]
-                    if parsed.get("note"):
-                        pending_notes[name] = parsed["note"]
-    except ValueError:
-        pass
+    active_versions = {e["name"]: e["version"] for e in active_entries}
+    pending_versions = {e["name"]: e["version"] for e in pending_entries}
+    pending_notes = {e["name"]: e["note"] for e in pending_entries if e.get("note")}
 
     return active_versions, pending_versions, pending_notes
 
