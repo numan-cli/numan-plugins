@@ -29,6 +29,25 @@ class BumpManifestFromUpstreamTests(unittest.TestCase):
             "tags": ["plugin"],
         }
 
+    def _run_bump_with_mocked_upstream(
+        self,
+        entry: dict,
+        tag_name: str,
+        sha: str,
+        cargo_nu: str | None,
+    ) -> tuple[bool, str, dict | None]:
+        with (
+            mock.patch.object(bmu, "_check_tag_moved", return_value=False),
+            mock.patch.object(
+                bmu,
+                "fetch_latest_tags",
+                return_value=[{"name": tag_name, "commit_sha": sha}],
+            ),
+            mock.patch.object(bmu, "resolve_tag_commit", return_value=sha),
+            mock.patch.object(bmu, "fetch_cargo_toml_nu_dep", return_value=cargo_nu),
+        ):
+            return bmu.bump_entry(entry)
+
     def test_bumps_minor_tag_and_updates_nu_version(self):
         entry = self._sample_entry()
         new_sha = "B" * 40
@@ -62,18 +81,9 @@ class BumpManifestFromUpstreamTests(unittest.TestCase):
 
     def test_refuses_when_upstream_nu_dependency_missing(self):
         entry = self._sample_entry()
-        entry["repo"] = "example/nu_plugin_demo"
-        with (
-            mock.patch.object(bmu, "_check_tag_moved", return_value=False),
-            mock.patch.object(
-                bmu,
-                "fetch_latest_tags",
-                return_value=[{"name": "v0.3.0", "commit_sha": "b" * 40}],
-            ),
-            mock.patch.object(bmu, "resolve_tag_commit", return_value="b" * 40),
-            mock.patch.object(bmu, "fetch_cargo_toml_nu_dep", return_value=None),
-        ):
-            did_bump, reason, summary = bmu.bump_entry(entry)
+        did_bump, reason, summary = self._run_bump_with_mocked_upstream(
+            entry, "v0.3.0", "b" * 40, None
+        )
         self.assertFalse(did_bump)
         self.assertIsNone(summary)
         self.assertIn("could not determine upstream Nu dependency", reason)
@@ -89,7 +99,6 @@ class BumpManifestFromUpstreamTests(unittest.TestCase):
 
     def test_skips_major_version_bump(self):
         entry = self._sample_entry()
-        entry["repo"] = "example/nu_plugin_demo"
         with (
             mock.patch.object(bmu, "_check_tag_moved", return_value=False),
             mock.patch.object(
@@ -104,7 +113,6 @@ class BumpManifestFromUpstreamTests(unittest.TestCase):
 
     def test_refuses_when_current_tag_moved(self):
         entry = self._sample_entry()
-        entry["repo"] = "example/nu_plugin_demo"
         with mock.patch.object(bmu, "_check_tag_moved", return_value=True):
             did_bump, reason, _ = bmu.bump_entry(entry)
         self.assertFalse(did_bump)
@@ -112,20 +120,12 @@ class BumpManifestFromUpstreamTests(unittest.TestCase):
 
     def test_refuses_nu_dependency_downgrade(self):
         entry = self._sample_entry()
-        entry["repo"] = "example/nu_plugin_demo"
         entry["nu_version"] = ">=0.112.0 <0.113.0"
-        with (
-            mock.patch.object(bmu, "_check_tag_moved", return_value=False),
-            mock.patch.object(
-                bmu,
-                "fetch_latest_tags",
-                return_value=[{"name": "v0.2.1", "commit_sha": "d" * 40}],
-            ),
-            mock.patch.object(bmu, "resolve_tag_commit", return_value="d" * 40),
-            mock.patch.object(bmu, "fetch_cargo_toml_nu_dep", return_value="0.111.0"),
-        ):
-            did_bump, reason, _ = bmu.bump_entry(entry)
+        did_bump, reason, summary = self._run_bump_with_mocked_upstream(
+            entry, "v0.2.1", "d" * 40, "0.111.0"
+        )
         self.assertFalse(did_bump)
+        self.assertIsNone(summary)
         self.assertIn("downgrades", reason)
 
 

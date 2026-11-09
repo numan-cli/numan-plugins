@@ -12,6 +12,7 @@ from check_upstream_updates import (
     ensure_http_url,
     generate_markdown_report,
     http_opener,
+    main,
     manifest_nu_upper_bound,
     nu_needs_bump,
     parse_version,
@@ -253,6 +254,10 @@ class TestCheckUpstreamUpdates(unittest.TestCase):
         report = generate_markdown_report(results)
         self.assertIn("FETCH_ERROR", report)
         self.assertIn("HTTP 403", report)
+
+    def test_only_unknown_plugin_returns_exit_2(self):
+        rc = main(["--only", "nonexistent_plugin_xyz"])
+        self.assertEqual(rc, 2)
 
 
 if __name__ == "__main__":

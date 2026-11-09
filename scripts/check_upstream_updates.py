@@ -350,6 +350,14 @@ def main(argv: list[str] | None = None) -> int:
     active = manifest.get("active", [])
     only_set = {item.strip() for item in args.only.split(",") if item.strip()}
     if only_set:
+        known = {e.get("name") for e in active if e.get("name")}
+        unknown = sorted(only_set - known)
+        if unknown:
+            print(
+                f"Error: unknown active plugin(s) in --only: {', '.join(unknown)}",
+                file=sys.stderr,
+            )
+            return 2
         active = [e for e in active if e.get("name") in only_set]
 
     print(f"Auditing {len(active)} active plugins from {args.manifest.name}...")

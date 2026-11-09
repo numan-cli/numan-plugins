@@ -119,11 +119,11 @@ jobs:
             --body "Automated minor/patch upstream tag bump for: \`${BUMPED_PLUGINS}\`." \
             --head "$BRANCH" --base main)
           echo "Created $PR_URL"
-          gh pr merge "$PR_URL" --auto --squash || true
+          gh pr merge "$PR_URL" --auto --squash --delete-branch || true
           gh pr checks "$PR_URL" --watch --required --interval 15
           STATE=$(gh pr view "$PR_URL" --json state --jq .state)
           if [ "$STATE" != "MERGED" ]; then
-            gh pr merge "$PR_URL" --squash
+            gh pr merge "$PR_URL" --squash --delete-branch
           fi
           STATE=$(gh pr view "$PR_URL" --json state --jq .state)
           if [ "$STATE" != "MERGED" ]; then
