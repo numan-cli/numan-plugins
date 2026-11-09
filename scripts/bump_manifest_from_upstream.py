@@ -12,6 +12,7 @@ import json
 import os
 import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 from check_upstream_updates import (
@@ -200,32 +201,34 @@ def _validate_entry_for_bump(entry: dict) -> tuple[tuple[str, tuple[int, int, in
     return (current_tag, current_ver), ""
 
 
-def _apply_bump_to_entry(
-    entry: dict,
-    new_ver: tuple[int, int, int],
-    newest_tag: str,
-    new_sha: str,
-    new_nu_str: str,
-) -> dict:
+@dataclass(frozen=True)
+class BumpCandidate:
+    new_ver: tuple[int, int, int]
+    newest_tag: str
+    new_sha: str
+    new_nu_str: str
+
+
+def _apply_bump_to_entry(entry: dict, candidate: BumpCandidate) -> dict:
     """Mutate entry in place with bumped values and return the summary dictionary."""
-    new_version_str = f"{new_ver[0]}.{new_ver[1]}.{new_ver[2]}"
-    new_sha_lower = new_sha.lower()
+    new_version_str = f"{candidate.new_ver[0]}.{candidate.new_ver[1]}.{candidate.new_ver[2]}"
+    new_sha_lower = candidate.new_sha.lower()
     summary = {
         "name": entry.get("name", "<unknown>"),
         "repo": str(entry.get("repo", "")).strip(),
         "old_tag": entry.get("tag"),
-        "new_tag": newest_tag,
+        "new_tag": candidate.newest_tag,
         "old_version": entry.get("version"),
         "new_version": new_version_str,
         "old_commit": entry.get("source_commit", ""),
         "new_commit": new_sha_lower,
         "old_nu_version": entry.get("nu_version", ""),
-        "new_nu_version": new_nu_str,
+        "new_nu_version": candidate.new_nu_str,
     }
-    entry["tag"] = newest_tag
+    entry["tag"] = candidate.newest_tag
     entry["version"] = new_version_str
     entry["source_commit"] = new_sha_lower
-    entry["nu_version"] = new_nu_str
+    entry["nu_version"] = candidate.new_nu_str
     entry["verified_with"] = []
     return summary
 
@@ -255,7 +258,8 @@ def bump_entry(entry: dict) -> tuple[bool, str, dict | None]:
     if new_nu_str is None:
         return False, nu_err, None
 
-    summary = _apply_bump_to_entry(entry, new_ver, newest_tag, new_sha, new_nu_str)
+    candidate_obj = BumpCandidate(new_ver, newest_tag, new_sha, new_nu_str)
+    summary = _apply_bump_to_entry(entry, candidate_obj)
     new_sha_short = summary["new_commit"][:7]
     return True, f"bumped {current_tag} -> {newest_tag} ({new_sha_short})", summary
 
