@@ -77,22 +77,19 @@ def _split_block(block: list[str]) -> tuple[list[str], list[str], list[str]]:
 
 def _split_pending_block(block: list[str]) -> tuple[list[str], list[str], list[str]]:
     """Split pending section lines into preamble, bullet lines, and trailing lines."""
-    first_bullet = None
-    for i, line in enumerate(block):
-        if line.startswith("- "):
-            first_bullet = i
-            break
-    if first_bullet is None:
+    bullets_start = next((i for i, line in enumerate(block) if line.startswith("- ")), None)
+    if bullets_start is None:
         return block, [], []
-    preamble = block[:first_bullet]
-    last_bullet = first_bullet
-    for j in range(first_bullet, len(block)):
-        if block[j].startswith("- "):
-            last_bullet = j
-        elif block[j].strip():
-            break
-    bullets = block[first_bullet : last_bullet + 1]
-    trailing = block[last_bullet + 1 :]
+    preamble = block[:bullets_start]
+    bullets = []
+    trailing = []
+    in_trailing = False
+    for line in block[bullets_start:]:
+        if not in_trailing and line.startswith("- "):
+            bullets.append(line)
+        else:
+            in_trailing = True
+            trailing.append(line)
     return preamble, bullets, trailing
 
 
@@ -203,6 +200,25 @@ def extract_readme_notes_and_versions(
     return active_versions, pending_versions, pending_notes
 
 
+def _resolve_single_note(
+    name: str,
+    new_version: str,
+    active_versions: dict[str, str],
+    pending_versions: dict[str, str],
+    pending_notes: dict[str, str],
+) -> str | None:
+    """Resolve annotation note for a single unverified plugin."""
+    if name in pending_notes:
+        note = pending_notes[name]
+        old_ver = pending_versions.get(name)
+        if note.startswith("_(") and "bumped from" in note and old_ver and old_ver != new_version:
+            return f"_(bumped from {old_ver})_"
+        return note
+    if name in active_versions:
+        return f"_(bumped from {active_versions[name]})_"
+    return None
+
+
 def resolve_pending_notes(
     active: list[dict],
     active_versions: dict[str, str],
@@ -218,23 +234,11 @@ def resolve_pending_notes(
         new_version = entry.get("version")
         if not name or not new_version:
             continue
-
-        if name in pending_notes:
-            existing_note = pending_notes[name]
-            old_ver = pending_versions.get(name)
-            # If the note recorded an old bumped-from version and this version has bumped again
-            if existing_note.startswith("_(") and "bumped from" in existing_note:
-                if old_ver and old_ver != new_version:
-                    resolved[name] = f"_(bumped from {old_ver})_"
-                else:
-                    resolved[name] = existing_note
-            else:
-                resolved[name] = existing_note
-        elif name in active_versions:
-            # Plugin was previously in Currently active and has been bumped with verified_with cleared
-            old_ver = active_versions[name]
-            resolved[name] = f"_(bumped from {old_ver})_"
-
+        note = _resolve_single_note(
+            name, new_version, active_versions, pending_versions, pending_notes
+        )
+        if note:
+            resolved[name] = note
     return resolved
 
 

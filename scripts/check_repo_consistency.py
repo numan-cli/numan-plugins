@@ -109,30 +109,81 @@ def check_readme_active(manifest_path: Path, readme_path: Path) -> list[str]:
     return errors
 
 
-def check_readme_pending(manifest_path: Path, readme_path: Path) -> list[str]:
-    active = read_manifest_active(manifest_path)
-    unverified = [e for e in active if not e.get("verified_with")]
-    readme_text = readme_path.read_text(encoding="utf-8")
-    actual_lines = parse_readme_pending(readme_text)
-
-    errors: list[str] = []
-    if unverified and not actual_lines:
+def _check_pending_preconditions(
+    unverified_count: int, actual_lines: list[str], readme_text: str
+) -> list[str] | None:
+    """Validate existence and non-emptiness preconditions for pending plugins."""
+    if unverified_count and not actual_lines:
         if PENDING_HEADING not in readme_text:
             return [
                 f"README missing '{PENDING_HEADING}' heading while manifest has unverified plugins"
             ]
         return [
-            f"README Pending section is empty but manifest has {len(unverified)} unverified plugins"
+            f"README Pending section is empty but manifest has {unverified_count} unverified plugins"
         ]
-
-    if not unverified and actual_lines:
+    if not unverified_count and actual_lines:
         return [
             f"README Pending section has {len(actual_lines)} entries but manifest has 0 unverified plugins"
         ]
-
-    if not unverified and not actual_lines:
+    if not unverified_count and not actual_lines:
         return []
+    return None
 
+
+def _check_pending_membership(
+    actual_names: list[str], expected_names: list[str]
+) -> list[str]:
+    """Report list mismatches, missing names, or extra names in README pending."""
+    if actual_names == expected_names:
+        return []
+    errors = [
+        "README Pending first build plugins do not match manifest.json unverified active[] "
+        f"(readme={len(actual_names)} entries, manifest={len(expected_names)} entries)"
+    ]
+    missing = [name for name in expected_names if name not in actual_names]
+    if missing:
+        errors.append(f"  missing from README Pending: {', '.join(missing)}")
+    extra = [name for name in actual_names if name not in expected_names]
+    if extra:
+        errors.append(f"  extra in README Pending: {', '.join(extra)}")
+    return errors
+
+
+def _verify_pending_entry(parsed: dict, entry: dict) -> list[str]:
+    """Verify repo, tag, and version alignment for a single pending plugin."""
+    name = parsed["name"]
+    errors = []
+    if parsed["repo"] != entry.get("repo"):
+        errors.append(
+            f"README Pending repo mismatch for {name}: "
+            f"readme='{parsed['repo']}', manifest='{entry.get('repo')}'"
+        )
+    expected_tag = entry.get("tag") or f"commit {entry.get('source_commit', '')[:7]}"
+    if parsed["tag"] != expected_tag:
+        errors.append(
+            f"README Pending tag mismatch for {name}: "
+            f"readme='{parsed['tag']}', manifest='{expected_tag}'"
+        )
+    if parsed["version"] != entry.get("version"):
+        errors.append(
+            f"README Pending version mismatch for {name}: "
+            f"readme='{parsed['version']}', manifest='{entry.get('version')}'"
+        )
+    return errors
+
+
+def check_readme_pending(manifest_path: Path, readme_path: Path) -> list[str]:
+    """Verify that README 'Pending first build' matches manifest.json unverified active[]."""
+    active = read_manifest_active(manifest_path)
+    unverified = [e for e in active if not e.get("verified_with")]
+    readme_text = readme_path.read_text(encoding="utf-8")
+    actual_lines = parse_readme_pending(readme_text)
+
+    precond_errors = _check_pending_preconditions(len(unverified), actual_lines, readme_text)
+    if precond_errors is not None:
+        return precond_errors
+
+    errors: list[str] = []
     actual_entries = []
     for line in actual_lines:
         parsed = parse_readme_entry_line(line)
@@ -143,41 +194,13 @@ def check_readme_pending(manifest_path: Path, readme_path: Path) -> list[str]:
 
     actual_names = [e["name"] for e in actual_entries]
     expected_names = [e["name"] for e in unverified]
-
-    if actual_names != expected_names:
-        errors.append(
-            "README Pending first build plugins do not match manifest.json unverified active[] "
-            f"(readme={len(actual_names)} entries, manifest={len(expected_names)} entries)"
-        )
-        missing = [name for name in expected_names if name not in actual_names]
-        if missing:
-            errors.append(f"  missing from README Pending: {', '.join(missing)}")
-        extra = [name for name in actual_names if name not in expected_names]
-        if extra:
-            errors.append(f"  extra in README Pending: {', '.join(extra)}")
+    errors.extend(_check_pending_membership(actual_names, expected_names))
 
     unverified_by_name = {e["name"]: e for e in unverified}
     for parsed in actual_entries:
-        name = parsed["name"]
-        entry = unverified_by_name.get(name)
-        if not entry:
-            continue
-        if parsed["repo"] != entry.get("repo"):
-            errors.append(
-                f"README Pending repo mismatch for {name}: "
-                f"readme='{parsed['repo']}', manifest='{entry.get('repo')}'"
-            )
-        expected_tag = entry.get("tag") or f"commit {entry.get('source_commit', '')[:7]}"
-        if parsed["tag"] != expected_tag:
-            errors.append(
-                f"README Pending tag mismatch for {name}: "
-                f"readme='{parsed['tag']}', manifest='{expected_tag}'"
-            )
-        if parsed["version"] != entry.get("version"):
-            errors.append(
-                f"README Pending version mismatch for {name}: "
-                f"readme='{parsed['version']}', manifest='{entry.get('version')}'"
-            )
+        entry = unverified_by_name.get(parsed["name"])
+        if entry:
+            errors.extend(_verify_pending_entry(parsed, entry))
 
     return errors
 
