@@ -108,7 +108,7 @@ def fetch_cargo_toml_nu_dep(repo: str, ref: str = "HEAD") -> str | None:
     """
     endpoint = f"repos/{repo}/contents/Cargo.toml"
     if ref != "HEAD":
-        endpoint += f"?ref={ref}"
+        endpoint += f"?ref={urllib.parse.quote(ref, safe='')}"
     try:
         data = fetch_github_json(endpoint)
     except FetchError as e:
@@ -334,12 +334,13 @@ def generate_markdown_report(results: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Check active plugins for upstream updates.")
     parser.add_argument("--manifest", type=Path, default=MANIFEST_PATH, help="Path to manifest.json")
     parser.add_argument("--report", type=Path, default=None, help="Path to output markdown report")
+    parser.add_argument("--only", default="", help="Optional comma-separated plugin names to check")
     parser.add_argument("--json", action="store_true", help="Output JSON results to stdout")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if not args.manifest.exists():
         print(f"Error: manifest file {args.manifest} does not exist", file=sys.stderr)
@@ -347,6 +348,9 @@ def main() -> int:
 
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
     active = manifest.get("active", [])
+    only_set = {item.strip() for item in args.only.split(",") if item.strip()}
+    if only_set:
+        active = [e for e in active if e.get("name") in only_set]
 
     print(f"Auditing {len(active)} active plugins from {args.manifest.name}...")
     results = []

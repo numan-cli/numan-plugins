@@ -50,8 +50,18 @@ jobs:
         id: check
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_ONLY: ${{ inputs.only }}
         run: |
-          python scripts/check_upstream_updates.py --report "${RUNNER_TEMP}/upstream-audit-report.md"
+          set -euo pipefail
+          if [[ -n "${INPUT_ONLY}" && ! "${INPUT_ONLY}" =~ ^[A-Za-z0-9_,-]+$ ]]; then
+            echo "error: invalid --only filter '${INPUT_ONLY}'" >&2
+            exit 1
+          fi
+          ARGS=(--report "${RUNNER_TEMP}/upstream-audit-report.md")
+          if [ -n "${INPUT_ONLY}" ]; then
+            ARGS+=(--only "${INPUT_ONLY}")
+          fi
+          python scripts/check_upstream_updates.py "${ARGS[@]}"
 
       - name: Bump manifest for eligible tagged plugins
         id: bump
@@ -61,6 +71,10 @@ jobs:
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
+          if [[ -n "${INPUT_ONLY}" && ! "${INPUT_ONLY}" =~ ^[A-Za-z0-9_,-]+$ ]]; then
+            echo "error: invalid --only filter '${INPUT_ONLY}'" >&2
+            exit 1
+          fi
           ARGS=(--json-out "${RUNNER_TEMP}/bump-summary.json")
           if [ -n "${INPUT_ONLY}" ]; then
             ARGS+=(--only "${INPUT_ONLY}")
@@ -73,10 +87,16 @@ jobs:
       - name: Open PR, merge, and dispatch build for bumped plugins
         if: steps.bump.outputs.bumped_plugins != '' && !inputs.dry_run
         env:
-          GH_TOKEN: ${{ secrets.WATCH_PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.WATCH_PAT }}
           BUMPED_PLUGINS: ${{ steps.bump.outputs.bumped_plugins }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
           set -euo pipefail
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "error: WATCH_PAT secret is required to open and auto-merge bump PRs" >&2
+            exit 1
+          fi
           python scripts/validate_manifest.py --verify-upstream --only "$BUMPED_PLUGINS"
           PREFIX="chore/auto-bump-plugins-"
           if [ "$(gh pr list --state open --limit 100 --json headRefName \
@@ -84,14 +104,12 @@ jobs:
             echo "An open auto-bump PR already exists; skipping."
             exit 0
           fi
-          BRANCH="${PREFIX}$(date -u +%Y%m%d)"
-          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
-            git push origin --delete "$BRANCH" || true
-          fi
+          BRANCH="${PREFIX}$(date -u +%Y%m%d)-${RUN_ID}-${RUN_ATTEMPT}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -B "$BRANCH"
           python scripts/sync_docs.py --write
+          python scripts/format_json.py --check
           python scripts/check_repo_consistency.py
           git add manifest.json README.md docs/roadmap.md
           git commit -m "chore(manifest): auto-bump upstream plugins (${BUMPED_PLUGINS})"
@@ -102,10 +120,10 @@ jobs:
             --head "$BRANCH" --base main)
           echo "Created $PR_URL"
           gh pr merge "$PR_URL" --auto --squash || true
-          gh pr checks "$PR_URL" --watch --required --interval 15 || true
+          gh pr checks "$PR_URL" --watch --required --interval 15
           STATE=$(gh pr view "$PR_URL" --json state --jq .state)
           if [ "$STATE" != "MERGED" ]; then
-            gh pr merge "$PR_URL" --squash || gh pr merge "$PR_URL" --squash --admin
+            gh pr merge "$PR_URL" --squash
           fi
           STATE=$(gh pr view "$PR_URL" --json state --jq .state)
           if [ "$STATE" != "MERGED" ]; then
