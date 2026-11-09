@@ -50,8 +50,11 @@ Vulnerability reporting and scope: [SECURITY.md](SECURITY.md).
 | `docs/roadmap.md` | Repo-local build/handoff plan (points at consolidated 1.0 roadmap) |
 | Registry [`catalog-compat.md`](https://github.com/numan-cli/numan-registry/blob/main/docs/catalog-compat.md) | Master list of **live** official packages × Nu constraints |
 | `.github/workflows/build.yml` | manual matrix build → package → release → emit spec |
+| `.github/workflows/daily-upstream-check.yml` | daily automated check for upstream releases, version bumps, and build dispatch |
 | `.github/workflows/repo-safety.yml` | required manifest, test, archive, spec, and workflow checks |
 | `.pre-commit-config.yaml` | local JSON format + README/backlog consistency hooks |
+| `scripts/check_upstream_updates.py` | check upstream GitHub releases/tags against `manifest.json` |
+| `scripts/bump_manifest_from_upstream.py` | fetch upstream Cargo.toml, check Nu compat, and bump `manifest.json` |
 | `scripts/package_plugin.py` | normalize a built binary into a `.tar.gz`/`.zip` |
 | `scripts/gen_spec.py` | emit a `numan-registry` `kind:binary` spec (no sha256) |
 | `scripts/release_transaction.py` | claim, verify, finalize, or clean up an owned draft release |
@@ -62,7 +65,14 @@ Vulnerability reporting and scope: [SECURITY.md](SECURITY.md).
 Linux aarch64 cross-compiles via `taiki-e/setup-cross-toolchain-action`; the
 rest build on native runners.
 
-## Flow (per plugin)
+## Automated Upstream Bumping
+
+The `.github/workflows/daily-upstream-check.yml` workflow runs on a daily schedule at 05:00 UTC (and via manual dispatch):
+1. **Detection**: `scripts/check_upstream_updates.py` queries upstream GitHub repositories for newer tags and releases.
+2. **Compatibility & Bump**: `scripts/bump_manifest_from_upstream.py` inspects upstream `Cargo.toml` dependencies to derive compatible Nushell version constraints, verifies source assets, and updates `manifest.json`.
+3. **Automated Branch & Build**: Pushes a bump branch (`chore/auto-bump-plugins-*`), runs matrix validation, and opens a PR or dispatches release builds.
+
+## Manual Flow (per plugin)
 
 1. Add the plugin to `manifest.json` `active[]` (repo, immutable upstream
    `source_commit`, human-facing tag, bin, Nu version compat).
