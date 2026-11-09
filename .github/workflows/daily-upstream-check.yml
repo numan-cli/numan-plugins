@@ -123,13 +123,15 @@ jobs:
 
           # Poll until checks are reported on the PR before watching
           echo "Waiting for checks to report on $PR_URL..."
-          for i in $(seq 1 18); do
+          ATTEMPTS=0
+          while [ "$ATTEMPTS" -lt 18 ]; do
             CHECK_COUNT=$(gh pr checks "$PR_URL" --json name --jq 'length' 2>/dev/null || echo 0)
             if [ -n "$CHECK_COUNT" ] && [ "$CHECK_COUNT" -gt 0 ]; then
               echo "Detected $CHECK_COUNT checks reported."
               break
             fi
             sleep 5
+            ATTEMPTS=$((ATTEMPTS + 1))
           done
 
           gh pr checks "$PR_URL" --watch --required --interval 15 || true
