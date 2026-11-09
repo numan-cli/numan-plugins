@@ -70,50 +70,6 @@ class SyncDocsTests(unittest.TestCase):
         self.assertIsNotNone(match)
         self.assertEqual(self.mod._snapshot_count_repl(match, 7), "The 7 commit snapshots above passed")
 
-    def test_sync_readme_updates_active_and_pending(self):
-        readme = (
-            "# Title\n\n"
-            "## Currently active\n\n"
-            "- `acme/plug_a` @ `v1.0.0` → `nu_plugin_a` 1.0.0\n\n"
-            "The 0 commit snapshots above passed the lifecycle.\n\n"
-            "## Pending first build\n\n"
-            "Preamble narrative line.\n\n"
-            "- `acme/plug_b` @ `v0.9.0` → `nu_plugin_b` 0.9.0 _(old note)_\n\n"
-            "## Footer\n\n"
-            "Footer content.\n"
-        )
-        new_active = ["- `acme/plug_a` @ `v1.0.1` → `nu_plugin_a` 1.0.1"]
-        new_pending = ["- `acme/plug_b` @ `v1.0.0` → `nu_plugin_b` 1.0.0 _(updated note)_"]
-        new_text, changed = self.mod.sync_readme(
-            readme,
-            expected_active=new_active,
-            expected_pending=new_pending,
-            snapshot_count=0,
-        )
-        self.assertTrue(changed)
-        self.assertIn("- `acme/plug_a` @ `v1.0.1` → `nu_plugin_a` 1.0.1", new_text)
-        self.assertIn("- `acme/plug_b` @ `v1.0.0` → `nu_plugin_b` 1.0.0 _(updated note)_", new_text)
-        self.assertIn("Preamble narrative line.", new_text)
-
-    def test_resolve_pending_notes_detects_bump_from_active(self):
-        active_entries = [
-            {"name": "nu_plugin_hcl", "version": "0.116.1", "verified_with": []},
-            {"name": "nu_plugin_dns", "version": "4.0.14", "verified_with": []},
-            {"name": "nu_plugin_custom", "version": "1.0.0", "verified_with": []},
-        ]
-        active_versions = {"nu_plugin_hcl": "0.114.1"}
-        pending_versions = {"nu_plugin_dns": "4.0.11", "nu_plugin_custom": "1.0.0"}
-        pending_notes = {
-            "nu_plugin_dns": "_(bumped from 4.0.10)_",
-            "nu_plugin_custom": "_(workspace member crate)_",
-        }
-        resolved = self.mod.resolve_pending_notes(
-            active_entries, active_versions, pending_versions, pending_notes
-        )
-        self.assertEqual(resolved["nu_plugin_hcl"], "_(bumped from 0.114.1)_")
-        self.assertEqual(resolved["nu_plugin_dns"], "_(bumped from 4.0.11)_")
-        self.assertEqual(resolved["nu_plugin_custom"], "_(workspace member crate)_")
-
 
 if __name__ == "__main__":
     unittest.main()

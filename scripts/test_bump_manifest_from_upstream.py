@@ -128,20 +128,6 @@ class BumpManifestFromUpstreamTests(unittest.TestCase):
         self.assertIsNone(summary)
         self.assertIn("downgrades", reason)
 
-    def test_sanitizes_stale_build_run_exclude_reason_on_bump(self):
-        entry = self._sample_entry()
-        entry["exclude_targets"] = ["aarch64-unknown-linux-gnu"]
-        entry["exclude_reason"] = (
-            "linux aarch64 cross: openssl fails; the remaining 3 targets are green on build run 30604641151"
-        )
-        new_sha = "c" * 40
-        did_bump, reason, summary = self._run_bump_with_mocked_upstream(
-            entry, "v0.3.0", new_sha, "0.112.0"
-        )
-        self.assertTrue(did_bump, reason)
-        self.assertEqual(entry["exclude_reason"], "linux aarch64 cross: openssl fails")
-
-
 
 if __name__ == "__main__":
     unittest.main()

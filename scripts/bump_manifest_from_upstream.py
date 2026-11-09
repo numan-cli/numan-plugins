@@ -209,31 +209,6 @@ class BumpCandidate:
     new_nu_str: str
 
 
-def _sanitize_exclude_reason_on_bump(reason: str | None) -> str | None:
-    """Strip stale build run references or green run assertions when bumping a plugin."""
-    if not reason:
-        return reason
-    cleaned = re.sub(
-        r";?\s*(?:the\s+)?(?:remaining\s+\w+\s+)?targets\s+are\s+green\s+on\s+build\s+run\s+\d+",
-        "",
-        reason,
-        flags=re.IGNORECASE,
-    )
-    cleaned = re.sub(
-        r";?\s*(?:the\s+)?(?:remaining\s+)?green\s+on\s+build\s+run\s+\d+",
-        "",
-        cleaned,
-        flags=re.IGNORECASE,
-    )
-    cleaned = re.sub(
-        r";?\s*(?:verified|green)\s+on\s+(?:build\s+)?run\s+\d+",
-        "",
-        cleaned,
-        flags=re.IGNORECASE,
-    )
-    return cleaned.strip().rstrip(";,")
-
-
 def _apply_bump_to_entry(entry: dict, candidate: BumpCandidate) -> dict:
     """Mutate entry in place with bumped values and return the summary dictionary."""
     new_version_str = f"{candidate.new_ver[0]}.{candidate.new_ver[1]}.{candidate.new_ver[2]}"
@@ -255,8 +230,6 @@ def _apply_bump_to_entry(entry: dict, candidate: BumpCandidate) -> dict:
     entry["source_commit"] = new_sha_lower
     entry["nu_version"] = candidate.new_nu_str
     entry["verified_with"] = []
-    if "exclude_reason" in entry and isinstance(entry["exclude_reason"], str):
-        entry["exclude_reason"] = _sanitize_exclude_reason_on_bump(entry["exclude_reason"])
     return summary
 
 
