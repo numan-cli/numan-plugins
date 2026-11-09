@@ -98,18 +98,14 @@ The `.github/workflows/daily-upstream-check.yml` workflow runs on a daily schedu
 - `FMotalleb/nu_plugin_desktop_notifications` @ `v0.116.0` → `nu_plugin_desktop_notifications` 0.116.0
 - `FMotalleb/nu_plugin_port_extension` @ `v0.116.0` → `nu_plugin_port_extension` 0.116.0
 - `fdncred/nu_plugin_file` @ `v0.28.0` → `nu_plugin_file` 0.28.0
-- `Yethal/nu_plugin_hcl` @ `0.114.1` → `nu_plugin_hcl` 0.114.1
 - `FMotalleb/nu_plugin_image` @ `v0.116.0` → `nu_plugin_image` 0.116.0
-- `drbrain/nu_plugin_prometheus` @ `v0.13.0` → `nu_plugin_prometheus` 0.13.0
 - `fdncred/nu_plugin_emoji` @ `v0.25.0` → `nu_plugin_emoji` 0.25.0
 - `fdncred/nu_plugin_json_path` @ `v0.26.1` → `nu_plugin_json_path` 0.26.1
 - `fdncred/nu_plugin_parquet` @ `v0.26.0` → `nu_plugin_parquet` 0.26.0
 - `Kissaki/nu_plugin_bson` @ `v26.1160.0` → `nu_plugin_bson` 26.1160.0
 - `fnuttens/nu_plugin_hmac` @ `0.27.0` → `nu_plugin_hmac` 0.27.0
-- `fdncred/nu_plugin_jwalk` @ `v0.26.0` → `nu_plugin_jwalk` 0.26.0
 - `fdncred/nu_plugin_strutils` @ `v0.25.0` → `nu_plugin_strutils` 0.25.0
 - `fdncred/nu_plugin_query_git` @ `v0.26.0` → `nu_plugin_query_git` 0.26.0
-- `lizclipse/nu_plugin_ulid` @ `v0.23.0` → `nu_plugin_ulid` 0.23.0
 - `rhino-linux/nu_plugin_nutext` @ `0.6.2` → `nu_plugin_nutext` 0.6.2
 - `Euphrasiologist/nu_plugin_plot` @ `commit 5a1ca2a` → `nu_plugin_plot` 0.103.0
 - `Euphrasiologist/nu_plugin_bio` @ `commit 49ab341` → `nu_plugin_bio` 0.104.0
@@ -133,9 +129,13 @@ These plugins are in `manifest.json` but have not yet been built by CI. They wil
 move to "Currently active" once the build succeeds and `verified_with` is populated.
 
 - `wangjiawen2013/charton` @ `v0.9.0` → `nu_plugin_charton` 0.9.0 _(workspace member crate; built via cargo_package)_
-- `dead10ck/nu_plugin_dns` @ `v4.0.11` → `nu_plugin_dns` 4.0.11 _(bumped from v4.0.10/Nu 0.113)_
+- `dead10ck/nu_plugin_dns` @ `v4.0.14` → `nu_plugin_dns` 4.0.14 _(bumped from v4.0.10/Nu 0.113)_
 - `tonythethompson/nu_plugin_qr_maker` @ `v1.2.0` → `nu_plugin_qr_maker` 1.2.0 _(fork: bumped from Nu 0.94)_
 - `tonythethompson/nu_plugin_explore` @ `v0.114.1` → `nu_plugin_explore` 0.114.1 _(fork: bumped from Nu 0.102)_
+- `Yethal/nu_plugin_hcl` @ `0.116.1` → `nu_plugin_hcl` 0.116.1 _(bumped from 0.114.1)_
+- `drbrain/nu_plugin_prometheus` @ `v0.14.0` → `nu_plugin_prometheus` 0.14.0 _(bumped from v0.13.0)_
+- `fdncred/nu_plugin_jwalk` @ `v0.30.0` → `nu_plugin_jwalk` 0.30.0 _(bumped from v0.26.0)_
+- `lizclipse/nu_plugin_ulid` @ `v0.25.0` → `nu_plugin_ulid` 0.25.0 _(bumped from v0.23.0)_
 
 ## Registry-side follow-up
 
