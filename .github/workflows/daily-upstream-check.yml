@@ -134,7 +134,10 @@ jobs:
             ATTEMPTS=$((ATTEMPTS + 1))
           done
 
-          gh pr checks "$PR_URL" --watch --required --interval 15 || true
+          if ! gh pr checks "$PR_URL" --watch --required --interval 15; then
+            gh pr view "$PR_URL" --json state,mergeable,reviewDecision,statusCheckRollup >&2
+            exit 1
+          fi
 
           STATE=$(gh pr view "$PR_URL" --json state --jq .state)
           if [ "$STATE" != "MERGED" ]; then
