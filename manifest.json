@@ -67,8 +67,6 @@
       "tag": "v0.32.0",
       "source_commit": "bb8d40ccf346ba8b913f3d190d3ea4c5dd64d9a2",
       "version": "0.32.0",
-      "exclude_targets": ["x86_64-apple-darwin"],
-      "exclude_reason": "x86_64 macOS was omitted from this existing immutable release after the macos-13 runner stalled; add it on the next plugin version using macos-15-intel",
       "nu_version": ">=0.117.0 <0.118.0",
       "verified_with": [],
       "description": "Fuzzy finder (skim) integration for Nushell.",
