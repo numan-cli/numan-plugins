@@ -85,6 +85,7 @@ jobs:
           python scripts/bump_manifest_from_upstream.py "${ARGS[@]}"
 
       - name: Open PR, merge, and dispatch build for bumped plugins
+        id: pr
         if: steps.bump.outputs.bumped_plugins != '' && !inputs.dry_run
         env:
           GH_TOKEN: ${{ secrets.WATCH_PAT }}
@@ -119,12 +120,10 @@ jobs:
             --body "Automated minor/patch upstream tag bump for: \`${BUMPED_PLUGINS}\`." \
             --head "$BRANCH" --base main)
           echo "Created $PR_URL"
+          echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
           fail_bump_pr() {
             echo "$1" >&2
             gh pr view "$PR_URL" --json state,mergeable,reviewDecision,statusCheckRollup >&2 || true
-            if ! gh pr close "$PR_URL" --delete-branch >/dev/null 2>&1; then
-              echo "warning: failed to close $PR_URL; manual cleanup may be needed" >&2
-            fi
             exit 1
           }
 
@@ -177,3 +176,31 @@ jobs:
           fi
           echo "Merged $PR_URL; dispatching build.yml for ${BUMPED_PLUGINS}"
           gh workflow run build.yml --ref main -f only="$BUMPED_PLUGINS"
+
+      - name: Close unmerged auto-bump PR on failure or cancellation
+        if: ${{ always() && steps.pr.outputs.pr_url != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.WATCH_PAT }}
+          PR_URL: ${{ steps.pr.outputs.pr_url }}
+        run: |
+          set -euo pipefail
+          STATE=$(gh pr view "$PR_URL" --json state --jq .state 2>/dev/null || echo UNKNOWN)
+          if [ "$STATE" != "OPEN" ]; then
+            exit 0
+          fi
+          CLOSED=false
+          CLOSE_ATTEMPT=0
+          while [ "$CLOSE_ATTEMPT" -lt 3 ]; do
+            gh pr close "$PR_URL" --delete-branch >/dev/null 2>&1 || true
+            STATE=$(gh pr view "$PR_URL" --json state --jq .state 2>/dev/null || echo UNKNOWN)
+            if [ "$STATE" = "CLOSED" ] || [ "$STATE" = "MERGED" ]; then
+              CLOSED=true
+              break
+            fi
+            sleep 5
+            CLOSE_ATTEMPT=$((CLOSE_ATTEMPT + 1))
+          done
+          if [ "$CLOSED" != "true" ]; then
+            echo "error: failed to close $PR_URL (state=${STATE}); manual cleanup is required" >&2
+            exit 1
+          fi
