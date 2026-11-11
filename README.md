@@ -94,7 +94,6 @@ The `.github/workflows/daily-upstream-check.yml` workflow runs on a daily schedu
 
 - `cptpiepmatz/nu-plugin-highlight` @ `v1.4.17+0.115.1` → `nu_plugin_highlight` 1.4.17
 - `fdncred/nu_plugin_regex` @ `v0.25.0` → `nu_plugin_regex` 0.25.0
-- `idanarye/nu_plugin_skim` @ `v0.31.0` → `nu_plugin_skim` 0.31.0
 - `FMotalleb/nu_plugin_desktop_notifications` @ `v0.116.0` → `nu_plugin_desktop_notifications` 0.116.0
 - `FMotalleb/nu_plugin_port_extension` @ `v0.116.0` → `nu_plugin_port_extension` 0.116.0
 - `fdncred/nu_plugin_file` @ `v0.28.0` → `nu_plugin_file` 0.28.0
@@ -136,6 +135,7 @@ move to "Currently active" once the build succeeds and `verified_with` is popula
 - `drbrain/nu_plugin_prometheus` @ `v0.14.0` → `nu_plugin_prometheus` 0.14.0 _(bumped from v0.13.0)_
 - `fdncred/nu_plugin_jwalk` @ `v0.30.0` → `nu_plugin_jwalk` 0.30.0 _(bumped from v0.26.0)_
 - `lizclipse/nu_plugin_ulid` @ `v0.25.0` → `nu_plugin_ulid` 0.25.0 _(bumped from v0.23.0)_
+- `idanarye/nu_plugin_skim` @ `v0.32.0` → `nu_plugin_skim` 0.32.0 _(bumped from v0.31.0)_
 
 ## Registry-side follow-up
 
