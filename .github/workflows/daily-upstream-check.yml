@@ -85,6 +85,7 @@ jobs:
           python scripts/bump_manifest_from_upstream.py "${ARGS[@]}"
 
       - name: Open PR, merge, and dispatch build for bumped plugins
+        id: pr
         if: steps.bump.outputs.bumped_plugins != '' && !inputs.dry_run
         env:
           GH_TOKEN: ${{ secrets.WATCH_PAT }}
@@ -119,16 +120,87 @@ jobs:
             --body "Automated minor/patch upstream tag bump for: \`${BUMPED_PLUGINS}\`." \
             --head "$BRANCH" --base main)
           echo "Created $PR_URL"
-          gh pr merge "$PR_URL" --auto --squash --delete-branch || true
-          gh pr checks "$PR_URL" --watch --required --interval 15
-          STATE=$(gh pr view "$PR_URL" --json state --jq .state)
-          if [ "$STATE" != "MERGED" ]; then
-            gh pr merge "$PR_URL" --squash --delete-branch
+          echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
+          fail_bump_pr() {
+            echo "$1" >&2
+            gh pr view "$PR_URL" --json state,mergeable,reviewDecision,statusCheckRollup >&2 || true
+            exit 1
+          }
+
+          # Poll until all required checks are reported on the PR before watching.
+          # Do not arm --auto before checks pass, so a failed or timed-out run can
+          # never leave a PR that merges later without dispatching build.yml.
+          echo "Waiting for required checks to report on $PR_URL..."
+          REQUIRED_CHECKS_READY=false
+          ATTEMPTS=0
+          while [ "$ATTEMPTS" -lt 18 ]; do
+            CHECK_RC=0
+            CHECK_COUNT=$(gh pr checks "$PR_URL" --required --json name --jq 'length' 2>/dev/null) || CHECK_RC=$?
+            if { [ "$CHECK_RC" -eq 0 ] || [ "$CHECK_RC" -eq 8 ]; } && [[ "${CHECK_COUNT:-}" =~ ^[0-9]+$ ]] && [ "$CHECK_COUNT" -ge 2 ]; then
+              echo "Detected $CHECK_COUNT required checks reported."
+              REQUIRED_CHECKS_READY=true
+              break
+            fi
+            sleep 5
+            ATTEMPTS=$((ATTEMPTS + 1))
+          done
+          if [ "$REQUIRED_CHECKS_READY" != "true" ]; then
+            fail_bump_pr "error: timed out waiting for required checks to appear on $PR_URL (last count=${CHECK_COUNT:-none}, rc=${CHECK_RC:-unknown})"
+          fi
+
+          if ! gh pr checks "$PR_URL" --watch --required --interval 15; then
+            fail_bump_pr "error: required checks failed for $PR_URL"
+          fi
+
+          MERGED=false
+          MERGE_ATTEMPT=0
+          while [ "$MERGE_ATTEMPT" -lt 3 ]; do
+            if gh pr merge "$PR_URL" --squash --delete-branch; then
+              MERGED=true
+              break
+            fi
+            STATE=$(gh pr view "$PR_URL" --json state --jq .state 2>/dev/null || echo UNKNOWN)
+            if [ "$STATE" = "MERGED" ]; then
+              MERGED=true
+              break
+            fi
+            sleep 5
+            MERGE_ATTEMPT=$((MERGE_ATTEMPT + 1))
+          done
+          if [ "$MERGED" != "true" ]; then
+            fail_bump_pr "error: gh pr merge failed for $PR_URL"
           fi
           STATE=$(gh pr view "$PR_URL" --json state --jq .state)
           if [ "$STATE" != "MERGED" ]; then
-            echo "auto-bump PR is ${STATE}, expected MERGED" >&2
-            exit 1
+            fail_bump_pr "error: auto-bump PR is ${STATE}, expected MERGED"
           fi
           echo "Merged $PR_URL; dispatching build.yml for ${BUMPED_PLUGINS}"
           gh workflow run build.yml --ref main -f only="$BUMPED_PLUGINS"
+
+      - name: Close unmerged auto-bump PR on failure or cancellation
+        if: ${{ always() && steps.pr.outputs.pr_url != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.WATCH_PAT }}
+          PR_URL: ${{ steps.pr.outputs.pr_url }}
+        run: |
+          set -euo pipefail
+          STATE=$(gh pr view "$PR_URL" --json state --jq .state 2>/dev/null || echo UNKNOWN)
+          if [ "$STATE" = "CLOSED" ] || [ "$STATE" = "MERGED" ]; then
+            exit 0
+          fi
+          CLOSED=false
+          CLOSE_ATTEMPT=0
+          while [ "$CLOSE_ATTEMPT" -lt 3 ]; do
+            gh pr close "$PR_URL" --delete-branch >/dev/null 2>&1 || true
+            STATE=$(gh pr view "$PR_URL" --json state --jq .state 2>/dev/null || echo UNKNOWN)
+            if [ "$STATE" = "CLOSED" ] || [ "$STATE" = "MERGED" ]; then
+              CLOSED=true
+              break
+            fi
+            sleep 5
+            CLOSE_ATTEMPT=$((CLOSE_ATTEMPT + 1))
+          done
+          if [ "$CLOSED" != "true" ]; then
+            echo "error: failed to close $PR_URL (state=${STATE}); manual cleanup is required" >&2
+            exit 1
+          fi

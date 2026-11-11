@@ -209,6 +209,58 @@ class BumpCandidate:
     new_nu_str: str
 
 
+_STALE_CLAUSE_PREFIX = r"(?:^|[;,]|\.(?=\s)|\s+and(?=\s))"
+_STALE_CLAUSE_SUFFIX = r"(?:\s*\([^)]*\))?(?=$|[;,.]|\s+and\b)"
+_STALE_RUN_PATTERNS = (
+    re.compile(
+        _STALE_CLAUSE_PREFIX
+        + r"\s*(?:the\s+)?(?:remaining(?:\s+\w+)?\s+)?targets\s+are\s+green\s+on\s+"
+        + r"(?:build\s+)?run\s+\d+"
+        + _STALE_CLAUSE_SUFFIX,
+        re.IGNORECASE,
+    ),
+    re.compile(
+        _STALE_CLAUSE_PREFIX
+        + r"\s*(?:the\s+)?(?:remaining\s+)?green\s+on\s+(?:build\s+)?run\s+\d+"
+        + _STALE_CLAUSE_SUFFIX,
+        re.IGNORECASE,
+    ),
+    re.compile(
+        _STALE_CLAUSE_PREFIX
+        + r"\s*(?:verified|green)\s+on\s+(?:build\s+)?run\s+\d+"
+        + _STALE_CLAUSE_SUFFIX,
+        re.IGNORECASE,
+    ),
+)
+
+
+def _tidy_exclude_reason(text: str, *, allow_leading_and_strip: bool = True) -> str:
+    """Collapse separator runs left behind after removing a stale clause."""
+    previous = None
+    while previous != text:
+        previous = text
+        text = re.sub(r"([;,])[\s;,]*(?:[;,])", lambda m: m.group(1), text)
+    cleaned = text.strip().lstrip(";,.").rstrip(";,").strip()
+    if allow_leading_and_strip:
+        cleaned = re.sub(r"^and\s+", "", cleaned, flags=re.IGNORECASE).strip()
+    return cleaned
+
+
+def _sanitize_exclude_reason_on_bump(reason: str | None) -> str | None:
+    """Strip stale build run references or green run assertions when bumping a plugin."""
+    if not reason:
+        return reason
+    cleaned = reason
+    for pattern in _STALE_RUN_PATTERNS:
+        cleaned = pattern.sub("", cleaned)
+    if cleaned == reason:
+        return reason
+    return _tidy_exclude_reason(
+        cleaned,
+        allow_leading_and_strip=not reason.lstrip().lower().startswith("and "),
+    )
+
+
 def _apply_bump_to_entry(entry: dict, candidate: BumpCandidate) -> dict:
     """Mutate entry in place with bumped values and return the summary dictionary."""
     new_version_str = f"{candidate.new_ver[0]}.{candidate.new_ver[1]}.{candidate.new_ver[2]}"
@@ -230,6 +282,12 @@ def _apply_bump_to_entry(entry: dict, candidate: BumpCandidate) -> dict:
     entry["source_commit"] = new_sha_lower
     entry["nu_version"] = candidate.new_nu_str
     entry["verified_with"] = []
+    if "exclude_reason" in entry and isinstance(entry["exclude_reason"], str):
+        sanitized = _sanitize_exclude_reason_on_bump(entry["exclude_reason"])
+        if sanitized:
+            entry["exclude_reason"] = sanitized
+        else:
+            del entry["exclude_reason"]
     return summary
 
 
