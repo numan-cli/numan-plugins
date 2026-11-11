@@ -94,7 +94,6 @@ The `.github/workflows/daily-upstream-check.yml` workflow runs on a daily schedu
 
 - `cptpiepmatz/nu-plugin-highlight` @ `v1.4.17+0.115.1` → `nu_plugin_highlight` 1.4.17
 - `fdncred/nu_plugin_regex` @ `v0.25.0` → `nu_plugin_regex` 0.25.0
-- `idanarye/nu_plugin_skim` @ `v0.31.0` → `nu_plugin_skim` 0.31.0
 - `FMotalleb/nu_plugin_desktop_notifications` @ `v0.116.0` → `nu_plugin_desktop_notifications` 0.116.0
 - `FMotalleb/nu_plugin_port_extension` @ `v0.116.0` → `nu_plugin_port_extension` 0.116.0
 - `fdncred/nu_plugin_file` @ `v0.28.0` → `nu_plugin_file` 0.28.0
