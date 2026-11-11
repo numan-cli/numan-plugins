@@ -94,7 +94,6 @@ The `.github/workflows/daily-upstream-check.yml` workflow runs on a daily schedu
 
 - `cptpiepmatz/nu-plugin-highlight` @ `v1.4.17+0.115.1` → `nu_plugin_highlight` 1.4.17
 - `fdncred/nu_plugin_regex` @ `v0.25.0` → `nu_plugin_regex` 0.25.0
-- `idanarye/nu_plugin_skim` @ `v0.31.0` → `nu_plugin_skim` 0.31.0
 - `FMotalleb/nu_plugin_desktop_notifications` @ `v0.116.0` → `nu_plugin_desktop_notifications` 0.116.0
 - `FMotalleb/nu_plugin_port_extension` @ `v0.116.0` → `nu_plugin_port_extension` 0.116.0
 - `fdncred/nu_plugin_file` @ `v0.28.0` → `nu_plugin_file` 0.28.0
@@ -129,6 +128,7 @@ These plugins are in `manifest.json` but have not yet been built by CI. They wil
 move to "Currently active" once the build succeeds and `verified_with` is populated.
 
 - `dead10ck/nu_plugin_dns` @ `v4.0.14` → `nu_plugin_dns` 4.0.14 _(bumped from v4.0.10/Nu 0.113)_
+- `idanarye/nu_plugin_skim` @ `v0.32.0` → `nu_plugin_skim` 0.32.0 _(bumped from 0.31.0)_
 - `Yethal/nu_plugin_hcl` @ `0.116.1` → `nu_plugin_hcl` 0.116.1 _(bumped from 0.114.1)_
 - `drbrain/nu_plugin_prometheus` @ `v0.14.0` → `nu_plugin_prometheus` 0.14.0 _(bumped from v0.13.0)_
 - `fdncred/nu_plugin_jwalk` @ `v0.30.0` → `nu_plugin_jwalk` 0.30.0 _(bumped from v0.26.0)_
@@ -137,7 +137,7 @@ move to "Currently active" once the build succeeds and `verified_with` is popula
 - `tonythethompson/nu_plugin_explore` @ `v0.114.1` → `nu_plugin_explore` 0.114.1 _(fork: bumped from Nu 0.102)_
 - `hulthe/nu_plugin_msgpack` @ `commit 38eb492` → `nu_plugin_msgpack` 0.90.1
 - `galuszkak/nu_plugin_bigquery` @ `v0.5.1` → `nu_plugin_bigquery` 0.5.1
-- `idanarye/nu_plugin_handlebars` @ `v0.3.0` → `nu_plugin_handlebars` 0.3.0
+- `idanarye/nu_plugin_handlebars` @ `v0.4.0` → `nu_plugin_handlebars` 0.4.0
 - `JosephTLyons/nu_plugin_units` @ `v0.1.9` → `nu_plugin_units` 0.1.9
 - `kaathewisegit/nugins` @ `commit 2fe5276` → `nu_plugin_endecode` 0.114.1
 - `wangjiawen2013/charton` @ `v0.9.0` → `nu_plugin_charton` 0.9.0 _(workspace member crate; built via cargo_package)_
