@@ -132,7 +132,7 @@ move to "Currently active" once the build succeeds and `verified_with` is popula
 - `Yethal/nu_plugin_hcl` @ `0.116.1` → `nu_plugin_hcl` 0.116.1 _(bumped from 0.114.1)_
 - `drbrain/nu_plugin_prometheus` @ `v0.14.0` → `nu_plugin_prometheus` 0.14.0 _(bumped from v0.13.0)_
 - `fdncred/nu_plugin_jwalk` @ `v0.30.0` → `nu_plugin_jwalk` 0.30.0 _(bumped from v0.26.0)_
-- `lizclipse/nu_plugin_ulid` @ `v0.25.0` → `nu_plugin_ulid` 0.25.0 _(bumped from v0.23.0)_
+- `lizclipse/nu_plugin_ulid` @ `v0.26.0` → `nu_plugin_ulid` 0.26.0 _(bumped from 0.25.0)_
 - `tonythethompson/nu_plugin_qr_maker` @ `v1.2.0` → `nu_plugin_qr_maker` 1.2.0 _(fork: bumped from Nu 0.94)_
 - `tonythethompson/nu_plugin_explore` @ `v0.114.1` → `nu_plugin_explore` 0.114.1 _(fork: bumped from Nu 0.102)_
 - `hulthe/nu_plugin_msgpack` @ `commit 38eb492` → `nu_plugin_msgpack` 0.90.1

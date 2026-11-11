@@ -211,16 +211,19 @@ class BumpCandidate:
 
 _STALE_RUN_PATTERNS = (
     re.compile(
-        r"(?<![\w-])(?:the\s+)?(?:remaining(?:\s+\w+)?\s+)?targets\s+are\s+green\s+on\s+"
+        r"(?:^|[;,]|\.(?=\s))"
+        r"\s*(?:the\s+)?(?:remaining(?:\s+\w+)?\s+)?targets\s+are\s+green\s+on\s+"
         r"(?:build\s+)?run\s+\d+",
         re.IGNORECASE,
     ),
     re.compile(
-        r"(?<![\w-])(?<!not )(?:the\s+)?(?:remaining\s+)?green\s+on\s+(?:build\s+)?run\s+\d+",
+        r"(?:^|[;,]|\.(?=\s))"
+        r"\s*(?:the\s+)?(?:remaining\s+)?green\s+on\s+(?:build\s+)?run\s+\d+",
         re.IGNORECASE,
     ),
     re.compile(
-        r"(?<![\w-])(?<!not )(?:verified|green)\s+on\s+(?:build\s+)?run\s+\d+",
+        r"(?:^|[;,]|\.(?=\s))"
+        r"\s*(?:verified|green)\s+on\s+(?:build\s+)?run\s+\d+",
         re.IGNORECASE,
     ),
 )
@@ -232,7 +235,7 @@ def _tidy_exclude_reason(text: str) -> str:
     while previous != text:
         previous = text
         text = re.sub(r"([;,])[\s;,]*(?:[;,])", lambda m: m.group(1), text)
-    return text.strip().strip(";,").strip()
+    return text.strip().lstrip(";,.").rstrip(";,").strip()
 
 
 def _sanitize_exclude_reason_on_bump(reason: str | None) -> str | None:
@@ -242,6 +245,8 @@ def _sanitize_exclude_reason_on_bump(reason: str | None) -> str | None:
     cleaned = reason
     for pattern in _STALE_RUN_PATTERNS:
         cleaned = pattern.sub("", cleaned)
+    if cleaned == reason:
+        return reason
     return _tidy_exclude_reason(cleaned)
 
 

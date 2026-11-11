@@ -145,9 +145,32 @@ class BumpManifestFromUpstreamTests(unittest.TestCase):
         for reason in (
             "unverified on run 42",
             "not verified on run 42",
+            "not yet verified on run 42",
             "not green on run 42",
+            "not all remaining targets are green on run 42",
+            "openssl fails and the remaining 3 targets are green on build run 123",
         ):
             self.assertEqual(bmu._sanitize_exclude_reason_on_bump(reason), reason)
+
+    def test_sanitize_handles_sentence_and_leading_clause_boundaries(self):
+        self.assertEqual(
+            bmu._sanitize_exclude_reason_on_bump(
+                "targets are green on build run 1. openssl fails."
+            ),
+            "openssl fails.",
+        )
+        self.assertEqual(
+            bmu._sanitize_exclude_reason_on_bump(
+                "openssl fails. the remaining targets are green on build run 2. windows ok."
+            ),
+            "openssl fails. windows ok.",
+        )
+        self.assertEqual(
+            bmu._sanitize_exclude_reason_on_bump(
+                "openssl fails;verified on run 42"
+            ),
+            "openssl fails",
+        )
 
     def test_sanitize_removes_remaining_clause_without_count(self):
         self.assertEqual(
