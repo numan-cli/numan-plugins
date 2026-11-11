@@ -119,6 +119,13 @@ jobs:
             --body "Automated minor/patch upstream tag bump for: \`${BUMPED_PLUGINS}\`." \
             --head "$BRANCH" --base main)
           echo "Created $PR_URL"
+          fail_bump_pr() {
+            echo "$1" >&2
+            gh pr view "$PR_URL" --json state,mergeable,reviewDecision,statusCheckRollup >&2 || true
+            gh pr merge "$PR_URL" --disable-auto >/dev/null 2>&1 || true
+            exit 1
+          }
+
           gh pr merge "$PR_URL" --auto --squash --delete-branch || true
 
           # Poll until all required checks are reported on the PR before watching
@@ -137,29 +144,22 @@ jobs:
             ATTEMPTS=$((ATTEMPTS + 1))
           done
           if [ "$REQUIRED_CHECKS_READY" != "true" ]; then
-            echo "error: timed out waiting for required checks to appear on $PR_URL (last count=${CHECK_COUNT:-none}, rc=${CHECK_RC:-unknown})" >&2
-            gh pr view "$PR_URL" --json state,mergeable,reviewDecision,statusCheckRollup >&2 || true
-            exit 1
+            fail_bump_pr "error: timed out waiting for required checks to appear on $PR_URL (last count=${CHECK_COUNT:-none}, rc=${CHECK_RC:-unknown})"
           fi
 
           if ! gh pr checks "$PR_URL" --watch --required --interval 15; then
-            gh pr view "$PR_URL" --json state,mergeable,reviewDecision,statusCheckRollup >&2 || true
-            exit 1
+            fail_bump_pr "error: required checks failed for $PR_URL"
           fi
 
           STATE=$(gh pr view "$PR_URL" --json state --jq .state)
           if [ "$STATE" != "MERGED" ]; then
             if ! gh pr merge "$PR_URL" --squash --delete-branch; then
-              echo "gh pr merge failed. Checking PR details:" >&2
-              gh pr view "$PR_URL" --json state,mergeable,reviewDecision,statusCheckRollup >&2
-              exit 1
+              fail_bump_pr "error: gh pr merge failed for $PR_URL"
             fi
           fi
           STATE=$(gh pr view "$PR_URL" --json state --jq .state)
           if [ "$STATE" != "MERGED" ]; then
-            echo "auto-bump PR is ${STATE}, expected MERGED" >&2
-            gh pr view "$PR_URL" --json state,mergeable,reviewDecision,statusCheckRollup >&2
-            exit 1
+            fail_bump_pr "error: auto-bump PR is ${STATE}, expected MERGED"
           fi
           echo "Merged $PR_URL; dispatching build.yml for ${BUMPED_PLUGINS}"
           gh workflow run build.yml --ref main -f only="$BUMPED_PLUGINS"
