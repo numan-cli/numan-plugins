@@ -122,13 +122,15 @@ jobs:
           fail_bump_pr() {
             echo "$1" >&2
             gh pr view "$PR_URL" --json state,mergeable,reviewDecision,statusCheckRollup >&2 || true
-            gh pr merge "$PR_URL" --disable-auto >/dev/null 2>&1 || true
+            if ! gh pr close "$PR_URL" --delete-branch >/dev/null 2>&1; then
+              echo "warning: failed to close $PR_URL; manual cleanup may be needed" >&2
+            fi
             exit 1
           }
 
-          gh pr merge "$PR_URL" --auto --squash --delete-branch || true
-
-          # Poll until all required checks are reported on the PR before watching
+          # Poll until all required checks are reported on the PR before watching.
+          # Do not arm --auto before checks pass, so a failed or timed-out run can
+          # never leave a PR that merges later without dispatching build.yml.
           echo "Waiting for required checks to report on $PR_URL..."
           REQUIRED_CHECKS_READY=false
           ATTEMPTS=0
@@ -151,11 +153,23 @@ jobs:
             fail_bump_pr "error: required checks failed for $PR_URL"
           fi
 
-          STATE=$(gh pr view "$PR_URL" --json state --jq .state)
-          if [ "$STATE" != "MERGED" ]; then
-            if ! gh pr merge "$PR_URL" --squash --delete-branch; then
-              fail_bump_pr "error: gh pr merge failed for $PR_URL"
+          MERGED=false
+          MERGE_ATTEMPT=0
+          while [ "$MERGE_ATTEMPT" -lt 3 ]; do
+            if gh pr merge "$PR_URL" --squash --delete-branch; then
+              MERGED=true
+              break
             fi
+            STATE=$(gh pr view "$PR_URL" --json state --jq .state 2>/dev/null || echo UNKNOWN)
+            if [ "$STATE" = "MERGED" ]; then
+              MERGED=true
+              break
+            fi
+            sleep 5
+            MERGE_ATTEMPT=$((MERGE_ATTEMPT + 1))
+          done
+          if [ "$MERGED" != "true" ]; then
+            fail_bump_pr "error: gh pr merge failed for $PR_URL"
           fi
           STATE=$(gh pr view "$PR_URL" --json state --jq .state)
           if [ "$STATE" != "MERGED" ]; then
