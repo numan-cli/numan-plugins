@@ -193,7 +193,7 @@ def _resolve_single_note(
             prefix = note[2 : note.index("bumped from")]
             return f"_({prefix}bumped from {old_ver})_"
         return note
-    if name in active_versions:
+    if name in active_versions and active_versions[name] != new_version:
         return f"_(bumped from {active_versions[name]})_"
     return None
 

@@ -209,33 +209,41 @@ class BumpCandidate:
     new_nu_str: str
 
 
+_STALE_CLAUSE_PREFIX = r"(?:^|[;,]|\.(?=\s)|\s+and(?=\s))"
+_STALE_CLAUSE_SUFFIX = r"(?:\s*\([^)]*\))?(?=$|[;,.]|\s+and\b)"
 _STALE_RUN_PATTERNS = (
     re.compile(
-        r"(?:^|[;,]|\.(?=\s))"
-        r"\s*(?:the\s+)?(?:remaining(?:\s+\w+)?\s+)?targets\s+are\s+green\s+on\s+"
-        r"(?:build\s+)?run\s+\d+",
+        _STALE_CLAUSE_PREFIX
+        + r"\s*(?:the\s+)?(?:remaining(?:\s+\w+)?\s+)?targets\s+are\s+green\s+on\s+"
+        + r"(?:build\s+)?run\s+\d+"
+        + _STALE_CLAUSE_SUFFIX,
         re.IGNORECASE,
     ),
     re.compile(
-        r"(?:^|[;,]|\.(?=\s))"
-        r"\s*(?:the\s+)?(?:remaining\s+)?green\s+on\s+(?:build\s+)?run\s+\d+",
+        _STALE_CLAUSE_PREFIX
+        + r"\s*(?:the\s+)?(?:remaining\s+)?green\s+on\s+(?:build\s+)?run\s+\d+"
+        + _STALE_CLAUSE_SUFFIX,
         re.IGNORECASE,
     ),
     re.compile(
-        r"(?:^|[;,]|\.(?=\s))"
-        r"\s*(?:verified|green)\s+on\s+(?:build\s+)?run\s+\d+",
+        _STALE_CLAUSE_PREFIX
+        + r"\s*(?:verified|green)\s+on\s+(?:build\s+)?run\s+\d+"
+        + _STALE_CLAUSE_SUFFIX,
         re.IGNORECASE,
     ),
 )
 
 
-def _tidy_exclude_reason(text: str) -> str:
+def _tidy_exclude_reason(text: str, *, allow_leading_and_strip: bool = True) -> str:
     """Collapse separator runs left behind after removing a stale clause."""
     previous = None
     while previous != text:
         previous = text
         text = re.sub(r"([;,])[\s;,]*(?:[;,])", lambda m: m.group(1), text)
-    return text.strip().lstrip(";,.").rstrip(";,").strip()
+    cleaned = text.strip().lstrip(";,.").rstrip(";,").strip()
+    if allow_leading_and_strip:
+        cleaned = re.sub(r"^and\s+", "", cleaned, flags=re.IGNORECASE).strip()
+    return cleaned
 
 
 def _sanitize_exclude_reason_on_bump(reason: str | None) -> str | None:
@@ -247,7 +255,10 @@ def _sanitize_exclude_reason_on_bump(reason: str | None) -> str | None:
         cleaned = pattern.sub("", cleaned)
     if cleaned == reason:
         return reason
-    return _tidy_exclude_reason(cleaned)
+    return _tidy_exclude_reason(
+        cleaned,
+        allow_leading_and_strip=not reason.lstrip().lower().startswith("and "),
+    )
 
 
 def _apply_bump_to_entry(entry: dict, candidate: BumpCandidate) -> dict:

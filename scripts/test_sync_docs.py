@@ -199,6 +199,15 @@ class SyncDocsTests(unittest.TestCase):
         self.assertEqual(resolved["nu_plugin_dns"], "_(bumped from 4.0.11)_")
         self.assertEqual(resolved["nu_plugin_custom"], "_(workspace member crate)_")
 
+    def test_resolve_pending_notes_skips_bump_note_when_version_unchanged(self):
+        active_entries = [
+            {"name": "nu_plugin_same", "version": "1.2.0", "verified_with": []}
+        ]
+        resolved = self.mod.resolve_pending_notes(
+            active_entries, {"nu_plugin_same": "1.2.0"}, {}, {}
+        )
+        self.assertNotIn("nu_plugin_same", resolved)
+
 
 if __name__ == "__main__":
     unittest.main()

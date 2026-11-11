@@ -185,7 +185,7 @@ jobs:
         run: |
           set -euo pipefail
           STATE=$(gh pr view "$PR_URL" --json state --jq .state 2>/dev/null || echo UNKNOWN)
-          if [ "$STATE" != "OPEN" ]; then
+          if [ "$STATE" = "CLOSED" ] || [ "$STATE" = "MERGED" ]; then
             exit 0
           fi
           CLOSED=false
