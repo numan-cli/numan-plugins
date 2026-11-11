@@ -135,6 +135,7 @@ move to "Currently active" once the build succeeds and `verified_with` is popula
 - `drbrain/nu_plugin_prometheus` @ `v0.14.0` → `nu_plugin_prometheus` 0.14.0 _(bumped from v0.13.0)_
 - `fdncred/nu_plugin_jwalk` @ `v0.30.0` → `nu_plugin_jwalk` 0.30.0 _(bumped from v0.26.0)_
 - `lizclipse/nu_plugin_ulid` @ `v0.25.0` → `nu_plugin_ulid` 0.25.0 _(bumped from v0.23.0)_
+- `idanarye/nu_plugin_skim` @ `v0.32.0` → `nu_plugin_skim` 0.32.0 _(bumped from v0.31.0)_
 
 ## Registry-side follow-up
 
