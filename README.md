@@ -128,7 +128,7 @@ move to "Currently active" once the build succeeds and `verified_with` is popula
 
 - `dead10ck/nu_plugin_dns` @ `v4.0.14` → `nu_plugin_dns` 4.0.14 _(bumped from v4.0.10/Nu 0.113)_
 - `idanarye/nu_plugin_skim` @ `v0.32.0` → `nu_plugin_skim` 0.32.0 _(bumped from 0.31.0)_
-- `Yethal/nu_plugin_hcl` @ `0.116.1` → `nu_plugin_hcl` 0.116.1 _(bumped from 0.114.1)_
+- `Yethal/nu_plugin_hcl` @ `0.117.0` → `nu_plugin_hcl` 0.117.0 _(bumped from 0.116.1)_
 - `drbrain/nu_plugin_prometheus` @ `v0.14.0` → `nu_plugin_prometheus` 0.14.0 _(bumped from v0.13.0)_
 - `Kissaki/nu_plugin_bson` @ `v26.1170.0` → `nu_plugin_bson` 26.1170.0 _(bumped from 26.1160.0)_
 - `fdncred/nu_plugin_jwalk` @ `v0.30.0` → `nu_plugin_jwalk` 0.30.0 _(bumped from v0.26.0)_
