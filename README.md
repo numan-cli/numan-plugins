@@ -93,17 +93,11 @@ The `.github/workflows/daily-upstream-check.yml` workflow runs on a daily schedu
 ## Currently active
 
 - `cptpiepmatz/nu-plugin-highlight` @ `v1.4.17+0.115.1` → `nu_plugin_highlight` 1.4.17
-- `fdncred/nu_plugin_regex` @ `v0.25.0` → `nu_plugin_regex` 0.25.0
 - `FMotalleb/nu_plugin_desktop_notifications` @ `v0.116.0` → `nu_plugin_desktop_notifications` 0.116.0
 - `FMotalleb/nu_plugin_port_extension` @ `v0.116.0` → `nu_plugin_port_extension` 0.116.0
-- `fdncred/nu_plugin_file` @ `v0.28.0` → `nu_plugin_file` 0.28.0
 - `FMotalleb/nu_plugin_image` @ `v0.116.0` → `nu_plugin_image` 0.116.0
-- `fdncred/nu_plugin_emoji` @ `v0.25.0` → `nu_plugin_emoji` 0.25.0
-- `fdncred/nu_plugin_json_path` @ `v0.26.1` → `nu_plugin_json_path` 0.26.1
 - `fdncred/nu_plugin_parquet` @ `v0.26.0` → `nu_plugin_parquet` 0.26.0
 - `fnuttens/nu_plugin_hmac` @ `0.27.0` → `nu_plugin_hmac` 0.27.0
-- `fdncred/nu_plugin_strutils` @ `v0.25.0` → `nu_plugin_strutils` 0.25.0
-- `fdncred/nu_plugin_query_git` @ `v0.26.0` → `nu_plugin_query_git` 0.26.0
 - `rhino-linux/nu_plugin_nutext` @ `0.6.2` → `nu_plugin_nutext` 0.6.2
 - `Euphrasiologist/nu_plugin_plot` @ `commit 5a1ca2a` → `nu_plugin_plot` 0.103.0
 - `Euphrasiologist/nu_plugin_bio` @ `commit 49ab341` → `nu_plugin_bio` 0.104.0
@@ -126,12 +120,18 @@ plugin protocol handshake and corrected after a successful Nu 0.101.0 lifecycle.
 These plugins are in `manifest.json` but have not yet been built by CI. They will
 move to "Currently active" once the build succeeds and `verified_with` is populated.
 
-- `dead10ck/nu_plugin_dns` @ `v4.0.14` → `nu_plugin_dns` 4.0.14 _(bumped from v4.0.10/Nu 0.113)_
+- `fdncred/nu_plugin_regex` @ `v0.26.0` → `nu_plugin_regex` 0.26.0 _(bumped from 0.25.0)_
+- `dead10ck/nu_plugin_dns` @ `v4.0.15` → `nu_plugin_dns` 4.0.15 _(bumped from 4.0.14)_
 - `idanarye/nu_plugin_skim` @ `v0.32.0` → `nu_plugin_skim` 0.32.0 _(bumped from 0.31.0)_
+- `fdncred/nu_plugin_file` @ `v0.29.0` → `nu_plugin_file` 0.29.0 _(bumped from 0.28.0)_
 - `Yethal/nu_plugin_hcl` @ `0.117.0` → `nu_plugin_hcl` 0.117.0 _(bumped from 0.116.1)_
-- `drbrain/nu_plugin_prometheus` @ `v0.14.0` → `nu_plugin_prometheus` 0.14.0 _(bumped from v0.13.0)_
+- `drbrain/nu_plugin_prometheus` @ `v0.15.0` → `nu_plugin_prometheus` 0.15.0 _(bumped from 0.14.0)_
+- `fdncred/nu_plugin_emoji` @ `v0.26.0` → `nu_plugin_emoji` 0.26.0 _(bumped from 0.25.0)_
+- `fdncred/nu_plugin_json_path` @ `v0.27.0` → `nu_plugin_json_path` 0.27.0 _(bumped from 0.26.1)_
 - `Kissaki/nu_plugin_bson` @ `v26.1170.0` → `nu_plugin_bson` 26.1170.0 _(bumped from 26.1160.0)_
-- `fdncred/nu_plugin_jwalk` @ `v0.30.0` → `nu_plugin_jwalk` 0.30.0 _(bumped from v0.26.0)_
+- `fdncred/nu_plugin_jwalk` @ `v0.31.0` → `nu_plugin_jwalk` 0.31.0 _(bumped from 0.30.0)_
+- `fdncred/nu_plugin_strutils` @ `v0.26.0` → `nu_plugin_strutils` 0.26.0 _(bumped from 0.25.0)_
+- `fdncred/nu_plugin_query_git` @ `v0.27.0` → `nu_plugin_query_git` 0.27.0 _(bumped from 0.26.0)_
 - `lizclipse/nu_plugin_ulid` @ `v0.26.0` → `nu_plugin_ulid` 0.26.0 _(bumped from 0.25.0)_
 - `tonythethompson/nu_plugin_qr_maker` @ `v1.2.0` → `nu_plugin_qr_maker` 1.2.0 _(fork: bumped from Nu 0.94)_
 - `tonythethompson/nu_plugin_explore` @ `v0.114.1` → `nu_plugin_explore` 0.114.1 _(fork: bumped from Nu 0.102)_
