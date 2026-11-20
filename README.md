@@ -136,7 +136,7 @@ move to "Currently active" once the build succeeds and `verified_with` is popula
 - `tonythethompson/nu_plugin_qr_maker` @ `v1.2.0` → `nu_plugin_qr_maker` 1.2.0 _(fork: bumped from Nu 0.94)_
 - `tonythethompson/nu_plugin_explore` @ `v0.114.1` → `nu_plugin_explore` 0.114.1 _(fork: bumped from Nu 0.102)_
 - `hulthe/nu_plugin_msgpack` @ `commit 38eb492` → `nu_plugin_msgpack` 0.90.1
-- `galuszkak/nu_plugin_bigquery` @ `v0.5.1` → `nu_plugin_bigquery` 0.5.1
+- `galuszkak/nu_plugin_bigquery` @ `v0.6.0` → `nu_plugin_bigquery` 0.6.0
 - `idanarye/nu_plugin_handlebars` @ `v0.4.0` → `nu_plugin_handlebars` 0.4.0
 - `JosephTLyons/nu_plugin_units` @ `v0.1.9` → `nu_plugin_units` 0.1.9
 - `kaathewisegit/nugins` @ `commit 2fe5276` → `nu_plugin_endecode` 0.114.1
